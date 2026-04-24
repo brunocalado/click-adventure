@@ -1,0 +1,15 @@
+{{!-- Click Adventure tab rendered inside the Tile sheet via AppV2 PARTS --}}
+<div class="tab" data-group="sheet" data-tab="adventure">
+  <div class="form-group">
+    <label>{{localize "CLICK_ADVENTURE.TargetSceneLabel"}}</label>
+    <div class="form-fields">
+      <select name="click-adventure.targetSceneId">
+        <option value="">— {{localize "CLICK_ADVENTURE.NoScene"}} —</option>
+        {{#each scenes}}
+          <option value="{{this.id}}" {{selected this.id ../targetSceneId}}>{{this.name}}</option>
+        {{/each}}
+      </select>
+    </div>
+    <p class="hint">{{localize "CLICK_ADVENTURE.TargetSceneHint"}}</p>
+  </div>
+</div>

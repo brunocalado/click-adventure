@@ -1,0 +1,14 @@
+/* Click Adventure - Module Styles */
+
+.click-adventure .tab {
+  padding: 0.5rem 0;
+}
+
+.click-adventure .form-group select {
+  width: 100%;
+}
+
+/* Visual cursor feedback for tiles that have a target scene configured */
+.click-adventure-hotspot {
+  cursor: pointer;
+}
