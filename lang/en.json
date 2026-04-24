@@ -1,9 +1,0 @@
-{
-  "CLICK_ADVENTURE.SheetLabel": "Click Adventure",
-  "CLICK_ADVENTURE.SheetTitle": "Click Adventure - Tile Settings",
-  "CLICK_ADVENTURE.TabLabel": "Adventure",
-  "CLICK_ADVENTURE.TargetSceneLabel": "Navigate to Scene",
-  "CLICK_ADVENTURE.TargetSceneHint": "When a player clicks this tile, they will be taken to the selected scene. Leave empty to disable navigation.",
-  "CLICK_ADVENTURE.NoScene": "No navigation",
-  "CLICK_ADVENTURE.Save": "Save"
-}
