@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.2] - 2026-04-24
+### Fixed
+- Adventure tab content is now inserted above the sheet footer instead of below the Update Tile button
+- Canvas click handler now uses PIXI v7 FederatedPointerEvent API (direct `event.getLocalPosition`) instead of the removed `event.data` wrapper — this is why tile clicks were not being detected
+- Tile hotspots are only active when the Tokens layer is the current layer, so GM tile editing on the Tiles layer is not intercepted
+- Cursor changes to `pointer` when hovering over a configured hotspot
+- Non-GM users navigate via `scene.view()` (they lack permission for `scene.activate()`)
+
 ## [0.1.1] - 2026-04-24
 ### Fixed
 - Adventure tab now actually renders in the native TileConfig sheet by cloning the structure of existing tab buttons and including the `data-action="tab"` attribute required by AppV2 event delegation

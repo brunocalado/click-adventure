@@ -44,6 +44,8 @@ export function injectAdventureTab(app, root) {
   }
 
   const panelParent = existingPanel.parentElement;
+  const sibling = panelParent.querySelector(`.tab[data-group="${tabGroup}"]:last-of-type`)
+    ?? existingPanel;
 
   const targetSceneId = tileDoc.getFlag("click-adventure", "targetSceneId") ?? "";
 
@@ -70,7 +72,7 @@ export function injectAdventureTab(app, root) {
     </div>
   `;
 
-  panelParent.appendChild(panel);
+  sibling.after(panel);
 
   panel.querySelector(".click-adventure-scene-select").addEventListener("change", async (event) => {
     await tileDoc.setFlag("click-adventure", "targetSceneId", event.target.value);
