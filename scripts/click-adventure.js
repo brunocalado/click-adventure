@@ -15,5 +15,6 @@ Hooks.once("ready", () => {
 
 // Hook: renderTileConfig fires each time the native Tile sheet renders in v14 AppV2
 Hooks.on("renderTileConfig", (app, html) => {
-  injectAdventureTab(app, html);
+  const root = html instanceof HTMLElement ? html : html[0];
+  injectAdventureTab(app, root);
 });

@@ -8,16 +8,16 @@
  * Flags are read/written directly on the TileDocument.
  *
  * @param {foundry.applications.api.DocumentSheetV2} app - The TileConfig application instance
- * @param {HTMLElement} html - The rendered HTML root element
+ * @param {HTMLElement} root - The rendered HTML root element
  */
-export function injectAdventureTab(app, html) {
+export function injectAdventureTab(app, root) {
   const tileDoc = app.document;
 
   // Avoid double-injection if hook fires multiple times on same render
-  if (html.querySelector(".click-adventure-tab-content")) return;
+  if (root.querySelector(".click-adventure-tab-content")) return;
 
   // --- 1. Inject tab button into the nav ---
-  const nav = html.querySelector(".tabs[data-group='sheet']");
+  const nav = root.querySelector(".tabs[data-group='sheet']");
   if (!nav) return;
 
   const tabButton = document.createElement("a");
@@ -28,7 +28,7 @@ export function injectAdventureTab(app, html) {
   nav.appendChild(tabButton);
 
   // --- 2. Inject tab content panel ---
-  const tabsContainer = html.querySelector(".tab[data-group='sheet']")?.parentElement;
+  const tabsContainer = root.querySelector(".tab[data-group='sheet']")?.parentElement;
   if (!tabsContainer) return;
 
   const targetSceneId = tileDoc.getFlag("click-adventure", "targetSceneId") ?? "";
@@ -64,7 +64,6 @@ export function injectAdventureTab(app, html) {
     await tileDoc.setFlag("click-adventure", "targetSceneId", event.target.value);
   });
 
-  // --- 4. Wire tab switching via the app's existing Tabs instance ---
-  // The native TileConfig manages tab activation; our tab button uses the same
-  // data attributes so it integrates automatically with the existing handler.
+  // The native Tabs controller on TileConfig will pick up our new tab/button
+  // automatically because we reused the existing data-group and data-tab values.
 }
