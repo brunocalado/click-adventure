@@ -8,25 +8,33 @@
  * PIXI v7 (used by Foundry v14) exposes the FederatedPointerEvent directly —
  * there is no longer an `event.data` wrapper; `event.getLocalPosition(target)`
  * returns coordinates in the target's local space.
+ *
+ * Timing note: `registerTileClickHandler` is called from the `ready` hook,
+ * which fires AFTER `canvasReady`. Waiting for `canvasReady` again would never
+ * trigger. We therefore attach immediately if canvas is already ready, and also
+ * subscribe to future `canvasReady` events for subsequent scene loads.
  */
 export function registerTileClickHandler() {
-  Hooks.on("canvasReady", () => {
+  function attachListeners() {
     if (!canvas?.stage) return;
     canvas.stage.off("pointermove", _onCanvasPointerMove);
     canvas.stage.off("pointerdown", _onCanvasPointerDown);
     canvas.stage.on("pointermove", _onCanvasPointerMove);
     canvas.stage.on("pointerdown", _onCanvasPointerDown);
-  });
+  }
 
-  Hooks.on("canvasTearDown", () => {
-    _resetCursor();
-  });
+  // Subscribe for future scene loads.
+  Hooks.on("canvasReady", attachListeners);
+
+  // Attach immediately — canvas is already ready when `ready` fires.
+  attachListeners();
+
+  Hooks.on("canvasTearDown", _resetCursor);
 }
 
 /**
- * The module should only intercept clicks when the player is on the Tokens
- * layer — any other layer (Tiles, Walls, Lighting, etc.) uses the native
- * interaction model.
+ * Only intercept clicks while the Tokens layer is active.
+ * Any other layer (Tiles, Walls, Lighting…) uses native Foundry interaction.
  */
 function _isPlayLayerActive() {
   return canvas?.activeLayer === canvas?.tokens;
@@ -38,8 +46,7 @@ function _onCanvasPointerMove(event) {
     return;
   }
   const point = event.getLocalPosition(canvas.tiles);
-  const tile = _getAdventureTileAt(point);
-  _setCursor(tile ? "pointer" : "");
+  _setCursor(_getAdventureTileAt(point) ? "pointer" : "");
 }
 
 function _onCanvasPointerDown(event) {
@@ -56,8 +63,7 @@ function _onCanvasPointerDown(event) {
 
 /**
  * Find the topmost Click Adventure tile under a canvas-local point.
- * Iterates in reverse so the visually-topmost tile wins, and skips hidden
- * tiles so GM-only scenery doesn't capture player clicks.
+ * Skips hidden tiles for non-GM users so GM-only scenery is not interactive.
  */
 function _getAdventureTileAt(point) {
   const tiles = canvas.tiles?.placeables ?? [];
@@ -84,8 +90,8 @@ function _resetCursor() {
 }
 
 /**
- * Navigate to the tile's target scene. GMs activate the scene for everyone;
- * non-GMs can only view it for themselves (scene.activate requires permission).
+ * Navigate to the tile's target scene. GMs activate for everyone;
+ * players view the scene for themselves (scene.activate requires GM permission).
  */
 async function _handleTileClick(tileDoc) {
   const targetSceneId = tileDoc.getFlag("click-adventure", "targetSceneId");

@@ -1,9 +1,11 @@
 # Changelog
 
-## [0.1.2] - 2026-04-24
+## [0.1.3] - 2026-04-24
 ### Fixed
+- Adventure tab panel now visible immediately on open when Adventure was the last active tab; previously the combobox was hidden until switching tabs and back, because `renderTileConfig` fires after AppV2's tab controller already ran (without finding our elements). Active state is now applied manually post-injection.
+- Canvas click handler listeners were never registered: `registerTileClickHandler` runs inside the `ready` hook which fires after `canvasReady`, so the `canvasReady` subscription never triggered. Listeners are now attached immediately (canvas is already ready at that point) and also via the hook for subsequent scene loads.
 - Adventure tab content is now inserted above the sheet footer instead of below the Update Tile button
-- Canvas click handler now uses PIXI v7 FederatedPointerEvent API (direct `event.getLocalPosition`) instead of the removed `event.data` wrapper — this is why tile clicks were not being detected
+- Canvas click handler now uses PIXI v7 FederatedPointerEvent API (direct `event.getLocalPosition`) instead of the removed `event.data` wrapper
 - Tile hotspots are only active when the Tokens layer is the current layer, so GM tile editing on the Tiles layer is not intercepted
 - Cursor changes to `pointer` when hovering over a configured hotspot
 - Non-GM users navigate via `scene.view()` (they lack permission for `scene.activate()`)

@@ -7,6 +7,12 @@
  * elements carrying data-action="tab", so new buttons must carry that attribute
  * to participate in the native tab controller.
  *
+ * Important: the renderTileConfig hook fires AFTER the AppV2 tab controller has
+ * already run its initial activation pass. If the last active tab was
+ * "click-adventure" (e.g. on a re-render triggered by setFlag), the controller
+ * found nothing and fell back silently. We therefore apply the active state
+ * manually after injection when needed.
+ *
  * @param {foundry.applications.api.DocumentSheetV2} app - The TileConfig application
  * @param {HTMLElement} root - The rendered HTML root element
  */
@@ -25,6 +31,7 @@ export function injectAdventureTab(app, root) {
   const nav = existingTabButton.parentElement;
   const tabGroup = existingTabButton.dataset.group ?? "sheet";
 
+  // --- Tab button ---
   const tabButton = document.createElement(existingTabButton.tagName.toLowerCase());
   for (const cls of existingTabButton.classList) {
     if (cls !== "active") tabButton.classList.add(cls);
@@ -35,6 +42,7 @@ export function injectAdventureTab(app, root) {
   tabButton.innerHTML = `<i class="fa-solid fa-map"></i> Adventure`;
   nav.appendChild(tabButton);
 
+  // --- Tab content panel ---
   const existingPanel = root.querySelector(`.tab[data-group="${tabGroup}"]`)
     ?? root.querySelector('section.tab[data-tab]')
     ?? root.querySelector('div.tab[data-tab]');
@@ -73,6 +81,17 @@ export function injectAdventureTab(app, root) {
   `;
 
   sibling.after(panel);
+
+  // If "click-adventure" is (or should be) the current tab, the native tab
+  // controller has already run without finding our elements. Apply active state
+  // manually so the panel is visible immediately without requiring a tab switch.
+  const currentTab = app.tabGroups?.[tabGroup];
+  if (currentTab === "click-adventure") {
+    nav.querySelectorAll(`[data-group="${tabGroup}"][data-tab]`)
+      .forEach(el => el.classList.toggle("active", el.dataset.tab === "click-adventure"));
+    panelParent.querySelectorAll(`.tab[data-group="${tabGroup}"]`)
+      .forEach(el => el.classList.toggle("active", el.dataset.tab === "click-adventure"));
+  }
 
   panel.querySelector(".click-adventure-scene-select").addEventListener("change", async (event) => {
     await tileDoc.setFlag("click-adventure", "targetSceneId", event.target.value);
