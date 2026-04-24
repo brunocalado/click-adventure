@@ -1,7 +1,7 @@
 /**
  * TileAdventureSheet
  * Extends DocumentSheetV2 to inject a Click Adventure tab into the Tile configuration sheet.
- * Triggered by: renderTileConfig (AppV2 lifecycle via _onRender)
+ * Triggered by: AppV2 render pipeline via _prepareContext / _preparePartContext
  */
 export class TileAdventureSheet extends foundry.applications.api.DocumentSheetV2 {
   /** @override */
@@ -9,7 +9,7 @@ export class TileAdventureSheet extends foundry.applications.api.DocumentSheetV2
     id: "click-adventure-tile-sheet",
     classes: ["click-adventure", "tile-sheet"],
     window: {
-      title: "CLICK_ADVENTURE.SheetTitle"
+      title: "Click Adventure - Tile Settings"
     },
     position: {
       width: 480
@@ -63,12 +63,12 @@ export class TileAdventureSheet extends foundry.applications.api.DocumentSheetV2
         id: "adventure",
         group: "sheet",
         icon: "fa-solid fa-map",
-        label: "CLICK_ADVENTURE.TabLabel"
+        label: "Adventure"
       }
     ];
 
     context.buttons = [
-      { type: "submit", icon: "fa-solid fa-floppy-disk", label: "CLICK_ADVENTURE.Save" }
+      { type: "submit", icon: "fa-solid fa-floppy-disk", label: "Save" }
     ];
 
     return context;

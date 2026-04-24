@@ -13,19 +13,11 @@
   "styles": [
     "styles/click-adventure.css"
   ],
-  "languages": [
-    {
-      "lang": "en",
-      "name": "English",
-      "path": "lang/en.json"
-    }
-  ],
   "authors": [
     {
       "name": "Mestre Digital"
     }
   ],
-  
   "url": "https://github.com/brunocalado/click-adventure",
   "manifest": "https://raw.githubusercontent.com/brunocalado/click-adventure/main/module.json"
 }

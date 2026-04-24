@@ -6,4 +6,7 @@
 - `TileAdventureSheet` extending `DocumentSheetV2` with a dedicated Adventure tab
 - Scene selector combobox in Tile configuration to assign a navigation target
 - Canvas pointer handler to detect player clicks on configured tiles and activate the target scene
-- English localization strings
+
+### Removed
+- i18n / localization support; all UI strings are now hardcoded in English
+- `lang/en.json` language file
