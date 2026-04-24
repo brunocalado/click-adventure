@@ -1,49 +1,62 @@
 /**
  * injectAdventureTab
- * Injects a Click Adventure tab into the native TileConfig sheet.
- * Triggered by: renderTileConfig Hook (AppV2 lifecycle, fires after each render)
+ * Injects a Click Adventure tab into the native TileConfig sheet (AppV2).
  *
- * Strategy: locate the tab navigation list and tab content area rendered by the
- * native sheet, then append our tab button and content panel using vanilla DOM.
- * Flags are read/written directly on the TileDocument.
+ * The v14 TileConfig renders tabs via the generic tab-navigation template under
+ * tab group "sheet". AppV2 wires tab activation through event delegation on
+ * elements carrying data-action="tab", so new buttons must carry that attribute
+ * to participate in the native tab controller.
  *
- * @param {foundry.applications.api.DocumentSheetV2} app - The TileConfig application instance
+ * @param {foundry.applications.api.DocumentSheetV2} app - The TileConfig application
  * @param {HTMLElement} root - The rendered HTML root element
  */
 export function injectAdventureTab(app, root) {
   const tileDoc = app.document;
 
-  // Avoid double-injection if hook fires multiple times on same render
-  if (root.querySelector(".click-adventure-tab-content")) return;
+  if (root.querySelector('[data-tab="click-adventure"]')) return;
 
-  // --- 1. Inject tab button into the nav ---
-  const nav = root.querySelector(".tabs[data-group='sheet']");
-  if (!nav) return;
+  const existingTabButton = root.querySelector('nav [data-action="tab"][data-tab]')
+    ?? root.querySelector('nav [data-tab][data-group]');
+  if (!existingTabButton) {
+    console.warn("Click Adventure | Could not locate tab navigation in TileConfig");
+    return;
+  }
 
-  const tabButton = document.createElement("a");
-  tabButton.classList.add("item");
+  const nav = existingTabButton.parentElement;
+  const tabGroup = existingTabButton.dataset.group ?? "sheet";
+
+  const tabButton = document.createElement(existingTabButton.tagName.toLowerCase());
+  for (const cls of existingTabButton.classList) {
+    if (cls !== "active") tabButton.classList.add(cls);
+  }
+  tabButton.dataset.action = "tab";
+  tabButton.dataset.group = tabGroup;
   tabButton.dataset.tab = "click-adventure";
-  tabButton.dataset.group = "sheet";
   tabButton.innerHTML = `<i class="fa-solid fa-map"></i> Adventure`;
   nav.appendChild(tabButton);
 
-  // --- 2. Inject tab content panel ---
-  const tabsContainer = root.querySelector(".tab[data-group='sheet']")?.parentElement;
-  if (!tabsContainer) return;
+  const existingPanel = root.querySelector(`.tab[data-group="${tabGroup}"]`)
+    ?? root.querySelector('section.tab[data-tab]')
+    ?? root.querySelector('div.tab[data-tab]');
+  if (!existingPanel) {
+    console.warn("Click Adventure | Could not locate tab content container in TileConfig");
+    return;
+  }
+
+  const panelParent = existingPanel.parentElement;
 
   const targetSceneId = tileDoc.getFlag("click-adventure", "targetSceneId") ?? "";
 
-  // Build scene options HTML
   const sceneOptions = game.scenes
     .map(s => ({ id: s.id, name: s.name }))
     .sort((a, b) => a.name.localeCompare(b.name))
     .map(s => `<option value="${s.id}" ${s.id === targetSceneId ? "selected" : ""}>${s.name}</option>`)
     .join("");
 
-  const panel = document.createElement("div");
+  const panel = document.createElement(existingPanel.tagName.toLowerCase());
   panel.classList.add("tab", "click-adventure-tab-content");
+  panel.dataset.group = tabGroup;
   panel.dataset.tab = "click-adventure";
-  panel.dataset.group = "sheet";
   panel.innerHTML = `
     <div class="form-group">
       <label>Navigate to Scene</label>
@@ -57,13 +70,9 @@ export function injectAdventureTab(app, root) {
     </div>
   `;
 
-  tabsContainer.appendChild(panel);
+  panelParent.appendChild(panel);
 
-  // --- 3. Save flag when the select changes ---
   panel.querySelector(".click-adventure-scene-select").addEventListener("change", async (event) => {
     await tileDoc.setFlag("click-adventure", "targetSceneId", event.target.value);
   });
-
-  // The native Tabs controller on TileConfig will pick up our new tab/button
-  // automatically because we reused the existing data-group and data-tab values.
 }

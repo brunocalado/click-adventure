@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.1] - 2026-04-24
+### Fixed
+- Adventure tab now actually renders in the native TileConfig sheet by cloning the structure of existing tab buttons and including the `data-action="tab"` attribute required by AppV2 event delegation
+- Tab content panel element type is matched to the sheet's existing panels (e.g. `<section>` vs `<div>`) so native tab activation toggles visibility correctly
+
 ## [0.1.0] - 2026-04-24
 ### Added
 - Initial module structure targeting Foundry VTT v14
