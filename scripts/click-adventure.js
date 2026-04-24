@@ -13,8 +13,18 @@ Hooks.once("ready", () => {
   registerTileClickHandler();
 });
 
-// Hook: renderTileConfig fires each time the native Tile sheet renders in v14 AppV2
-Hooks.on("renderTileConfig", (app, html) => {
+/**
+ * Hook: renderTileConfig / renderTileConfigV2
+ * V14 uses ApplicationV2 render hooks, but the concrete class name for the
+ * tile configuration sheet may differ between core versions. To be robust,
+ * listen to both possible hook names and normalize the HTML argument to an
+ * HTMLElement before injecting our tab.
+ */
+function handleRenderTileConfig(app, html) {
   const root = html instanceof HTMLElement ? html : html[0];
+  if (!root) return;
   injectAdventureTab(app, root);
-});
+}
+
+Hooks.on("renderTileConfig", handleRenderTileConfig);
+Hooks.on("renderTileConfigV2", handleRenderTileConfig);
