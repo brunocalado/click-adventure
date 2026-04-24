@@ -2,7 +2,7 @@
   "id": "click-adventure",
   "title": "Click Adventure",
   "description": "Point-and-click adventure game module for Foundry VTT. Allows tiles to be configured as scene navigation hotspots.",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "compatibility": {
     "minimum": "14",
     "verified": "14"
@@ -22,9 +22,10 @@
   ],
   "authors": [
     {
-      "name": "brunocalado"
+      "name": "Mestre Digital"
     }
   ],
+  
   "url": "https://github.com/brunocalado/click-adventure",
   "manifest": "https://raw.githubusercontent.com/brunocalado/click-adventure/main/module.json"
 }
