@@ -17,16 +17,36 @@
 }
 
 /* ----------------------------------------------------------
+   Manager layout (toolbar + workspace column)
+   ---------------------------------------------------------- */
+
+.ca-manager {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.ca-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: #1a1a2e;
+  border-bottom: 1px solid #333;
+  flex-shrink: 0;
+}
+
+/* ----------------------------------------------------------
    Workspace (the interactive canvas)
    ---------------------------------------------------------- */
 
 .ca-workspace {
   position: relative;
   flex: 1;
-  width: 100%;
-  height: 100%;
-  background: #1a1a2e;
   overflow: hidden;
+  background-color: #0f1020;
+  background-image: radial-gradient(circle, #3a3a5a 1px, transparent 1px);
+  background-size: 28px 28px;
   cursor: default;
 }
 
@@ -155,30 +175,26 @@
    ---------------------------------------------------------- */
 
 .ca-add-node {
-  position: absolute;
-  bottom: 14px;
-  right: 14px;
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background: #0f3460;
-  color: #e2e8f0;
-  border: 2px solid #4a6fa5;
-  font-size: 22px;
+  width: 32px;
+  height: 32px;
+  background: #2a2a3e;
+  border: 1px solid #555;
+  border-radius: 4px;
+  color: #ccc;
+  font-size: 20px;
   line-height: 1;
   cursor: pointer;
-  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  transition: background 0.15s, border-color 0.15s;
   padding: 0;
 }
 
 .ca-add-node:hover {
-  background: #7faaff;
-  border-color: #7faaff;
-  color: #1a1a2e;
+  background: #3a3a5e;
+  border-color: #888;
+  color: #fff;
 }
 
 /* ----------------------------------------------------------
