@@ -1,6 +1,7 @@
 /**
  * Per-node configuration panel. Opened via double-click on a node in ManagerApp.
  * Allows the user to edit the node label and choose a background image via FilePicker.
+ * Changes to label and image are staged locally and committed together on Save.
  *
  * Lifecycle hook: renderNodeConfigApp
  */
@@ -33,6 +34,7 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
   constructor(nodeId, options = {}) {
     super(options);
     this.nodeId = nodeId;
+    this._pendingImageSrc = null;
   }
 
   /** @returns {{ nodes: object[], links: object[] }} */
@@ -58,7 +60,7 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   /**
-   * Wires the FilePicker button and label save button.
+   * Wires the FilePicker button, unified Save, and Delete button.
    * Placed in _onRender (not _attachListeners) because HandlebarsApplicationMixin
    * recreates the part DOM on each render, making _onRender the reliable hook.
    * Triggered during the ApplicationV2 _onRender lifecycle stage.
@@ -71,38 +73,91 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     super._onRender(context, options);
     const html = this.element;
 
+    // FilePicker — stores picked path in a temporary instance variable
+    // until Save is clicked, so partial edits don't auto-commit
     html.querySelector("[data-action='pick-image']")?.addEventListener("click", () => {
-      const FilePickerClass = foundry.applications.apps.FilePicker.implementation ?? foundry.applications.apps.FilePicker;
+      const FilePickerClass = foundry.applications.apps.FilePicker.implementation
+        ?? foundry.applications.apps.FilePicker;
       new FilePickerClass({
         type: "image",
-        callback: async (path) => {
-          await this._saveField("imageSrc", path);
+        callback: (path) => {
+          // Store temporarily; committed on Save
+          this._pendingImageSrc = path;
+          // Show a preview immediately without saving
+          const preview = html.querySelector(".ca-node-preview");
+          if (preview) {
+            preview.innerHTML = `<img src="${path}" class="ca-node-preview-image" alt="preview"/>`;
+          }
         }
       }).browse();
     });
 
-    html.querySelector("[data-action='save-label']")?.addEventListener("click", async () => {
+    // Unified Save — commits label + any pending image change
+    html.querySelector("[data-action='save']")?.addEventListener("click", async () => {
       const input = html.querySelector(".ca-node-label-input");
-      await this._saveField("label", input?.value.trim() || "Scene");
+      const label = input?.value.trim() || "Scene";
+      await this._saveAll(label);
+    });
+
+    // Delete — removes this node and all its links from the graph
+    html.querySelector("[data-action='delete-node']")?.addEventListener("click", async () => {
+      await this._deleteNode();
     });
   }
 
   /**
-   * Persists a single node field update and refreshes both NodeConfigApp and ManagerApp.
+   * Persists the node's label and any pending imageSrc change in a single settings write.
+   * Refreshes ManagerApp and closes this panel.
    *
-   * @param {string} field - Node property name to update.
-   * @param {string} value - New value.
+   * @param {string} label
    * @returns {Promise<void>}
    */
-  async _saveField(field, value) {
+  async _saveAll(label) {
     const { nodes: rawNodes, links } = this._graphData();
-    const nodes = rawNodes.map(n => n.id === this.nodeId ? { ...n, [field]: value } : n);
+    const nodes = rawNodes.map(n => {
+      if (n.id !== this.nodeId) return n;
+      return {
+        ...n,
+        label,
+        imageSrc: this._pendingImageSrc ?? n.imageSrc
+      };
+    });
     await game.settings.set("click-adventure", "graph", { nodes, links });
+    this._pendingImageSrc = null;
 
-    // Refresh the manager without rebuilding its document listeners
     if (globalThis.ClickAdventure?._manager?.rendered) {
       globalThis.ClickAdventure._manager.render({ force: true });
     }
-    this.render({ force: true });
+    this.close();
+  }
+
+  /**
+   * Deletes this node and all associated links after user confirmation.
+   * Refreshes ManagerApp after deletion.
+   *
+   * @returns {Promise<void>}
+   */
+  async _deleteNode() {
+    const confirmed = await foundry.applications.api.DialogV2.confirm({
+      window: { title: "Delete Node" },
+      content: "<p>Delete this node and all its connections?</p>",
+      rejectClose: false
+    });
+    if (!confirmed) return;
+
+    const { nodes, links } = this._graphData();
+    const filteredNodes = nodes.filter(n => n.id !== this.nodeId);
+    const filteredLinks = links.filter(l =>
+      l.sourceId !== this.nodeId && l.targetId !== this.nodeId
+    );
+    await game.settings.set("click-adventure", "graph", {
+      nodes: filteredNodes,
+      links: filteredLinks
+    });
+
+    if (globalThis.ClickAdventure?._manager?.rendered) {
+      globalThis.ClickAdventure._manager.render({ force: true });
+    }
+    this.close();
   }
 }

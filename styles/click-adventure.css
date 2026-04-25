@@ -276,3 +276,34 @@
   white-space: nowrap;
   color: #94a3b8;
 }
+
+.ca-node-config-actions {
+  display: flex;
+  gap: 8px;
+  padding: 12px 0 4px;
+  justify-content: flex-end;
+}
+
+.ca-btn-save {
+  padding: 6px 18px;
+  background: #2a4a7a;
+  border: 1px solid #4a6aaa;
+  border-radius: 4px;
+  color: #dde;
+  cursor: pointer;
+}
+.ca-btn-save:hover {
+  background: #3a5a9a;
+}
+
+.ca-btn-delete {
+  padding: 6px 18px;
+  background: #5a1a1a;
+  border: 1px solid #aa3a3a;
+  border-radius: 4px;
+  color: #ecc;
+  cursor: pointer;
+}
+.ca-btn-delete:hover {
+  background: #7a2a2a;
+}
