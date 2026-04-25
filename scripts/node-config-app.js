@@ -35,6 +35,12 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this.nodeId = nodeId;
   }
 
+  /** @returns {{ nodes: object[], links: object[] }} */
+  _graphData() {
+    const graph = game.settings.get("click-adventure", "graph");
+    return typeof graph?.toObject === "function" ? graph.toObject() : (graph ?? { nodes: [], links: [] });
+  }
+
   /**
    * Fetches the node from the setting and supplies it to the template.
    * Triggered during the ApplicationV2 _prepareContext lifecycle stage.
@@ -45,24 +51,29 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
    */
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
-    const graph = game.settings.get("click-adventure", "graph");
-    context.node = graph.nodes.find(n => n.id === this.nodeId)
+    const { nodes } = this._graphData();
+    context.node = nodes.find(n => n.id === this.nodeId)
       ?? { id: this.nodeId, label: "Scene", imageSrc: "", x: 0, y: 0 };
     return context;
   }
 
   /**
    * Wires the FilePicker button and label save button.
-   * Triggered during the ApplicationV2 _attachListeners lifecycle stage.
+   * Placed in _onRender (not _attachListeners) because HandlebarsApplicationMixin
+   * recreates the part DOM on each render, making _onRender the reliable hook.
+   * Triggered during the ApplicationV2 _onRender lifecycle stage.
    *
    * @override
+   * @param {object} context
+   * @param {object} options
    */
-  _attachListeners() {
-    super._attachListeners();
+  _onRender(context, options) {
+    super._onRender(context, options);
     const html = this.element;
 
     html.querySelector("[data-action='pick-image']")?.addEventListener("click", () => {
-      new FilePicker({
+      const FilePickerClass = foundry.applications.apps.FilePicker.implementation ?? foundry.applications.apps.FilePicker;
+      new FilePickerClass({
         type: "image",
         callback: async (path) => {
           await this._saveField("imageSrc", path);
@@ -84,9 +95,9 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @returns {Promise<void>}
    */
   async _saveField(field, value) {
-    const graph = game.settings.get("click-adventure", "graph");
-    const nodes = graph.nodes.map(n => n.id === this.nodeId ? { ...n, [field]: value } : n);
-    await game.settings.set("click-adventure", "graph", { nodes, links: graph.links });
+    const { nodes: rawNodes, links } = this._graphData();
+    const nodes = rawNodes.map(n => n.id === this.nodeId ? { ...n, [field]: value } : n);
+    await game.settings.set("click-adventure", "graph", { nodes, links });
 
     // Refresh the manager without rebuilding its document listeners
     if (globalThis.ClickAdventure?._manager?.rendered) {

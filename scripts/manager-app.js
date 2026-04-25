@@ -57,6 +57,20 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   // ---------------------------------------------------------------------------
+  // Internal helpers
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Returns the graph as a plain POJO regardless of whether the setting returns
+   * a DataModel instance (normal v14 behaviour) or a raw object (first-run default).
+   * @returns {{ nodes: object[], links: object[] }}
+   */
+  _graphData() {
+    const graph = game.settings.get("click-adventure", "graph");
+    return typeof graph?.toObject === "function" ? graph.toObject() : (graph ?? { nodes: [], links: [] });
+  }
+
+  // ---------------------------------------------------------------------------
   // Lifecycle
   // ---------------------------------------------------------------------------
 
@@ -70,9 +84,9 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
    */
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
-    const graph = game.settings.get("click-adventure", "graph");
-    context.nodes = graph.nodes;
-    context.links = graph.links;
+    const { nodes, links } = this._graphData();
+    context.nodes = nodes;
+    context.links = links;
     return context;
   }
 
@@ -92,7 +106,9 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   /**
-   * Redraws SVG links after every render (new DOM means stale line elements).
+   * Redraws SVG links and wires all element-level listeners after every render.
+   * HandlebarsApplicationMixin destroys and recreates part DOM on each render,
+   * so there is no risk of duplicate listeners on the new elements.
    * Triggered during the ApplicationV2 _onRender lifecycle stage.
    *
    * @override
@@ -101,6 +117,20 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
    */
   _onRender(context, options) {
     super._onRender(context, options);
+
+    const html = this.element;
+
+    html.querySelectorAll(".ca-node").forEach(nodeEl => {
+      nodeEl.addEventListener("mousedown", e => this._onNodeMouseDown(e, nodeEl));
+      nodeEl.addEventListener("dblclick", e => this._onNodeDblClick(e, nodeEl));
+    });
+
+    html.querySelectorAll(".ca-anchor").forEach(anchor => {
+      anchor.addEventListener("mousedown", e => this._onAnchorMouseDown(e, anchor));
+    });
+
+    html.querySelector(".ca-add-node")?.addEventListener("click", () => this._onAddNode());
+
     this._renderLinks();
   }
 
@@ -118,28 +148,6 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this._dragState = null;
     this._linkState = null;
     await super._onClose(options);
-  }
-
-  /**
-   * Attaches element-level event listeners after each render.
-   * Called automatically by the ApplicationV2 framework after each render cycle.
-   *
-   * @override
-   */
-  _attachListeners() {
-    super._attachListeners();
-    const html = this.element;
-
-    html.querySelectorAll(".ca-node").forEach(nodeEl => {
-      nodeEl.addEventListener("mousedown", e => this._onNodeMouseDown(e, nodeEl));
-      nodeEl.addEventListener("dblclick", e => this._onNodeDblClick(e, nodeEl));
-    });
-
-    html.querySelectorAll(".ca-anchor").forEach(anchor => {
-      anchor.addEventListener("mousedown", e => this._onAnchorMouseDown(e, anchor));
-    });
-
-    html.querySelector(".ca-add-node")?.addEventListener("click", () => this._onAddNode());
   }
 
   // ---------------------------------------------------------------------------
@@ -269,7 +277,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @returns {Promise<void>}
    */
   async _onAddNode() {
-    const graph = game.settings.get("click-adventure", "graph");
+    const { nodes, links } = this._graphData();
     const workspace = this.element?.querySelector(".ca-workspace");
     const w = workspace?.clientWidth  ?? 600;
     const h = workspace?.clientHeight ?? 400;
@@ -283,8 +291,8 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     };
 
     await game.settings.set("click-adventure", "graph", {
-      nodes: [...graph.nodes, newNode],
-      links: graph.links
+      nodes: [...nodes, newNode],
+      links
     });
     this.render({ force: true });
   }
@@ -301,9 +309,9 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @returns {Promise<void>}
    */
   async _saveNodePosition(nodeId, x, y) {
-    const graph = game.settings.get("click-adventure", "graph");
-    const nodes = graph.nodes.map(n => n.id === nodeId ? { ...n, x, y } : n);
-    await game.settings.set("click-adventure", "graph", { nodes, links: graph.links });
+    const { nodes: rawNodes, links } = this._graphData();
+    const nodes = rawNodes.map(n => n.id === nodeId ? { ...n, x, y } : n);
+    await game.settings.set("click-adventure", "graph", { nodes, links });
     this._renderLinks();
   }
 
@@ -314,13 +322,13 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @returns {Promise<void>}
    */
   async _saveLink(sourceId, targetId) {
-    const graph = game.settings.get("click-adventure", "graph");
-    const duplicate = graph.links.some(l => l.sourceId === sourceId && l.targetId === targetId);
+    const { nodes, links } = this._graphData();
+    const duplicate = links.some(l => l.sourceId === sourceId && l.targetId === targetId);
     if (duplicate) return;
 
     await game.settings.set("click-adventure", "graph", {
-      nodes: graph.nodes,
-      links: [...graph.links, { sourceId, targetId }]
+      nodes,
+      links: [...links, { sourceId, targetId }]
     });
     this.render({ force: true });
   }
@@ -341,12 +349,12 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const svg = workspace.querySelector(".ca-links-layer");
     if (!svg) return;
 
-    const graph = game.settings.get("click-adventure", "graph");
+    const { links } = this._graphData();
 
     // Remove only permanent links; leave the transient .ca-temp-link intact
     svg.querySelectorAll(".ca-link").forEach(el => el.remove());
 
-    for (const link of graph.links) {
+    for (const link of links) {
       const srcEl = workspace.querySelector(`[data-node-id="${link.sourceId}"]`);
       const tgtEl = workspace.querySelector(`[data-node-id="${link.targetId}"]`);
       if (!srcEl || !tgtEl) continue;
