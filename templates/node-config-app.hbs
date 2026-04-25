@@ -1,0 +1,21 @@
+<div class="ca-node-config">
+  <div class="ca-node-preview">
+    {{#if node.imageSrc}}
+    <img src="{{node.imageSrc}}" alt="{{node.label}}" class="ca-node-preview-image"/>
+    {{else}}
+    <div class="ca-node-preview-empty">No image</div>
+    {{/if}}
+  </div>
+
+  <div class="ca-node-config-row">
+    <label>Label</label>
+    <input type="text" class="ca-node-label-input" value="{{node.label}}"/>
+    <button type="button" data-action="save-label">Save</button>
+  </div>
+
+  <div class="ca-node-config-row">
+    <label>Image</label>
+    <span class="ca-node-image-path">{{node.imageSrc}}</span>
+    <button type="button" data-action="pick-image">Browse</button>
+  </div>
+</div>

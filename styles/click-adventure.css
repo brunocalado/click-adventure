@@ -1,0 +1,247 @@
+/* ============================================================
+   Click Adventure — Scene Graph UI
+   ============================================================ */
+
+/* ----------------------------------------------------------
+   Manager window shell
+   ---------------------------------------------------------- */
+
+.click-adventure.manager .window-content {
+  padding: 0;
+  overflow: hidden;
+  /* Flex-fill so .ca-workspace can use height: 100% */
+  flex: 1;
+  height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ----------------------------------------------------------
+   Workspace (the interactive canvas)
+   ---------------------------------------------------------- */
+
+.ca-workspace {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  background: #1a1a2e;
+  overflow: hidden;
+  cursor: default;
+}
+
+/* ----------------------------------------------------------
+   SVG link layer
+   ---------------------------------------------------------- */
+
+.ca-links-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.ca-link {
+  stroke: #7faaff;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.ca-temp-link {
+  stroke: #ffaa44;
+  stroke-width: 2;
+  stroke-dasharray: 6 3;
+  stroke-linecap: round;
+}
+
+/* ----------------------------------------------------------
+   Nodes
+   ---------------------------------------------------------- */
+
+.ca-node {
+  position: absolute;
+  width: 120px;
+  height: 100px;
+  background: #16213e;
+  border: 2px solid #0f3460;
+  border-radius: 8px;
+  cursor: grab;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.ca-node:hover {
+  border-color: #7faaff;
+  box-shadow: 0 0 0 2px rgba(127, 170, 255, 0.3), 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.ca-node:active {
+  cursor: grabbing;
+}
+
+.ca-node-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  /* Body should not steal mouse events from anchors */
+  pointer-events: none;
+}
+
+.ca-node-image {
+  width: 60px;
+  height: 60px;
+  background-size: cover;
+  background-position: center;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.ca-node-image--empty {
+  background-color: #0f3460;
+  border: 1px dashed #4a6fa5;
+}
+
+.ca-node-label {
+  color: #e2e8f0;
+  font-size: 11px;
+  text-align: center;
+  max-width: 108px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ----------------------------------------------------------
+   Anchor dots
+   ---------------------------------------------------------- */
+
+.ca-anchor {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: #4a6fa5;
+  border: 2px solid #1a1a2e;
+  border-radius: 50%;
+  cursor: crosshair;
+  z-index: 3;
+  pointer-events: all;
+  transition: background 0.15s, transform 0.15s;
+}
+
+.ca-anchor:hover {
+  background: #ffaa44;
+}
+
+/* Positions — offset by half the dot size (6px) so the center sits on the node edge */
+.ca-anchor-top    { top: -7px;  left: 50%; transform: translateX(-50%); }
+.ca-anchor-right  { right: -7px; top: 50%; transform: translateY(-50%); }
+.ca-anchor-bottom { bottom: -7px; left: 50%; transform: translateX(-50%); }
+.ca-anchor-left   { left: -7px;  top: 50%; transform: translateY(-50%); }
+
+/* Scale on hover — must preserve the existing translate */
+.ca-anchor-top:hover    { transform: translateX(-50%) scale(1.4); }
+.ca-anchor-right:hover  { transform: translateY(-50%) scale(1.4); }
+.ca-anchor-bottom:hover { transform: translateX(-50%) scale(1.4); }
+.ca-anchor-left:hover   { transform: translateY(-50%) scale(1.4); }
+
+/* ----------------------------------------------------------
+   Add-node button
+   ---------------------------------------------------------- */
+
+.ca-add-node {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #0f3460;
+  color: #e2e8f0;
+  border: 2px solid #4a6fa5;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  padding: 0;
+}
+
+.ca-add-node:hover {
+  background: #7faaff;
+  border-color: #7faaff;
+  color: #1a1a2e;
+}
+
+/* ----------------------------------------------------------
+   Node Config panel
+   ---------------------------------------------------------- */
+
+.ca-node-config {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ca-node-preview {
+  display: flex;
+  justify-content: center;
+}
+
+.ca-node-preview-image {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid #0f3460;
+}
+
+.ca-node-preview-empty {
+  width: 120px;
+  height: 120px;
+  background: #16213e;
+  border: 2px dashed #4a6fa5;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4a6fa5;
+  font-size: 13px;
+}
+
+.ca-node-config-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ca-node-config-row label {
+  width: 48px;
+  font-weight: 600;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.ca-node-config-row input[type="text"] {
+  flex: 1;
+  min-width: 0;
+}
+
+.ca-node-image-path {
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #94a3b8;
+}

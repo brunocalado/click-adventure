@@ -8,10 +8,10 @@
     "verified": "14"
   },
   "esmodules": [
-    ""
+    "scripts/click-adventure.js"
   ],
   "styles": [
-    ""
+    "styles/click-adventure.css"
   ],
   "authors": [
     {
