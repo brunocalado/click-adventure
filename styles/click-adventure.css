@@ -65,13 +65,21 @@
   stroke: #7888cc;
   stroke-width: 2px;
   fill: none;
-  cursor: pointer;
+  pointer-events: none;
   stroke-linecap: round;
+  transition: stroke 0.1s, stroke-width 0.1s;
 }
 
-.ca-link:hover {
+.ca-link.ca-link--hover {
   stroke: #ff6666;
   stroke-width: 3px;
+}
+
+.ca-link-hit {
+  stroke: transparent;
+  stroke-width: 16px;
+  fill: none;
+  cursor: pointer;
 }
 
 .ca-temp-link {

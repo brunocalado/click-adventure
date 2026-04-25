@@ -380,11 +380,12 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const { links } = this._graphData();
 
     // Remove only permanent links; leave the transient .ca-temp-link intact
-    svg.querySelectorAll(".ca-link").forEach(el => el.remove());
+    svg.querySelectorAll(".ca-link, .ca-link-hit").forEach(el => el.remove());
 
     const wsRect = workspace.getBoundingClientRect();
 
-    for (const link of links) {
+    for (let i = 0; i < links.length; i++) {
+      const link = links[i];
       const srcEl = workspace.querySelector(`[data-node-id="${link.sourceId}"]`);
       const tgtEl = workspace.querySelector(`[data-node-id="${link.targetId}"]`);
       if (!srcEl || !tgtEl) continue;
@@ -392,26 +393,29 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       const p1 = this._anchorPoint(srcEl, link.sourceAnchor ?? "right", wsRect);
       const p2 = this._anchorPoint(tgtEl, link.targetAnchor ?? "left",  wsRect);
 
+      // Visible line — pointer events disabled so the hit area line on top handles interactions
       const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
       line.classList.add("ca-link");
-      line.setAttribute("x1", p1.x);
-      line.setAttribute("y1", p1.y);
-      line.setAttribute("x2", p2.x);
-      line.setAttribute("y2", p2.y);
-      line.dataset.sourceId     = link.sourceId;
-      line.dataset.targetId     = link.targetId;
-      line.dataset.sourceAnchor = link.sourceAnchor ?? "right";
-      line.dataset.targetAnchor = link.targetAnchor ?? "left";
+      line.setAttribute("x1", p1.x); line.setAttribute("y1", p1.y);
+      line.setAttribute("x2", p2.x); line.setAttribute("y2", p2.y);
+      line.style.pointerEvents = "none";
+      svg.appendChild(line);
 
-      // SVG lines only receive pointer events on the visible stroke
-      line.style.pointerEvents = "stroke";
-      line.addEventListener("contextmenu", e => {
+      // Invisible wide hit-area line — easy right-click target, toggles hover state on the visible line
+      const hitLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      hitLine.classList.add("ca-link-hit");
+      hitLine.setAttribute("x1", p1.x); hitLine.setAttribute("y1", p1.y);
+      hitLine.setAttribute("x2", p2.x); hitLine.setAttribute("y2", p2.y);
+      hitLine.dataset.linkIndex = String(i);
+      hitLine.style.pointerEvents = "visibleStroke";
+      hitLine.addEventListener("contextmenu", e => {
         e.preventDefault();
         e.stopPropagation();
-        this._onDeleteLink(e, line);
+        this._onDeleteLink(e, hitLine);
       });
-
-      svg.appendChild(line);
+      hitLine.addEventListener("mouseenter", () => line.classList.add("ca-link--hover"));
+      hitLine.addEventListener("mouseleave", () => line.classList.remove("ca-link--hover"));
+      svg.appendChild(hitLine);
     }
   }
 
@@ -453,7 +457,9 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @returns {Promise<void>}
    */
   async _onDeleteLink(e, lineEl) {
-    const { sourceId, targetId, sourceAnchor, targetAnchor } = lineEl.dataset;
+    console.log("[ClickAdventure] _onDeleteLink fired, index:", lineEl.dataset.linkIndex);
+    const linkIndex = parseInt(lineEl.dataset.linkIndex, 10);
+
     const confirmed = await foundry.applications.api.DialogV2.confirm({
       window: { title: "Delete Link" },
       content: "<p>Remove this connection?</p>",
@@ -461,12 +467,13 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     });
     if (!confirmed) return;
 
-    const { nodes, links } = this._graphData();
-    const filtered = links.filter(l =>
-      !(l.sourceId === sourceId && l.sourceAnchor === sourceAnchor &&
-        l.targetId === targetId && l.targetAnchor === targetAnchor)
-    );
-    await game.settings.set("click-adventure", "graph", { nodes, links: filtered });
+    // Re-fetch after dialog closes — user may have taken time to confirm
+    const freshGraph = this._graphData();
+    const filtered = freshGraph.links.filter((_, idx) => idx !== linkIndex);
+    await game.settings.set("click-adventure", "graph", {
+      nodes: freshGraph.nodes,
+      links: filtered
+    });
     this.render({ force: true });
   }
 }
