@@ -7,11 +7,7 @@
     "minimum": "14",
     "verified": "14"
   },
-  "esmodules": [
-    "scripts/click-adventure.js",
-    "scripts/scene-template.js",
-    "scripts/nav-hud-app.js"
-  ],
+  "esmodules": ["scripts/index.js"],
   "styles": [
     "styles/click-adventure.css"
   ],
