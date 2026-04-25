@@ -596,9 +596,8 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   /**
-   * Creates a new Foundry Scene using the Click Adventure template.
-   * Prompts the user for a name via a DialogV2 input before creating.
-   * The scene is created but NOT activated — the user decides when to open it.
+   * Creates a new Foundry Scene using the Click Adventure template, then automatically
+   * adds a graph node pre-linked to that scene so it appears in the workspace immediately.
    *
    * Triggered by the "New Scene" toolbar button.
    * @returns {Promise<void>}
@@ -619,14 +618,33 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       },
       rejectClose: false
     });
-
     if (!result) return;
-    const sceneName = result || "Click Adventure Scene";
 
-    const data = buildSceneData(sceneName);
+    const data = buildSceneData(result);
     const scene = await Scene.create(data);
-    if (scene) {
-      ui.notifications.info(`Scene "${scene.name}" created.`);
-    }
+    if (!scene) return;
+
+    // Automatically create a graph node linked to this new scene
+    const { nodes, links } = this._graphData();
+    const workspace = this.element?.querySelector(".ca-workspace");
+    const w = workspace?.clientWidth  ?? 600;
+    const h = workspace?.clientHeight ?? 400;
+
+    const newNode = {
+      id: foundry.utils.randomID(),
+      label: scene.name,
+      imageSrc: scene.background?.src ?? "",
+      sceneId: scene.id,
+      x: Math.round((w - NODE_W) / 2) + nodes.length * 20,
+      y: Math.round((h - NODE_H) / 2) + nodes.length * 20
+    };
+
+    await game.settings.set("click-adventure", "graph", {
+      nodes: [...nodes, newNode],
+      links
+    });
+
+    ui.notifications.info(`Scene "${scene.name}" created and added to graph.`);
+    this.render({ force: true });
   }
 }

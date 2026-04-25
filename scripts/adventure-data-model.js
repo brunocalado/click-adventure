@@ -9,7 +9,11 @@ export class AdventureDataModel extends foundry.abstract.DataModel {
   static defineSchema() {
     const { ArrayField, ObjectField } = foundry.data.fields;
     return {
-      /** @type {Array<{id:string, label:string, imageSrc:string, x:number, y:number}>} */
+      /**
+       * Node shape: { id, label, imageSrc, x, y, sceneId }
+       * sceneId is the Foundry Scene document id, or empty string if not linked.
+       * @type {Array<{id:string, label:string, imageSrc:string, x:number, y:number, sceneId:string}>}
+       */
       nodes: new ArrayField(new ObjectField()),
       /** @type {Array<{sourceId:string, targetId:string}>} */
       links: new ArrayField(new ObjectField())

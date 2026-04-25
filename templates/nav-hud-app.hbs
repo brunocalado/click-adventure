@@ -1,0 +1,39 @@
+<div class="ca-hud-dpad">
+  {{#if directions.top}}
+  <button class="ca-hud-arrow ca-hud-arrow--up" data-direction="top" title="{{directions.top.label}}">
+    <div class="ca-arrow-3d ca-arrow-3d--up"></div>
+  </button>
+  {{else}}
+  <div class="ca-hud-arrow ca-hud-arrow--up ca-hud-arrow--inactive"></div>
+  {{/if}}
+
+  <div class="ca-hud-middle-row">
+    {{#if directions.left}}
+    <button class="ca-hud-arrow ca-hud-arrow--left" data-direction="left" title="{{directions.left.label}}">
+      <div class="ca-arrow-3d ca-arrow-3d--left"></div>
+    </button>
+    {{else}}
+    <div class="ca-hud-arrow ca-hud-arrow--left ca-hud-arrow--inactive"></div>
+    {{/if}}
+
+    <div class="ca-hud-handle" title="Drag to move">
+      <div class="ca-hud-handle-dot"></div>
+    </div>
+
+    {{#if directions.right}}
+    <button class="ca-hud-arrow ca-hud-arrow--right" data-direction="right" title="{{directions.right.label}}">
+      <div class="ca-arrow-3d ca-arrow-3d--right"></div>
+    </button>
+    {{else}}
+    <div class="ca-hud-arrow ca-hud-arrow--right ca-hud-arrow--inactive"></div>
+    {{/if}}
+  </div>
+
+  {{#if directions.bottom}}
+  <button class="ca-hud-arrow ca-hud-arrow--down" data-direction="bottom" title="{{directions.bottom.label}}">
+    <div class="ca-arrow-3d ca-arrow-3d--down"></div>
+  </button>
+  {{else}}
+  <div class="ca-hud-arrow ca-hud-arrow--down ca-hud-arrow--inactive"></div>
+  {{/if}}
+</div>

@@ -10,6 +10,7 @@
 
 import { AdventureDataModel } from "./adventure-data-model.js";
 import { ManagerApp } from "./manager-app.js";
+import { NavHudApp } from "./nav-hud-app.js";
 
 Hooks.on("init", () => {
   game.settings.register("click-adventure", "graph", {
@@ -37,6 +38,24 @@ Hooks.on("init", () => {
     },
 
     /** @type {ManagerApp|null} — active instance, kept for cross-app refresh. */
-    _manager: null
+    _manager: null,
+
+    /**
+     * Opens the floating navigation HUD, or brings the existing one to front.
+     * @returns {NavHudApp}
+     */
+    Hud: () => {
+      if (globalThis.ClickAdventure._hud?.rendered) {
+        globalThis.ClickAdventure._hud.render();
+        return globalThis.ClickAdventure._hud;
+      }
+      const hud = new NavHudApp();
+      globalThis.ClickAdventure._hud = hud;
+      hud.render(true);
+      return hud;
+    },
+
+    /** @type {NavHudApp|null} — active HUD instance. */
+    _hud: null
   };
 });

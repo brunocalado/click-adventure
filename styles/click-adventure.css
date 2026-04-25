@@ -265,6 +265,169 @@
 }
 
 /* ----------------------------------------------------------
+   Scene-link badge on nodes
+   ---------------------------------------------------------- */
+
+.ca-node-scene-badge {
+  position: absolute;
+  top: 3px;
+  right: 5px;
+  font-size: 10px;
+  color: #7faaff;
+  pointer-events: none;
+  line-height: 1;
+}
+
+/* ----------------------------------------------------------
+   Nav HUD shell
+   ---------------------------------------------------------- */
+
+.click-adventure.nav-hud {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.ca-hud-dpad {
+  display: grid;
+  grid-template-rows: 44px 44px 44px;
+  grid-template-columns: 1fr;
+  align-items: center;
+  justify-items: center;
+  gap: 2px;
+  padding: 4px;
+  user-select: none;
+}
+
+.ca-hud-middle-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.ca-hud-arrow {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.ca-hud-arrow--inactive {
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+/* ---- Central drag handle ---- */
+.ca-hud-handle {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+}
+.ca-hud-handle:active { cursor: grabbing; }
+
+.ca-hud-handle-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #aabbff, #3355aa);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.6), inset 0 1px 2px rgba(255,255,255,0.3);
+  border: 2px solid #223366;
+}
+
+/* ---- 3D arrows (CSS fake 3D using transform + drop-shadow) ---- */
+.ca-arrow-3d {
+  position: relative;
+  background: #ff6400;
+  filter:
+    drop-shadow(1px 1px 0px #8b3700)
+    drop-shadow(2px 2px 0px #4d1e00);
+  transform-style: preserve-3d;
+}
+
+/* Right arrow */
+.ca-arrow-3d--right {
+  width: 22px;
+  height: 8px;
+  transform: rotateX(20deg) rotateY(-15deg);
+}
+.ca-arrow-3d--right::after {
+  content: '';
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border-left: 10px solid #cc5000;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+}
+
+/* Left arrow */
+.ca-arrow-3d--left {
+  width: 22px;
+  height: 8px;
+  transform: rotateX(20deg) rotateY(15deg);
+}
+.ca-arrow-3d--left::before {
+  content: '';
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border-right: 10px solid #cc5000;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+}
+
+/* Up arrow */
+.ca-arrow-3d--up {
+  width: 8px;
+  height: 22px;
+  transform: rotateX(-15deg) rotateY(20deg);
+}
+.ca-arrow-3d--up::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-bottom: 10px solid #cc5000;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+}
+
+/* Down arrow */
+.ca-arrow-3d--down {
+  width: 8px;
+  height: 22px;
+  transform: rotateX(15deg) rotateY(20deg);
+}
+.ca-arrow-3d--down::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-top: 10px solid #cc5000;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+}
+
+.ca-hud-arrow:not(.ca-hud-arrow--inactive):hover .ca-arrow-3d {
+  filter:
+    drop-shadow(1px 1px 0px #8b3700)
+    drop-shadow(2px 2px 0px #4d1e00)
+    brightness(1.3);
+}
+
+/* ----------------------------------------------------------
    Node Config panel
    ---------------------------------------------------------- */
 

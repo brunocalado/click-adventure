@@ -9,7 +9,8 @@
   },
   "esmodules": [
     "scripts/click-adventure.js",
-    "scripts/scene-template.js"
+    "scripts/scene-template.js",
+    "scripts/nav-hud-app.js"
   ],
   "styles": [
     "styles/click-adventure.css"
