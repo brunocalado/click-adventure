@@ -27,8 +27,8 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
   static DEFAULT_OPTIONS = {
     id: "manager-app",
     classes: ["click-adventure", "manager"],
-    window: { title: "Click Adventure — Scene Graph" },
-    position: { width: 900, height: 620, resizable: true }
+    window: { title: "Click Adventure — Scene Graph", resizable: true },
+    position: { width: 900, height: 620 }
   };
 
   /** @override */
