@@ -200,7 +200,11 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     tempLine.setAttribute("y2", startY);
     svg.appendChild(tempLine);
 
-    this._linkState = { sourceId: nodeEl.dataset.nodeId, tempLine };
+    this._linkState = {
+      sourceId: nodeEl.dataset.nodeId,
+      sourceAnchor: anchor.dataset.anchor,
+      tempLine
+    };
   }
 
   /**
@@ -260,14 +264,16 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     if (this._linkState) {
-      const { sourceId, tempLine } = this._linkState;
+      const { sourceId, sourceAnchor, tempLine } = this._linkState;
       this._linkState = null;
       tempLine.remove();
 
       const targetEl = e.target.closest?.(".ca-node");
       const targetId = targetEl?.dataset?.nodeId;
       if (targetId && targetId !== sourceId) {
-        await this._saveLink(sourceId, targetId);
+        const targetAnchorEl = e.target.closest?.(".ca-anchor");
+        const targetAnchor = targetAnchorEl?.dataset?.anchor ?? this._nearestAnchor(e, targetEl);
+        await this._saveLink(sourceId, sourceAnchor, targetId, targetAnchor);
       }
     }
   }
@@ -316,21 +322,44 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   /**
-   * Persists a new directed link between two nodes, skipping duplicates.
+   * Persists a new directed link between two anchor points, skipping duplicates.
    * @param {string} sourceId
+   * @param {string} sourceAnchor
    * @param {string} targetId
+   * @param {string} targetAnchor
    * @returns {Promise<void>}
    */
-  async _saveLink(sourceId, targetId) {
+  async _saveLink(sourceId, sourceAnchor, targetId, targetAnchor) {
     const { nodes, links } = this._graphData();
-    const duplicate = links.some(l => l.sourceId === sourceId && l.targetId === targetId);
+    const duplicate = links.some(l =>
+      l.sourceId === sourceId && l.sourceAnchor === sourceAnchor &&
+      l.targetId === targetId && l.targetAnchor === targetAnchor
+    );
     if (duplicate) return;
 
     await game.settings.set("click-adventure", "graph", {
       nodes,
-      links: [...links, { sourceId, targetId }]
+      links: [...links, { sourceId, sourceAnchor, targetId, targetAnchor }]
     });
     this.render({ force: true });
+  }
+
+  /**
+   * Returns the anchor side closest to the pointer — used when mouseup lands on the
+   * node body rather than an anchor dot.
+   * @param {MouseEvent} e
+   * @param {HTMLElement} nodeEl
+   * @returns {string} "top" | "right" | "bottom" | "left"
+   */
+  _nearestAnchor(e, nodeEl) {
+    const r = nodeEl.getBoundingClientRect();
+    const cx = r.left + r.width / 2;
+    const cy = r.top + r.height / 2;
+    const dx = e.clientX - cx;
+    const dy = e.clientY - cy;
+    return Math.abs(dx) > Math.abs(dy)
+      ? (dx > 0 ? "right" : "left")
+      : (dy > 0 ? "bottom" : "top");
   }
 
   // ---------------------------------------------------------------------------
@@ -339,8 +368,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
   /**
    * Redraws all persistent SVG link lines from the current setting state.
-   * Uses the node elements' inline style positions so the lines track correctly
-   * during an in-progress drag (before the position is saved).
+   * Lines now connect named anchor dots instead of node centers.
    * Called from _onRender and after every graph mutation.
    */
   _renderLinks() {
@@ -354,24 +382,91 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     // Remove only permanent links; leave the transient .ca-temp-link intact
     svg.querySelectorAll(".ca-link").forEach(el => el.remove());
 
+    const wsRect = workspace.getBoundingClientRect();
+
     for (const link of links) {
       const srcEl = workspace.querySelector(`[data-node-id="${link.sourceId}"]`);
       const tgtEl = workspace.querySelector(`[data-node-id="${link.targetId}"]`);
       if (!srcEl || !tgtEl) continue;
 
-      // Read inline style set by the template / drag handler for live accuracy
-      const x1 = (parseFloat(srcEl.style.left) || 0) + NODE_W / 2;
-      const y1 = (parseFloat(srcEl.style.top)  || 0) + NODE_H / 2;
-      const x2 = (parseFloat(tgtEl.style.left) || 0) + NODE_W / 2;
-      const y2 = (parseFloat(tgtEl.style.top)  || 0) + NODE_H / 2;
+      const p1 = this._anchorPoint(srcEl, link.sourceAnchor ?? "right", wsRect);
+      const p2 = this._anchorPoint(tgtEl, link.targetAnchor ?? "left",  wsRect);
 
       const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
       line.classList.add("ca-link");
-      line.setAttribute("x1", x1);
-      line.setAttribute("y1", y1);
-      line.setAttribute("x2", x2);
-      line.setAttribute("y2", y2);
+      line.setAttribute("x1", p1.x);
+      line.setAttribute("y1", p1.y);
+      line.setAttribute("x2", p2.x);
+      line.setAttribute("y2", p2.y);
+      line.dataset.sourceId     = link.sourceId;
+      line.dataset.targetId     = link.targetId;
+      line.dataset.sourceAnchor = link.sourceAnchor ?? "right";
+      line.dataset.targetAnchor = link.targetAnchor ?? "left";
+
+      // SVG lines only receive pointer events on the visible stroke
+      line.style.pointerEvents = "stroke";
+      line.addEventListener("contextmenu", e => {
+        e.preventDefault();
+        e.stopPropagation();
+        this._onDeleteLink(e, line);
+      });
+
       svg.appendChild(line);
     }
+  }
+
+  /**
+   * Returns the workspace-relative center of a named anchor dot on a node.
+   * Reads live DOM position so it stays accurate during drags.
+   * @param {HTMLElement} nodeEl — the .ca-node element
+   * @param {string} side       — "top" | "right" | "bottom" | "left"
+   * @param {DOMRect} wsRect    — workspace getBoundingClientRect()
+   * @returns {{ x: number, y: number }}
+   */
+  _anchorPoint(nodeEl, side, wsRect) {
+    const dot = nodeEl.querySelector(`.ca-anchor[data-anchor="${side}"]`);
+    if (dot) {
+      const r = dot.getBoundingClientRect();
+      return {
+        x: r.left + r.width  / 2 - wsRect.left,
+        y: r.top  + r.height / 2 - wsRect.top
+      };
+    }
+    // Fallback when the anchor dot is not in the DOM
+    const nx = parseFloat(nodeEl.style.left) || 0;
+    const ny = parseFloat(nodeEl.style.top)  || 0;
+    const offsets = {
+      top:    { x: NODE_W / 2, y: 0 },
+      right:  { x: NODE_W,     y: NODE_H / 2 },
+      bottom: { x: NODE_W / 2, y: NODE_H },
+      left:   { x: 0,          y: NODE_H / 2 }
+    };
+    return { x: nx + offsets[side].x, y: ny + offsets[side].y };
+  }
+
+  /**
+   * Deletes a link after a right-click contextmenu event on its SVG line.
+   * Uses a native Foundry DialogV2 confirmation to avoid accidental deletion.
+   * Triggered by contextmenu on a .ca-link element during _renderLinks.
+   * @param {MouseEvent} e
+   * @param {SVGLineElement} lineEl
+   * @returns {Promise<void>}
+   */
+  async _onDeleteLink(e, lineEl) {
+    const { sourceId, targetId, sourceAnchor, targetAnchor } = lineEl.dataset;
+    const confirmed = await foundry.applications.api.DialogV2.confirm({
+      window: { title: "Delete Link" },
+      content: "<p>Remove this connection?</p>",
+      rejectClose: false
+    });
+    if (!confirmed) return;
+
+    const { nodes, links } = this._graphData();
+    const filtered = links.filter(l =>
+      !(l.sourceId === sourceId && l.sourceAnchor === sourceAnchor &&
+        l.targetId === targetId && l.targetAnchor === targetAnchor)
+    );
+    await game.settings.set("click-adventure", "graph", { nodes, links: filtered });
+    this.render({ force: true });
   }
 }

@@ -62,9 +62,16 @@
 }
 
 .ca-link {
-  stroke: #7faaff;
-  stroke-width: 2;
+  stroke: #7888cc;
+  stroke-width: 2px;
+  fill: none;
+  cursor: pointer;
   stroke-linecap: round;
+}
+
+.ca-link:hover {
+  stroke: #ff6666;
+  stroke-width: 3px;
 }
 
 .ca-temp-link {
