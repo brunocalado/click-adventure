@@ -8,7 +8,8 @@
     "verified": "14"
   },
   "esmodules": [
-    "scripts/click-adventure.js"
+    "scripts/click-adventure.js",
+    "scripts/scene-template.js"
   ],
   "styles": [
     "styles/click-adventure.css"

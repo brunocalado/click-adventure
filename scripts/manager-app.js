@@ -12,6 +12,7 @@
  */
 
 import { NodeConfigApp } from "./node-config-app.js";
+import { buildSceneData } from "./scene-template.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -131,6 +132,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     html.querySelector(".ca-add-node")?.addEventListener("click", () => this._onAddNode());
     html.querySelector(".ca-auto-arrange")?.addEventListener("click", () => this._onAutoArrange());
+    html.querySelector(".ca-new-scene")?.addEventListener("click", () => this._onNewScene());
 
     this._renderLinks();
   }
@@ -591,5 +593,40 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     await game.settings.set("click-adventure", "graph", { nodes: updatedNodes, links });
     this.render({ force: true });
+  }
+
+  /**
+   * Creates a new Foundry Scene using the Click Adventure template.
+   * Prompts the user for a name via a DialogV2 input before creating.
+   * The scene is created but NOT activated — the user decides when to open it.
+   *
+   * Triggered by the "New Scene" toolbar button.
+   * @returns {Promise<void>}
+   */
+  async _onNewScene() {
+    const result = await foundry.applications.api.DialogV2.prompt({
+      window: { title: "New Scene" },
+      content: `
+        <div style="padding: 8px 0;">
+          <label style="display:block; margin-bottom:6px;">Scene Name</label>
+          <input type="text" name="sceneName" value="Click Adventure Scene"
+                 style="width:100%;" autofocus/>
+        </div>
+      `,
+      ok: {
+        label: "Create",
+        callback: (event, button) => button.form.elements.sceneName.value.trim()
+      },
+      rejectClose: false
+    });
+
+    if (!result) return;
+    const sceneName = result || "Click Adventure Scene";
+
+    const data = buildSceneData(sceneName);
+    const scene = await Scene.create(data);
+    if (scene) {
+      ui.notifications.info(`Scene "${scene.name}" created.`);
+    }
   }
 }
