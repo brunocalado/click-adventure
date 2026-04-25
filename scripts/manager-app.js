@@ -47,7 +47,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this._dragState = null;
     /**
      * Active link-draw operation state.
-     * @type {{ sourceId: string, startX: number, startY: number, tempLine: SVGLineElement }|null}
+     * @type {{ sourceId: string, sourceAnchor: string, startX: number, startY: number, tempLine: SVGPathElement }|null}
      */
     this._linkState = null;
 
@@ -193,18 +193,21 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const startY = anchorRect.top + anchorRect.height / 2 - wsRect.top;
 
     const svg = workspace.querySelector(".ca-links-layer");
-    const tempLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    tempLine.classList.add("ca-temp-link");
-    tempLine.setAttribute("x1", startX);
-    tempLine.setAttribute("y1", startY);
-    tempLine.setAttribute("x2", startX);
-    tempLine.setAttribute("y2", startY);
-    svg.appendChild(tempLine);
+    const srcAnchor = anchor.dataset.anchor;
+    const c = this._bezierOffset(srcAnchor);
+
+    const tempPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    tempPath.classList.add("ca-temp-link");
+    // Degenerate initial path — updated on every mousemove
+    tempPath.setAttribute("d", `M ${startX},${startY} C ${startX + c.dx},${startY + c.dy} ${startX},${startY} ${startX},${startY}`);
+    svg.appendChild(tempPath);
 
     this._linkState = {
       sourceId: nodeEl.dataset.nodeId,
-      sourceAnchor: anchor.dataset.anchor,
-      tempLine
+      sourceAnchor: srcAnchor,
+      startX,
+      startY,
+      tempLine: tempPath   // property name kept so _onDocMouseMove and _onDocMouseUp still work
     };
   }
 
@@ -238,9 +241,13 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     if (this._linkState) {
-      const { tempLine } = this._linkState;
-      tempLine.setAttribute("x2", e.clientX - wsRect.left);
-      tempLine.setAttribute("y2", e.clientY - wsRect.top);
+      const { tempLine: tempPath, startX, startY, sourceAnchor } = this._linkState;
+      const mx = e.clientX - wsRect.left;
+      const my = e.clientY - wsRect.top;
+      const c1 = this._bezierOffset(sourceAnchor);
+      tempPath.setAttribute("d",
+        `M ${startX},${startY} C ${startX + c1.dx},${startY + c1.dy} ${mx},${my} ${mx},${my}`
+      );
     }
   }
 
@@ -368,6 +375,25 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
   // ---------------------------------------------------------------------------
 
   /**
+   * Returns the cubic Bézier control point offset for a given anchor side.
+   * The control point is displaced outward from the anchor in its natural exit direction,
+   * creating a curve that visually "leaves" the node perpendicular to its edge.
+   *
+   * @param {string} side     — "top" | "right" | "bottom" | "left"
+   * @param {number} tension  — pixel distance of the control point from the anchor (default 80)
+   * @returns {{ dx: number, dy: number }}
+   */
+  _bezierOffset(side, tension = 80) {
+    switch (side) {
+      case "top":    return { dx:  0,       dy: -tension };
+      case "right":  return { dx:  tension, dy:  0       };
+      case "bottom": return { dx:  0,       dy:  tension };
+      case "left":   return { dx: -tension, dy:  0       };
+      default:       return { dx:  tension, dy:  0       };
+    }
+  }
+
+  /**
    * Redraws all persistent SVG link lines from the current setting state.
    * Lines now connect named anchor dots instead of node centers.
    * Called from _onRender and after every graph mutation.
@@ -391,32 +417,36 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       const tgtEl = workspace.querySelector(`[data-node-id="${link.targetId}"]`);
       if (!srcEl || !tgtEl) continue;
 
-      const p1 = this._anchorPoint(srcEl, link.sourceAnchor ?? "right", wsRect);
-      const p2 = this._anchorPoint(tgtEl, link.targetAnchor ?? "left",  wsRect);
+      const sourceAnchor = link.sourceAnchor ?? "right";
+      const targetAnchor = link.targetAnchor ?? "left";
+      const p1 = this._anchorPoint(srcEl, sourceAnchor, wsRect);
+      const p2 = this._anchorPoint(tgtEl, targetAnchor, wsRect);
+      const c1 = this._bezierOffset(sourceAnchor);
+      const c2 = this._bezierOffset(targetAnchor);
+      // Cubic Bézier: M start C cp1 cp2 end
+      const d = `M ${p1.x},${p1.y} C ${p1.x + c1.dx},${p1.y + c1.dy} ${p2.x + c2.dx},${p2.y + c2.dy} ${p2.x},${p2.y}`;
 
-      // Visible line — pointer events disabled so the hit area line on top handles interactions
-      const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-      line.classList.add("ca-link");
-      line.setAttribute("x1", p1.x); line.setAttribute("y1", p1.y);
-      line.setAttribute("x2", p2.x); line.setAttribute("y2", p2.y);
-      line.style.pointerEvents = "none";
-      svg.appendChild(line);
+      // Visible path — pointer events disabled so the hit area path on top handles interactions
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.classList.add("ca-link");
+      path.setAttribute("d", d);
+      path.style.pointerEvents = "none";
+      svg.appendChild(path);
 
-      // Invisible wide hit-area line — easy right-click target, toggles hover state on the visible line
-      const hitLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
-      hitLine.classList.add("ca-link-hit");
-      hitLine.setAttribute("x1", p1.x); hitLine.setAttribute("y1", p1.y);
-      hitLine.setAttribute("x2", p2.x); hitLine.setAttribute("y2", p2.y);
-      hitLine.dataset.linkIndex = String(i);
-      hitLine.style.pointerEvents = "visibleStroke";
-      hitLine.addEventListener("contextmenu", e => {
+      // Invisible wide hit-area path — easy right-click target, toggles hover state on the visible path
+      const hitPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      hitPath.classList.add("ca-link-hit");
+      hitPath.setAttribute("d", d);
+      hitPath.dataset.linkIndex = String(i);
+      hitPath.style.pointerEvents = "visibleStroke";
+      hitPath.addEventListener("contextmenu", e => {
         e.preventDefault();
         e.stopPropagation();
-        this._onDeleteLink(e, hitLine);
+        this._onDeleteLink(e, hitPath);
       });
-      hitLine.addEventListener("mouseenter", () => line.classList.add("ca-link--hover"));
-      hitLine.addEventListener("mouseleave", () => line.classList.remove("ca-link--hover"));
-      svg.appendChild(hitLine);
+      hitPath.addEventListener("mouseenter", () => path.classList.add("ca-link--hover"));
+      hitPath.addEventListener("mouseleave", () => path.classList.remove("ca-link--hover"));
+      svg.appendChild(hitPath);
     }
   }
 
