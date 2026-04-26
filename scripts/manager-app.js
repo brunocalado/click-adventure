@@ -647,24 +647,29 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   /**
-   * Activates the Foundry Scene linked to this graph and brings its sheet into view.
-   * Triggered by the "View Scene" toolbar button when a scene is already linked.
-   * If the linked scene no longer exists, clears the stale reference.
+   * Activates the Foundry Scene linked to this graph.
+   * If the scene no longer exists, clears the sceneId from the graph and re-renders
+   * the toolbar so the "New Scene" button becomes available again.
    *
+   * Triggered by the "View Scene" toolbar button when a scene is already linked.
+   * Note: scene.activate() changes the active scene for all connected players.
    * @returns {Promise<void>}
    */
   async _onViewScene() {
-    const { sceneId, currentNodeId, nodes, links } = this._graphData();
+    const { sceneId, nodes, links } = this._graphData();
     if (!sceneId) return;
+
     const scene = game.scenes.get(sceneId);
+
     if (!scene) {
-      ui.notifications.warn("Linked scene no longer exists. The link will be cleared.");
-      await game.settings.set("click-adventure", "graph", {
-        sceneId: "", currentNodeId, nodes, links
-      });
+      // Scene was deleted externally — clear the binding and restore the "New Scene" button
+      await game.settings.set("click-adventure", "graph", { sceneId: "", nodes, links });
+      ui.notifications.warn("The linked scene no longer exists. You can create a new one.");
       this.render({ force: true });
       return;
     }
-    scene.sheet.render(true);
+
+    // Activate the scene on the canvas (visible to all players)
+    await scene.activate();
   }
 }
