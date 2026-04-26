@@ -200,6 +200,10 @@
   right: 5px;
   width: 18px;
   height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  max-width: 18px;
+  max-height: 18px;
   padding: 0;
   background: none;
   border: none;
@@ -212,6 +216,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  box-sizing: content-box;
 }
 
 .ca-set-current-btn:hover {
@@ -221,7 +226,11 @@
 /* Ring: always-visible circle outline */
 .ca-scb-ring {
   position: absolute;
-  inset: 0;
+  width: 14px;
+  height: 14px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   border-radius: 50%;
   border: 2px solid currentColor;
   pointer-events: none;
@@ -230,8 +239,11 @@
 /* Dot: hidden by default, shown only when node is active */
 .ca-scb-dot {
   position: absolute;
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   border-radius: 50%;
   background: currentColor;
   pointer-events: none;
