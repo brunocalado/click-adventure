@@ -800,9 +800,8 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @returns {Promise<string>} the new scene id
    */
   async _createSceneForNode(node, folderId) {
-    const activeImage = node.images?.[node.activeImageIndex ?? 0]?.src
-                     ?? node.images?.[0]?.src
-                     ?? null;
+    const rawImage = getNodeActiveImage(node);
+    const activeImage = rawImage || null;
 
     const sceneData = buildSceneData(node.label || "Scene");
     sceneData.folder = folderId;

@@ -5,6 +5,8 @@
  * node-config-app, nav-hud-app, and the module entry point.
  */
 
+import { buildSceneData } from "./scene-template.js";
+
 /**
  * Returns the active image src for a node.
  * Supports both the new multi-image schema (images[]) and the legacy imageSrc field.
@@ -61,21 +63,17 @@ export async function syncNodeTile(node) {
   const scene = game.scenes.get(node.sceneId);
   if (!scene) return;
 
-  const activeImage = node.images?.find((_, i) => i === (node.activeImageIndex ?? 0))?.src
-                   ?? node.images?.[0]?.src
-                   ?? null;
+  const rawImage = getNodeActiveImage(node);
+  const activeImage = rawImage || null;
 
   const tile = scene.tiles.find(t => t.getFlag("click-adventure", "managed"));
 
   if (activeImage) {
     if (!tile) {
+      const baseTile = buildSceneData("").tiles[0];
       await scene.createEmbeddedDocuments("Tile", [{
-        texture: { src: activeImage },
-        width: 1920,
-        height: 1080,
-        x: 0,
-        y: 0,
-        overhead: false,
+        ...baseTile,
+        texture: { ...baseTile.texture, src: activeImage },
         locked: true,
         flags: { "click-adventure": { managed: true } }
       }]);
