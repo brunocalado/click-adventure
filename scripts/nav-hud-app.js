@@ -39,6 +39,8 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this._holdTimer = null;
     this._docMouseMove = this._onDocMouseMove.bind(this);
     this._docMouseUp   = this._onDocMouseUp.bind(this);
+    /** @type {boolean} — suppresses the ghost toggle triggered by mouseup after a destination click */
+    this._suppressNextToggle = false;
   }
 
   /**
@@ -222,7 +224,12 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
       return;
     }
 
-    // Released before threshold — treat as click to toggle the destinations panel
+    // Released before threshold — treat as click to toggle the destinations panel.
+    // Destination button clicks set _suppressNextToggle to absorb this ghost mouseup.
+    if (this._suppressNextToggle) {
+      this._suppressNextToggle = false;
+      return;
+    }
     this._togglePanelDOM();
   }
 
@@ -272,6 +279,11 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
       sceneId, currentNodeId: targetNode.id, nodes, links
     });
 
+    // Notify the Manager so its current-node highlight updates immediately
+    const manager = foundry.applications.instances.get("manager-app");
+    if (manager?.rendered) manager.render({ force: true });
+
+    this._suppressNextToggle = true;
     this.render({ force: true });
   }
 }
