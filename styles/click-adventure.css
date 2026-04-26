@@ -196,7 +196,7 @@
 /* Set Current button */
 .ca-set-current-btn {
   position: absolute;
-  bottom: 3px;
+  top: 3px;
   right: 5px;
   width: 18px;
   height: 18px;
@@ -209,10 +209,42 @@
   cursor: pointer;
   pointer-events: all;
   transition: color 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .ca-set-current-btn:hover {
   color: #22c55e;
+}
+
+/* Ring: always-visible circle outline */
+.ca-scb-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  pointer-events: none;
+}
+
+/* Dot: hidden by default, shown only when node is active */
+.ca-scb-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  pointer-events: none;
+  display: none;
+}
+
+/* Active node: green ring + green dot */
+.ca-node[data-current="true"] .ca-set-current-btn {
+  color: #22c55e;
+}
+
+.ca-node[data-current="true"] .ca-scb-dot {
+  display: block;
 }
 
 /* ----------------------------------------------------------
