@@ -12,6 +12,25 @@ import { AdventureDataModel } from "./adventure-data-model.js";
 import { ManagerApp } from "./manager-app.js";
 import { NavHudApp } from "./nav-hud-app.js";
 
+/**
+ * Automatically show or hide the NavHUD based on whether the active scene
+ * was created by Click Adventure (identified by its flag).
+ * Triggered by the canvasReady hook, which fires after every scene activation
+ * and initial load, once the canvas is fully initialized.
+ */
+Hooks.on("canvasReady", () => {
+  const scene = game.scenes.active;
+  const isAdventureScene = scene?.flags?.["click-adventure"]?.isAdventureScene === true;
+
+  if (isAdventureScene) {
+    ClickAdventure.Hud();
+  } else {
+    if (globalThis.ClickAdventure._hud?.rendered) {
+      globalThis.ClickAdventure._hud.close();
+    }
+  }
+});
+
 Hooks.on("init", () => {
   game.settings.register("click-adventure", "graph", {
     name: "Adventure Graph",

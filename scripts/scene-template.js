@@ -88,7 +88,11 @@ export function buildSceneData(name = "Click Adventure Scene") {
     playlist: null, playlistSound: null,
     journal: null, journalEntryPage: null,
     weather: "",
-    flags: {},
+    flags: {
+      "click-adventure": {
+        isAdventureScene: true
+      }
+    },
     navName: ""
   };
 }

@@ -4,3 +4,8 @@
 ```js
 ClickAdventure.Manager();
 ```
+
+```js
+ClickAdventure.Hud();
+```
+
