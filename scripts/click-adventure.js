@@ -18,7 +18,7 @@ Hooks.on("init", () => {
     scope: "world",
     config: false,
     type: AdventureDataModel,
-    default: { nodes: [], links: [] }
+    default: { sceneId: "", currentNodeId: "", nodes: [], links: [] }
   });
 
   globalThis.ClickAdventure = {

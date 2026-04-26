@@ -1,12 +1,9 @@
 /**
  * Floating navigation HUD displayed during gameplay.
  * Shows four 3D-styled directional arrow buttons around a central drag handle.
- * Clicking an arrow navigates to the scene linked via the corresponding anchor direction
- * from the currently active scene's graph node.
- *
- * If the target node has a linked Foundry Scene, that scene is activated directly.
- * Otherwise the background tile (index 0) in the current scene has its texture replaced
- * with the target node's imageSrc.
+ * Clicking an arrow navigates to the adjacent graph node by replacing the background tile
+ * texture in the currently active scene — the active scene itself never changes.
+ * The current node position is tracked via graph.currentNodeId in the world setting.
  *
  * Lifecycle hook: renderNavHudApp
  */
@@ -42,22 +39,28 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
   /**
    * Returns the graph as a plain POJO regardless of DataModel or raw object.
-   * @returns {{ nodes: object[], links: object[] }}
+   * @returns {{ sceneId: string, currentNodeId: string, nodes: object[], links: object[] }}
    */
   _graphData() {
     const graph = game.settings.get("click-adventure", "graph");
-    return typeof graph?.toObject === "function" ? graph.toObject() : (graph ?? { nodes: [], links: [] });
+    const raw = typeof graph?.toObject === "function" ? graph.toObject() : (graph ?? {});
+    return {
+      sceneId: raw.sceneId ?? "",
+      currentNodeId: raw.currentNodeId ?? "",
+      nodes: raw.nodes ?? [],
+      links: raw.links ?? []
+    };
   }
 
   /**
-   * Finds the graph node linked to the currently active Foundry scene.
+   * Finds the graph node the player is currently at, tracked via graph.currentNodeId.
+   * Returns null when no navigation has occurred yet.
    * @returns {object|null}
    */
   _currentNode() {
-    const sceneId = game.scenes.active?.id;
-    if (!sceneId) return null;
-    const { nodes } = this._graphData();
-    return nodes.find(n => n.sceneId === sceneId) ?? null;
+    const { currentNodeId, nodes } = this._graphData();
+    if (!currentNodeId) return null;
+    return nodes.find(n => n.id === currentNodeId) ?? null;
   }
 
   /**
@@ -181,25 +184,15 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   /**
-   * Navigates to a target node. If the node has a linked Foundry Scene, activates it
-   * directly. Otherwise replaces the background tile (index 0) texture with the node's
-   * imageSrc and re-renders the HUD to reflect the new available directions.
+   * Navigates to a target node by replacing the background tile texture in the
+   * currently active scene and updating currentNodeId in the graph setting.
+   * Scene activation is intentionally never performed — the graph is permanently
+   * bound to a single Foundry Scene.
    *
-   * @param {object} targetNode — graph node with optional imageSrc and sceneId
+   * @param {object} targetNode — graph node with optional imageSrc
    * @returns {Promise<void>}
    */
   async _navigateTo(targetNode) {
-    // Prefer activating the linked Foundry scene when available
-    if (targetNode.sceneId) {
-      const targetScene = game.scenes.get(targetNode.sceneId);
-      if (targetScene) {
-        await targetScene.activate();
-        this.render({ force: true });
-        return;
-      }
-    }
-
-    // Fallback: swap the texture of the first tile in the active scene
     const scene = game.scenes.active;
     if (!scene) return;
 
@@ -211,6 +204,13 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     const newSrc = targetNode.imageSrc || "modules/click-adventure/assets/imgs/empty.webp";
     await tile.update({ "texture.src": newSrc });
+
+    // Persist the new current node so the HUD directions refresh correctly
+    const { sceneId, nodes, links } = this._graphData();
+    await game.settings.set("click-adventure", "graph", {
+      sceneId, currentNodeId: targetNode.id, nodes, links
+    });
+
     this.render({ force: true });
   }
 }

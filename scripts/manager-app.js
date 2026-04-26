@@ -64,11 +64,17 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
   /**
    * Returns the graph as a plain POJO regardless of whether the setting returns
    * a DataModel instance (normal v14 behaviour) or a raw object (first-run default).
-   * @returns {{ nodes: object[], links: object[] }}
+   * @returns {{ sceneId: string, currentNodeId: string, nodes: object[], links: object[] }}
    */
   _graphData() {
     const graph = game.settings.get("click-adventure", "graph");
-    return typeof graph?.toObject === "function" ? graph.toObject() : (graph ?? { nodes: [], links: [] });
+    const raw = typeof graph?.toObject === "function" ? graph.toObject() : (graph ?? {});
+    return {
+      sceneId: raw.sceneId ?? "",
+      currentNodeId: raw.currentNodeId ?? "",
+      nodes: raw.nodes ?? [],
+      links: raw.links ?? []
+    };
   }
 
   // ---------------------------------------------------------------------------
@@ -85,9 +91,10 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
    */
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
-    const { nodes, links } = this._graphData();
+    const { nodes, links, sceneId } = this._graphData();
     context.nodes = nodes;
     context.links = links;
+    context.graphSceneId = sceneId;
     return context;
   }
 
@@ -133,6 +140,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     html.querySelector(".ca-add-node")?.addEventListener("click", () => this._onAddNode());
     html.querySelector(".ca-auto-arrange")?.addEventListener("click", () => this._onAutoArrange());
     html.querySelector(".ca-new-scene")?.addEventListener("click", () => this._onNewScene());
+    html.querySelector(".ca-view-scene")?.addEventListener("click", () => this._onViewScene());
 
     this._renderLinks();
   }
@@ -293,7 +301,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @returns {Promise<void>}
    */
   async _onAddNode() {
-    const { nodes, links } = this._graphData();
+    const { sceneId, currentNodeId, nodes, links } = this._graphData();
     const workspace = this.element?.querySelector(".ca-workspace");
     const w = workspace?.clientWidth  ?? 600;
     const h = workspace?.clientHeight ?? 400;
@@ -307,8 +315,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     };
 
     await game.settings.set("click-adventure", "graph", {
-      nodes: [...nodes, newNode],
-      links
+      sceneId, currentNodeId, nodes: [...nodes, newNode], links
     });
     this.render({ force: true });
   }
@@ -325,9 +332,9 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @returns {Promise<void>}
    */
   async _saveNodePosition(nodeId, x, y) {
-    const { nodes: rawNodes, links } = this._graphData();
+    const { sceneId, currentNodeId, nodes: rawNodes, links } = this._graphData();
     const nodes = rawNodes.map(n => n.id === nodeId ? { ...n, x, y } : n);
-    await game.settings.set("click-adventure", "graph", { nodes, links });
+    await game.settings.set("click-adventure", "graph", { sceneId, currentNodeId, nodes, links });
     this._renderLinks();
   }
 
@@ -340,7 +347,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @returns {Promise<void>}
    */
   async _saveLink(sourceId, sourceAnchor, targetId, targetAnchor) {
-    const { nodes, links } = this._graphData();
+    const { sceneId, currentNodeId, nodes, links } = this._graphData();
     const duplicate = links.some(l =>
       l.sourceId === sourceId && l.sourceAnchor === sourceAnchor &&
       l.targetId === targetId && l.targetAnchor === targetAnchor
@@ -348,7 +355,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     if (duplicate) return;
 
     await game.settings.set("click-adventure", "graph", {
-      nodes,
+      sceneId, currentNodeId, nodes,
       links: [...links, { sourceId, sourceAnchor, targetId, targetAnchor }]
     });
     this.render({ force: true });
@@ -504,6 +511,8 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const freshGraph = this._graphData();
     const filtered = freshGraph.links.filter((_, idx) => idx !== linkIndex);
     await game.settings.set("click-adventure", "graph", {
+      sceneId: freshGraph.sceneId,
+      currentNodeId: freshGraph.currentNodeId,
       nodes: freshGraph.nodes,
       links: filtered
     });
@@ -520,7 +529,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @returns {Promise<void>}
    */
   async _onAutoArrange() {
-    const { nodes, links } = this._graphData();
+    const { sceneId, currentNodeId, nodes, links } = this._graphData();
     if (nodes.length === 0) return;
 
     const NODE_W = 120;
@@ -591,18 +600,22 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       };
     });
 
-    await game.settings.set("click-adventure", "graph", { nodes: updatedNodes, links });
+    await game.settings.set("click-adventure", "graph", { sceneId, currentNodeId, nodes: updatedNodes, links });
     this.render({ force: true });
   }
 
   /**
-   * Creates a new Foundry Scene using the Click Adventure template, then automatically
-   * adds a graph node pre-linked to that scene so it appears in the workspace immediately.
+   * Creates a new Foundry Scene and binds it to this graph at the top level.
+   * Only one scene can be linked per graph; this button is hidden once linked.
    *
    * Triggered by the "New Scene" toolbar button.
    * @returns {Promise<void>}
    */
   async _onNewScene() {
+    // Guard: if a scene is already linked, this button should not be reachable
+    const { sceneId: existing, currentNodeId, nodes, links } = this._graphData();
+    if (existing) return;
+
     const result = await foundry.applications.api.DialogV2.prompt({
       window: { title: "New Scene" },
       content: `
@@ -624,27 +637,34 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const scene = await Scene.create(data);
     if (!scene) return;
 
-    // Automatically create a graph node linked to this new scene
-    const { nodes, links } = this._graphData();
-    const workspace = this.element?.querySelector(".ca-workspace");
-    const w = workspace?.clientWidth  ?? 600;
-    const h = workspace?.clientHeight ?? 400;
-
-    const newNode = {
-      id: foundry.utils.randomID(),
-      label: scene.name,
-      imageSrc: scene.background?.src ?? "",
-      sceneId: scene.id,
-      x: Math.round((w - NODE_W) / 2) + nodes.length * 20,
-      y: Math.round((h - NODE_H) / 2) + nodes.length * 20
-    };
-
+    // Bind the scene to the graph at the top level — not to any individual node
     await game.settings.set("click-adventure", "graph", {
-      nodes: [...nodes, newNode],
-      links
+      sceneId: scene.id, currentNodeId, nodes, links
     });
 
-    ui.notifications.info(`Scene "${scene.name}" created and added to graph.`);
+    ui.notifications.info(`Scene "${scene.name}" created and linked to this graph.`);
     this.render({ force: true });
+  }
+
+  /**
+   * Activates the Foundry Scene linked to this graph and brings its sheet into view.
+   * Triggered by the "View Scene" toolbar button when a scene is already linked.
+   * If the linked scene no longer exists, clears the stale reference.
+   *
+   * @returns {Promise<void>}
+   */
+  async _onViewScene() {
+    const { sceneId, currentNodeId, nodes, links } = this._graphData();
+    if (!sceneId) return;
+    const scene = game.scenes.get(sceneId);
+    if (!scene) {
+      ui.notifications.warn("Linked scene no longer exists. The link will be cleared.");
+      await game.settings.set("click-adventure", "graph", {
+        sceneId: "", currentNodeId, nodes, links
+      });
+      this.render({ force: true });
+      return;
+    }
+    scene.sheet.render(true);
   }
 }
