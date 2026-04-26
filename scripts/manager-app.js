@@ -15,6 +15,7 @@ import { NodeConfigApp } from "./node-config-app.js";
 import { LinkEditorApp } from "./link-editor-app.js";
 import { InstructionsApp } from "./instructions-app.js";
 import { getNodeActiveImage, isMultiPassage, getEffectiveDirection } from "./node-utils.js";
+import { buildSceneData } from "./scene-template.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -799,32 +800,23 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @returns {Promise<string>} the new scene id
    */
   async _createSceneForNode(node, folderId) {
-    const scene = await Scene.create({
-      name: node.label || "Scene",
-      folder: folderId,
-      width: 1920,
-      height: 1080,
-      backgroundColor: "#000000",
-      grid: { type: 0 }
-    });
+    const activeImage = node.images?.[node.activeImageIndex ?? 0]?.src
+                     ?? node.images?.[0]?.src
+                     ?? null;
 
-    const initialImage = node.images?.[node.activeImageIndex ?? 0]?.src
-                      ?? node.images?.[0]?.src
-                      ?? null;
+    const sceneData = buildSceneData(node.label || "Scene");
+    sceneData.folder = folderId;
+    sceneData.navigation = false;
 
-    if (initialImage) {
-      await scene.createEmbeddedDocuments("Tile", [{
-        texture: { src: initialImage },
-        width: 1920,
-        height: 1080,
-        x: 0,
-        y: 0,
-        overhead: false,
-        locked: true,
-        flags: { "click-adventure": { managed: true } }
-      }]);
+    // Replace placeholder src if the node already has an active image
+    if (activeImage) {
+      sceneData.tiles[0].texture.src = activeImage;
     }
 
+    sceneData.tiles[0].locked = true;
+    sceneData.tiles[0].flags = { "click-adventure": { managed: true } };
+
+    const scene = await Scene.create(sceneData);
     return scene.id;
   }
 
@@ -899,13 +891,10 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
       if (activeImage) {
         if (!tile) {
+          const tileTemplate = buildSceneData("").tiles[0];
           await scene.createEmbeddedDocuments("Tile", [{
-            texture: { src: activeImage },
-            width: 1920,
-            height: 1080,
-            x: 0,
-            y: 0,
-            overhead: false,
+            ...tileTemplate,
+            texture: { ...tileTemplate.texture, src: activeImage },
             locked: true,
             flags: { "click-adventure": { managed: true } }
           }]);
