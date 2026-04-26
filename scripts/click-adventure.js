@@ -32,6 +32,8 @@ Hooks.on("canvasReady", () => {
 });
 
 Hooks.on("init", () => {
+  Handlebars.registerHelper("eq", (a, b) => a === b);
+
   game.settings.register("click-adventure", "graph", {
     name: "Adventure Graph",
     scope: "world",

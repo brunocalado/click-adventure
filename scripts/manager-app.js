@@ -91,9 +91,10 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
    */
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
-    const { nodes, links, sceneId } = this._graphData();
+    const { nodes, links, sceneId, currentNodeId } = this._graphData();
     context.nodes = nodes;
     context.links = links;
+    context.currentNodeId = currentNodeId ?? "";
 
     // Validate that the linked scene still exists in the world.
     // If it was deleted externally, clear the stale sceneId silently so the
@@ -141,6 +142,13 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     html.querySelectorAll(".ca-node").forEach(nodeEl => {
       nodeEl.addEventListener("mousedown", e => this._onNodeMouseDown(e, nodeEl));
       nodeEl.addEventListener("dblclick", e => this._onNodeDblClick(e, nodeEl));
+    });
+
+    html.querySelectorAll(".ca-set-current-btn").forEach(btn => {
+      btn.addEventListener("click", e => {
+        e.stopPropagation();
+        this._onSetCurrentNode(btn.dataset.nodeId);
+      });
     });
 
     html.querySelectorAll(".ca-anchor").forEach(anchor => {
@@ -526,6 +534,29 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       nodes: freshGraph.nodes,
       links: filtered
     });
+    this.render({ force: true });
+  }
+
+  /**
+   * Sets the given node as the current position in the graph.
+   * Defines the starting point for HUD navigation.
+   * Triggered by the "Set Current" button on each node in the Manager workspace.
+   *
+   * @param {string} nodeId
+   * @returns {Promise<void>}
+   */
+  async _onSetCurrentNode(nodeId) {
+    const { sceneId, nodes, links } = this._graphData();
+    await game.settings.set("click-adventure", "graph", {
+      sceneId,
+      currentNodeId: nodeId,
+      nodes,
+      links
+    });
+    // Refresh HUD immediately if open so destinations reflect the new position
+    if (globalThis.ClickAdventure._hud?.rendered) {
+      globalThis.ClickAdventure._hud.render({ force: true });
+    }
     this.render({ force: true });
   }
 

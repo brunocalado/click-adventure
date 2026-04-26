@@ -152,6 +152,34 @@
   white-space: nowrap;
 }
 
+/* Current node highlight */
+.ca-node[data-current="true"] {
+  border-color: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.4), 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* Set Current button */
+.ca-set-current-btn {
+  position: absolute;
+  bottom: 3px;
+  right: 5px;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: #4a6fa5;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  pointer-events: all;
+  transition: color 0.15s;
+}
+
+.ca-set-current-btn:hover {
+  color: #22c55e;
+}
+
 /* ----------------------------------------------------------
    Anchor dots
    ---------------------------------------------------------- */
