@@ -89,13 +89,23 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
       const { nodes, links } = this._graphData();
       const seen = new Set();
       for (const link of links) {
-        if (link.sourceId === node.id) {
-          const target = nodes.find(n => n.id === link.targetId);
-          // Deduplicate in case multiple links point to the same target node
-          if (target && !seen.has(target.id)) {
-            seen.add(target.id);
-            availableDestinations.push({ id: target.id, label: target.label || target.id });
-          }
+        const dir = link.direction ?? "both";
+        let otherId = null;
+
+        if (dir === "both") {
+          if (link.sourceId === node.id)      otherId = link.targetId;
+          else if (link.targetId === node.id) otherId = link.sourceId;
+        } else if (dir === "forward" && link.sourceId === node.id) {
+          otherId = link.targetId;
+        } else if (dir === "backward" && link.targetId === node.id) {
+          otherId = link.sourceId;
+        }
+
+        if (!otherId) continue;
+        const other = nodes.find(n => n.id === otherId);
+        if (other && !seen.has(other.id)) {
+          seen.add(other.id);
+          availableDestinations.push({ id: other.id, label: other.label || other.id });
         }
       }
     }

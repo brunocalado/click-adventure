@@ -89,6 +89,26 @@
   stroke-linecap: round;
 }
 
+/* Link direction indicator (⟷ → ←) shown at path midpoint */
+.ca-link-direction {
+  font-size: 13px;
+  fill: #7a9fd4;
+  font-family: sans-serif;
+}
+
+/* Link path color varies by direction state */
+.ca-link[data-direction="both"] {
+  stroke: #5a7ab0;
+}
+
+.ca-link[data-direction="forward"] {
+  stroke: #22c55e;
+}
+
+.ca-link[data-direction="backward"] {
+  stroke: #f59e0b;
+}
+
 /* ----------------------------------------------------------
    Nodes
    ---------------------------------------------------------- */

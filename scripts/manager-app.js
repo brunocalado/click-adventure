@@ -375,7 +375,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     await game.settings.set("click-adventure", "graph", {
       sceneId, currentNodeId, nodes,
-      links: [...links, { sourceId, sourceAnchor, targetId, targetAnchor }]
+      links: [...links, { sourceId, sourceAnchor, targetId, targetAnchor, direction: "both" }]
     });
     this.render({ force: true });
   }
@@ -434,8 +434,8 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     const { links } = this._graphData();
 
-    // Remove only permanent links; leave the transient .ca-temp-link intact
-    svg.querySelectorAll(".ca-link, .ca-link-hit").forEach(el => el.remove());
+    // Remove only permanent links and direction indicators; leave the transient .ca-temp-link intact
+    svg.querySelectorAll(".ca-link, .ca-link-hit, .ca-link-direction").forEach(el => el.remove());
 
     const wsRect = workspace.getBoundingClientRect();
 
@@ -455,9 +455,11 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       const d = `M ${p1.x},${p1.y} C ${p1.x + c1.dx},${p1.y + c1.dy} ${p2.x + c2.dx},${p2.y + c2.dy} ${p2.x},${p2.y}`;
 
       // Visible path — pointer events disabled so the hit area path on top handles interactions
+      const direction = link.direction ?? "both";
       const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
       path.classList.add("ca-link");
       path.setAttribute("d", d);
+      path.dataset.direction = direction;
       path.style.pointerEvents = "none";
       svg.appendChild(path);
 
@@ -467,6 +469,11 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       hitPath.setAttribute("d", d);
       hitPath.dataset.linkIndex = String(i);
       hitPath.style.pointerEvents = "visibleStroke";
+      hitPath.addEventListener("click", e => {
+        e.preventDefault();
+        e.stopPropagation();
+        this._onCycleLink(i);
+      });
       hitPath.addEventListener("contextmenu", e => {
         e.preventDefault();
         e.stopPropagation();
@@ -475,6 +482,19 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       hitPath.addEventListener("mouseenter", () => path.classList.add("ca-link--hover"));
       hitPath.addEventListener("mouseleave", () => path.classList.remove("ca-link--hover"));
       svg.appendChild(hitPath);
+
+      // Midpoint arrow indicator
+      const mid = this._pathMidpoint(p1, c1, p2, c2);
+      const indicator = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      indicator.classList.add("ca-link-direction");
+      indicator.setAttribute("x", mid.x);
+      indicator.setAttribute("y", mid.y);
+      indicator.setAttribute("text-anchor", "middle");
+      indicator.setAttribute("dominant-baseline", "central");
+      indicator.dataset.direction = direction;
+      indicator.style.pointerEvents = "none";
+      indicator.textContent = direction === "both" ? "⟷" : direction === "forward" ? "→" : "←";
+      svg.appendChild(indicator);
     }
   }
 
@@ -505,6 +525,40 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       left:   { x: 0,          y: NODE_H / 2 }
     };
     return { x: nx + offsets[side].x, y: ny + offsets[side].y };
+  }
+
+  /**
+   * Returns the approximate midpoint of a cubic Bézier curve (t=0.5) using De Casteljau.
+   * @param {{ x: number, y: number }} p1
+   * @param {{ dx: number, dy: number }} c1
+   * @param {{ x: number, y: number }} p2
+   * @param {{ dx: number, dy: number }} c2
+   * @returns {{ x: number, y: number }}
+   */
+  _pathMidpoint(p1, c1, p2, c2) {
+    const cp1 = { x: p1.x + c1.dx, y: p1.y + c1.dy };
+    const cp2 = { x: p2.x + c2.dx, y: p2.y + c2.dy };
+    const t = 0.5;
+    const x = Math.pow(1-t,3)*p1.x + 3*Math.pow(1-t,2)*t*cp1.x + 3*(1-t)*t*t*cp2.x + Math.pow(t,3)*p2.x;
+    const y = Math.pow(1-t,3)*p1.y + 3*Math.pow(1-t,2)*t*cp1.y + 3*(1-t)*t*t*cp2.y + Math.pow(t,3)*p2.y;
+    return { x, y };
+  }
+
+  /**
+   * Cycles a link's direction through: both → forward → backward → both.
+   * Triggered by left-click on a .ca-link-hit element during _renderLinks.
+   * @param {number} linkIndex
+   * @returns {Promise<void>}
+   */
+  async _onCycleLink(linkIndex) {
+    const { sceneId, currentNodeId, nodes, links } = this._graphData();
+    const cycle = { both: "forward", forward: "backward", backward: "both" };
+    const updatedLinks = links.map((l, i) => {
+      if (i !== linkIndex) return l;
+      return { ...l, direction: cycle[l.direction ?? "both"] };
+    });
+    await game.settings.set("click-adventure", "graph", { sceneId, currentNodeId, nodes, links: updatedLinks });
+    this._renderLinks();
   }
 
   /**
