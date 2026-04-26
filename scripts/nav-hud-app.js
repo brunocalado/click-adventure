@@ -41,6 +41,8 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this._docMouseUp   = this._onDocMouseUp.bind(this);
     /** @type {boolean} — suppresses the ghost toggle triggered by mouseup after a destination click */
     this._suppressNextToggle = false;
+    /** @type {boolean} — true only when the current mousedown originated on the orb */
+    this._orbMouseDownActive = false;
   }
 
   /**
@@ -180,6 +182,7 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
       if (e.button !== 0) return;
       e.preventDefault();
 
+      this._orbMouseDownActive = true;
       this._dragStarted = false;
       const rect = this.element.getBoundingClientRect();
 
@@ -211,6 +214,9 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @param {MouseEvent} e
    */
   _onDocMouseUp(e) {
+    if (!this._orbMouseDownActive) return;
+    this._orbMouseDownActive = false;
+
     if (this._holdTimer) {
       clearTimeout(this._holdTimer);
       this._holdTimer = null;
