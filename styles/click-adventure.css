@@ -89,24 +89,39 @@
   stroke-linecap: round;
 }
 
-/* Link direction indicator (⟷ → ←) shown at path midpoint */
+/* Text indicators (⟷ and ✕) shown at path midpoint */
 .ca-link-direction {
   font-size: 13px;
-  fill: #7a9fd4;
   font-family: sans-serif;
+  pointer-events: none;
+}
+
+.ca-link-direction[data-direction="both"]    { fill: #22c55e; }
+.ca-link-direction[data-direction="blocked"] { fill: #ef4444; }
+
+/* Directional arrow polygon */
+.ca-link-direction-arrow {
+  pointer-events: none;
+}
+
+.ca-link-direction-arrow[data-direction="forward"],
+.ca-link-direction-arrow[data-direction="backward"] {
+  fill: #f59e0b;
 }
 
 /* Link path color varies by direction state */
 .ca-link[data-direction="both"] {
-  stroke: #5a7ab0;
-}
-
-.ca-link[data-direction="forward"] {
   stroke: #22c55e;
 }
 
+.ca-link[data-direction="forward"],
 .ca-link[data-direction="backward"] {
   stroke: #f59e0b;
+}
+
+.ca-link[data-direction="blocked"] {
+  stroke: #ef4444;
+  stroke-dasharray: 6 4;
 }
 
 /* ----------------------------------------------------------

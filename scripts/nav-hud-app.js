@@ -90,6 +90,7 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
       const seen = new Set();
       for (const link of links) {
         const dir = link.direction ?? "both";
+        if (dir === "blocked") continue;
         let otherId = null;
 
         if (dir === "both") {

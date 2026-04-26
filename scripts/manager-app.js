@@ -435,7 +435,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const { links } = this._graphData();
 
     // Remove only permanent links and direction indicators; leave the transient .ca-temp-link intact
-    svg.querySelectorAll(".ca-link, .ca-link-hit, .ca-link-direction").forEach(el => el.remove());
+    svg.querySelectorAll(".ca-link, .ca-link-hit, .ca-link-direction, .ca-link-direction-arrow").forEach(el => el.remove());
 
     const wsRect = workspace.getBoundingClientRect();
 
@@ -483,18 +483,33 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       hitPath.addEventListener("mouseleave", () => path.classList.remove("ca-link--hover"));
       svg.appendChild(hitPath);
 
-      // Midpoint arrow indicator
+      // Midpoint indicator — text for both/blocked, SVG polygon arrow for forward/backward
       const mid = this._pathMidpoint(p1, c1, p2, c2);
-      const indicator = document.createElementNS("http://www.w3.org/2000/svg", "text");
-      indicator.classList.add("ca-link-direction");
-      indicator.setAttribute("x", mid.x);
-      indicator.setAttribute("y", mid.y);
-      indicator.setAttribute("text-anchor", "middle");
-      indicator.setAttribute("dominant-baseline", "central");
-      indicator.dataset.direction = direction;
-      indicator.style.pointerEvents = "none";
-      indicator.textContent = direction === "both" ? "⟷" : direction === "forward" ? "→" : "←";
-      svg.appendChild(indicator);
+
+      if (direction === "both" || direction === "blocked") {
+        const indicator = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        indicator.classList.add("ca-link-direction");
+        indicator.setAttribute("x", mid.x);
+        indicator.setAttribute("y", mid.y);
+        indicator.setAttribute("text-anchor", "middle");
+        indicator.setAttribute("dominant-baseline", "central");
+        indicator.dataset.direction = direction;
+        indicator.style.pointerEvents = "none";
+        indicator.textContent = direction === "both" ? "⟷" : "✕";
+        svg.appendChild(indicator);
+      } else {
+        // Arrowhead aligned with the curve tangent at t=0.5
+        const angle = this._pathTangentAngle(p1, c1, p2, c2);
+        const arrowAngle = direction === "forward" ? angle : angle + 180;
+        const arrow = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+        arrow.classList.add("ca-link-direction-arrow");
+        arrow.dataset.direction = direction;
+        // Tip at (8,0), base corners at (-6,-5) and (-6,5) — points right by default
+        arrow.setAttribute("points", "8,0 -6,-5 -6,5");
+        arrow.setAttribute("transform", `translate(${mid.x}, ${mid.y}) rotate(${arrowAngle})`);
+        arrow.style.pointerEvents = "none";
+        svg.appendChild(arrow);
+      }
     }
   }
 
@@ -545,14 +560,32 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   /**
-   * Cycles a link's direction through: both → forward → backward → both.
+   * Returns the tangent angle (degrees) of a cubic Bézier at t=0.5.
+   * Used to rotate the directional arrow so it aligns with the curve.
+   * @param {{ x: number, y: number }} p1
+   * @param {{ dx: number, dy: number }} c1
+   * @param {{ x: number, y: number }} p2
+   * @param {{ dx: number, dy: number }} c2
+   * @returns {number}
+   */
+  _pathTangentAngle(p1, c1, p2, c2) {
+    const cp1 = { x: p1.x + c1.dx, y: p1.y + c1.dy };
+    const cp2 = { x: p2.x + c2.dx, y: p2.y + c2.dy };
+    const t = 0.5;
+    const dx = 3*Math.pow(1-t,2)*(cp1.x-p1.x) + 6*(1-t)*t*(cp2.x-cp1.x) + 3*t*t*(p2.x-cp2.x);
+    const dy = 3*Math.pow(1-t,2)*(cp1.y-p1.y) + 6*(1-t)*t*(cp2.y-cp1.y) + 3*t*t*(p2.y-cp2.y);
+    return Math.atan2(dy, dx) * (180 / Math.PI);
+  }
+
+  /**
+   * Cycles a link's direction through: both → forward → backward → blocked → both.
    * Triggered by left-click on a .ca-link-hit element during _renderLinks.
    * @param {number} linkIndex
    * @returns {Promise<void>}
    */
   async _onCycleLink(linkIndex) {
     const { sceneId, currentNodeId, nodes, links } = this._graphData();
-    const cycle = { both: "forward", forward: "backward", backward: "both" };
+    const cycle = { both: "forward", forward: "backward", backward: "blocked", blocked: "both" };
     const updatedLinks = links.map((l, i) => {
       if (i !== linkIndex) return l;
       return { ...l, direction: cycle[l.direction ?? "both"] };
