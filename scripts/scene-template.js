@@ -51,7 +51,7 @@ export function buildSceneData(name = "Click Adventure Scene") {
         _id: "defaultLevel0000",
         name: "Level",
         elevation: { bottom: 0, top: 20 },
-        background: { color: "#ffffff", src: null, tint: "#ffffff", alphaThreshold: 0.75 },
+        background: { color: "#000000", src: null, tint: "#ffffff", alphaThreshold: 0.75 },
         foreground: { src: null, tint: "#ffffff", alphaThreshold: 0.75 },
         fog: { src: null, tint: "#ffffff" },
         textures: { anchorX: 0.5, anchorY: 0.5, offsetX: 0, offsetY: 0, fit: "fill", scaleX: 1, scaleY: 1, rotation: 0 },

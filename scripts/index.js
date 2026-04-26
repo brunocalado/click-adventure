@@ -5,7 +5,6 @@
  */
 
 export { AdventureDataModel } from "./adventure-data-model.js";
-export { buildSceneData }     from "./scene-template.js";
 export { ManagerApp }         from "./manager-app.js";
 export { NodeConfigApp }      from "./node-config-app.js";
 export { NavHudApp }          from "./nav-hud-app.js";

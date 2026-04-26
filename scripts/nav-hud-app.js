@@ -8,7 +8,7 @@
  * Lifecycle hook: renderNavHudApp
  */
 
-import { getNodeActiveImage, isMultiPassage, getEffectiveDirection } from "./node-utils.js";
+import { isMultiPassage, getEffectiveDirection } from "./node-utils.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -293,26 +293,18 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   /**
-   * Navigates to a target node by replacing the background tile texture in the
-   * currently active scene and updating currentNodeId in the graph setting.
-   * Scene activation is intentionally never performed — the graph is permanently
-   * bound to a single Foundry Scene.
+   * Navigates to a target node by activating that node's Foundry Scene and updating
+   * currentNodeId in the graph setting. Each node owns its own scene; navigation
+   * switches scenes rather than swapping a tile texture.
    *
-   * @param {object} targetNode — graph node with optional imageSrc
+   * @param {object} targetNode — graph node with optional sceneId
    * @returns {Promise<void>}
    */
   async _navigateTo(targetNode) {
-    const scene = game.scenes.active;
-    if (!scene) return;
-
-    const tile = scene.tiles.contents[0];
-    if (!tile) {
-      ui.notifications.warn("No background tile found in current scene.");
-      return;
+    if (targetNode.sceneId) {
+      const scene = game.scenes.get(targetNode.sceneId);
+      if (scene) await scene.activate();
     }
-
-    const newSrc = getNodeActiveImage(targetNode) || "modules/click-adventure/assets/imgs/empty.webp";
-    await tile.update({ "texture.src": newSrc });
 
     // Persist the new current node so the HUD directions refresh correctly
     const { sceneId, nodes, links } = this._graphData();

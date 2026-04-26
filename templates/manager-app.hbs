@@ -2,12 +2,9 @@
   <div class="ca-toolbar">
     <button class="ca-add-node" type="button" title="Add Scene Node">+</button>
     <button class="ca-auto-arrange" type="button" title="Auto Arrange">Auto Arrange</button>
-    {{#if graphSceneId}}
-    <button class="ca-view-scene" type="button" title="View linked Foundry Scene">View Scene</button>
-    {{else}}
-    <button class="ca-new-scene" type="button" title="Create New Foundry Scene">New Scene</button>
-    {{/if}}
-    <button class="ca-reset-graph" type="button" title="Delete all nodes, links and scene binding">Reset</button>
+    <button class="ca-create-scenes" type="button" title="Create one Foundry Scene per node">Create Scenes</button>
+    <button class="ca-update-scenes" type="button" title="Sync all node scenes with current data">Update Scenes</button>
+    <button class="ca-reset-graph" type="button" title="Delete all nodes, links and scenes">Reset</button>
     <button class="ca-instructions-btn" type="button" title="Keyboard shortcuts and link type guide">Instructions</button>
   </div>
   <div class="ca-workspace">

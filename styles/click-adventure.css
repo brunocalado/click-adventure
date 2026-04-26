@@ -349,7 +349,29 @@
   color: #cceecc;
 }
 
-.ca-new-scene {
+.ca-create-scenes {
+  box-sizing: border-box;
+  height: 32px;
+  min-height: 32px;
+  padding: 0 12px;
+  margin: 0;
+  background: #1e3a2e;
+  border: 1px solid #3a7a5a;
+  border-radius: 4px;
+  color: #aad4bb;
+  font-size: 12px;
+  line-height: 32px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s;
+}
+.ca-create-scenes:hover {
+  background: #2a5a3e;
+  border-color: #5aaa7a;
+  color: #cceecc;
+}
+
+.ca-update-scenes {
   box-sizing: border-box;
   height: 32px;
   min-height: 32px;
@@ -365,32 +387,10 @@
   flex-shrink: 0;
   transition: background 0.15s, border-color 0.15s;
 }
-.ca-new-scene:hover {
+.ca-update-scenes:hover {
   background: #2a3a5a;
   border-color: #5a8aaa;
   color: #ccddf0;
-}
-
-.ca-view-scene {
-  box-sizing: border-box;
-  height: 32px;
-  min-height: 32px;
-  padding: 0 12px;
-  margin: 0;
-  background: #1e3a1e;
-  border: 1px solid #3a7a3a;
-  border-radius: 4px;
-  color: #aaddaa;
-  font-size: 12px;
-  line-height: 32px;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: background 0.15s, border-color 0.15s;
-}
-.ca-view-scene:hover {
-  background: #2a5a2a;
-  border-color: #5aaa5a;
-  color: #cceecc;
 }
 
 .ca-reset-graph {

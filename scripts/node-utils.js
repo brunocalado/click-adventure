@@ -1,7 +1,8 @@
 /**
- * Shared utility for resolving a node's active image source and reading link passage data.
+ * Shared utility for resolving a node's active image source, reading link passage data,
+ * and syncing a node's managed background tile with its current active image.
  * Kept in a separate module to avoid circular imports between manager-app,
- * nav-hud-app, and the module entry point.
+ * node-config-app, nav-hud-app, and the module entry point.
  */
 
 /**
@@ -39,4 +40,49 @@ export function isMultiPassage(link) {
  */
 export function getEffectiveDirection(link) {
   return link.passages?.[0]?.direction ?? link.direction ?? "both";
+}
+
+/**
+ * Syncs the managed background tile in a node's Foundry Scene with the node's
+ * current active image. Creates the tile if missing, removes it when there is no
+ * active image, and updates texture.src when the image changes.
+ *
+ * The managed tile is identified by the flag "click-adventure.managed" so that
+ * GM-placed tiles in the same scene are never touched.
+ *
+ * Called from NodeConfigApp._saveActiveIndex (immediate image switch) and
+ * NodeConfigApp._saveAll (label/image save).
+ *
+ * @param {object} node - Graph node with optional sceneId and images array.
+ * @returns {Promise<void>}
+ */
+export async function syncNodeTile(node) {
+  if (!node.sceneId) return;
+  const scene = game.scenes.get(node.sceneId);
+  if (!scene) return;
+
+  const activeImage = node.images?.find((_, i) => i === (node.activeImageIndex ?? 0))?.src
+                   ?? node.images?.[0]?.src
+                   ?? null;
+
+  const tile = scene.tiles.find(t => t.getFlag("click-adventure", "managed"));
+
+  if (activeImage) {
+    if (!tile) {
+      await scene.createEmbeddedDocuments("Tile", [{
+        texture: { src: activeImage },
+        width: 1920,
+        height: 1080,
+        x: 0,
+        y: 0,
+        overhead: false,
+        locked: true,
+        flags: { "click-adventure": { managed: true } }
+      }]);
+    } else if (tile.texture.src !== activeImage) {
+      await tile.update({ texture: { src: activeImage } });
+    }
+  } else if (tile) {
+    await tile.delete();
+  }
 }

@@ -14,7 +14,6 @@
 import { NodeConfigApp } from "./node-config-app.js";
 import { LinkEditorApp } from "./link-editor-app.js";
 import { InstructionsApp } from "./instructions-app.js";
-import { buildSceneData } from "./scene-template.js";
 import { getNodeActiveImage, isMultiPassage, getEffectiveDirection } from "./node-utils.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -97,21 +96,10 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
    */
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
-    const { nodes, links, sceneId, currentNodeId } = this._graphData();
+    const { nodes, links, currentNodeId } = this._graphData();
     context.nodes = nodes.map(n => ({ ...n, imageSrc: getNodeActiveImage(n) }));
     context.links = links;
     context.currentNodeId = currentNodeId ?? "";
-
-    // Validate that the linked scene still exists in the world.
-    // If it was deleted externally, clear the stale sceneId silently so the
-    // template renders the "New Scene" button without requiring a manual click.
-    if (sceneId && !game.scenes.get(sceneId)) {
-      await game.settings.set("click-adventure", "graph", { sceneId: "", nodes, links });
-      context.graphSceneId = "";
-    } else {
-      context.graphSceneId = sceneId ?? "";
-    }
-
     return context;
   }
 
@@ -163,8 +151,8 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     html.querySelector(".ca-add-node")?.addEventListener("click", () => this._onAddNode());
     html.querySelector(".ca-auto-arrange")?.addEventListener("click", () => this._onAutoArrange());
-    html.querySelector(".ca-new-scene")?.addEventListener("click", () => this._onNewScene());
-    html.querySelector(".ca-view-scene")?.addEventListener("click", () => this._onViewScene());
+    html.querySelector(".ca-create-scenes")?.addEventListener("click", () => this._onCreateScenes());
+    html.querySelector(".ca-update-scenes")?.addEventListener("click", () => this._onUpdateScenes());
     html.querySelector(".ca-reset-graph")?.addEventListener("click", () => this._onResetGraph());
 
     const instrBtn = html.querySelector(".ca-instructions-btn");
@@ -353,6 +341,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       label: "Scene",
       images: [],
       activeImageIndex: 0,
+      sceneId: null,
       x: Math.round((w - NODE_W) / 2),
       y: Math.round((h - NODE_H) / 2)
     };
@@ -787,87 +776,179 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   /**
-   * Creates a new Foundry Scene and binds it to this graph at the top level.
-   * Only one scene can be linked per graph; this button is hidden once linked.
-   *
-   * Triggered by the "New Scene" toolbar button.
-   * @returns {Promise<void>}
+   * Finds or creates the "Click Adventure" Scene folder used to group all node scenes.
+   * @returns {Promise<Folder>}
    */
-  async _onNewScene() {
-    // Guard: if a scene is already linked, this button should not be reachable
-    const { sceneId: existing, currentNodeId, nodes, links } = this._graphData();
-    if (existing) return;
-
-    const result = await foundry.applications.api.DialogV2.prompt({
-      window: { title: "New Scene" },
-      content: `
-        <div style="padding: 8px 0;">
-          <label style="display:block; margin-bottom:6px;">Scene Name</label>
-          <input type="text" name="sceneName" value="Click Adventure Scene"
-                 style="width:100%;" autofocus/>
-        </div>
-      `,
-      ok: {
-        label: "Create",
-        callback: (event, button) => button.form.elements.sceneName.value.trim()
-      },
-      rejectClose: false
-    });
-    if (!result) return;
-
-    const data = buildSceneData(result);
-    const scene = await Scene.create(data);
-    if (!scene) return;
-
-    // Bind the scene to the graph at the top level — not to any individual node
-    await game.settings.set("click-adventure", "graph", {
-      sceneId: scene.id, currentNodeId, nodes, links
-    });
-
-    ui.notifications.info(`Scene "${scene.name}" created and linked to this graph.`);
-    this.render({ force: true });
+  async _getOrCreateFolder() {
+    let folder = game.folders.find(
+      f => f.name === "Click Adventure" && f.type === "Scene"
+    );
+    if (!folder) {
+      folder = await Folder.create({ name: "Click Adventure", type: "Scene", sorting: "a" });
+    }
+    return folder;
   }
 
   /**
-   * Activates the Foundry Scene linked to this graph.
-   * If the scene no longer exists, clears the sceneId from the graph and re-renders
-   * the toolbar so the "New Scene" button becomes available again.
+   * Creates a Foundry Scene for a single node and returns the new scene's id.
+   * The scene gets a 1920×1080 canvas; if the node has an active image, a managed
+   * background tile is created immediately.
    *
-   * Triggered by the "View Scene" toolbar button when a scene is already linked.
-   * Note: scene.activate() changes the active scene for all connected players.
-   * @returns {Promise<void>}
+   * @param {object} node
+   * @param {string} folderId
+   * @returns {Promise<string>} the new scene id
    */
-  async _onViewScene() {
-    const { sceneId, nodes, links } = this._graphData();
-    if (!sceneId) return;
+  async _createSceneForNode(node, folderId) {
+    const scene = await Scene.create({
+      name: node.label || "Scene",
+      folder: folderId,
+      width: 1920,
+      height: 1080,
+      backgroundColor: "#000000",
+      grid: { type: 0 }
+    });
 
-    const scene = game.scenes.get(sceneId);
+    const initialImage = node.images?.[node.activeImageIndex ?? 0]?.src
+                      ?? node.images?.[0]?.src
+                      ?? null;
 
-    if (!scene) {
-      // Scene was deleted externally — clear the binding and restore the "New Scene" button
-      await game.settings.set("click-adventure", "graph", { sceneId: "", nodes, links });
-      ui.notifications.warn("The linked scene no longer exists. You can create a new one.");
-      this.render({ force: true });
-      return;
+    if (initialImage) {
+      await scene.createEmbeddedDocuments("Tile", [{
+        texture: { src: initialImage },
+        width: 1920,
+        height: 1080,
+        x: 0,
+        y: 0,
+        overhead: false,
+        locked: true,
+        flags: { "click-adventure": { managed: true } }
+      }]);
     }
 
-    // Activate the scene on the canvas (visible to all players)
-    await scene.activate();
+    return scene.id;
   }
 
   /**
-   * Resets the entire graph — clears all nodes, links, sceneId and currentNodeId.
-   * Requires explicit confirmation before proceeding.
+   * Creates one Foundry Scene per node that does not already have a valid scene.
+   * Skips nodes where node.sceneId still resolves to an existing scene.
+   *
+   * Triggered by the "Create Scenes" toolbar button.
+   * @returns {Promise<void>}
+   */
+  async _onCreateScenes() {
+    const { sceneId, currentNodeId, nodes, links } = this._graphData();
+    const folder = await this._getOrCreateFolder();
+    let created = 0;
+
+    const updatedNodes = [...nodes];
+    for (let i = 0; i < updatedNodes.length; i++) {
+      const node = updatedNodes[i];
+      if (node.sceneId && game.scenes.get(node.sceneId)) continue;
+      const newSceneId = await this._createSceneForNode(node, folder.id);
+      updatedNodes[i] = { ...node, sceneId: newSceneId };
+      created++;
+    }
+
+    await game.settings.set("click-adventure", "graph", {
+      sceneId, currentNodeId, nodes: updatedNodes, links
+    });
+    this.render({ force: true });
+    ui.notifications.info(`Click Adventure: ${created} scene(s) created.`);
+  }
+
+  /**
+   * Syncs all node scenes: deletes orphaned scenes, creates missing scenes, and
+   * updates scene names and background tiles to match current node data.
+   *
+   * Triggered by the "Update Scenes" toolbar button.
+   * @returns {Promise<void>}
+   */
+  async _onUpdateScenes() {
+    const { sceneId, currentNodeId, nodes, links } = this._graphData();
+    const folder = await this._getOrCreateFolder();
+    let updated = 0;
+
+    // Remove scenes in the folder that no longer correspond to any node
+    const validSceneIds = new Set(nodes.map(n => n.sceneId).filter(Boolean));
+    const folderScenes = game.scenes.filter(s => s.folder?.id === folder.id);
+    for (const scene of folderScenes) {
+      if (!validSceneIds.has(scene.id)) await scene.delete();
+    }
+
+    const updatedNodes = [...nodes];
+    for (let i = 0; i < updatedNodes.length; i++) {
+      const node = updatedNodes[i];
+
+      // Create scene if missing or stale
+      if (!node.sceneId || !game.scenes.get(node.sceneId)) {
+        const newSceneId = await this._createSceneForNode(node, folder.id);
+        updatedNodes[i] = { ...updatedNodes[i], sceneId: newSceneId };
+        updated++;
+        continue;
+      }
+
+      const scene = game.scenes.get(node.sceneId);
+
+      if (scene.name !== node.label) await scene.update({ name: node.label });
+
+      const activeImage = node.images?.[node.activeImageIndex ?? 0]?.src
+                       ?? node.images?.[0]?.src
+                       ?? null;
+
+      const tile = scene.tiles.find(t => t.getFlag("click-adventure", "managed"));
+
+      if (activeImage) {
+        if (!tile) {
+          await scene.createEmbeddedDocuments("Tile", [{
+            texture: { src: activeImage },
+            width: 1920,
+            height: 1080,
+            x: 0,
+            y: 0,
+            overhead: false,
+            locked: true,
+            flags: { "click-adventure": { managed: true } }
+          }]);
+        } else if (tile.texture.src !== activeImage) {
+          await tile.update({ texture: { src: activeImage } });
+        }
+      } else if (tile) {
+        await tile.delete();
+      }
+
+      updated++;
+    }
+
+    await game.settings.set("click-adventure", "graph", {
+      sceneId, currentNodeId, nodes: updatedNodes, links
+    });
+    this.render({ force: true });
+    ui.notifications.info(`Click Adventure: ${updated} scene(s) updated.`);
+  }
+
+  /**
+   * Resets the entire graph — clears all nodes, links, and deletes all scenes
+   * in the "Click Adventure" folder. Requires explicit confirmation.
    * Triggered by the "Reset" toolbar button.
    * @returns {Promise<void>}
    */
   async _onResetGraph() {
     const confirmed = await foundry.applications.api.DialogV2.confirm({
       window: { title: "Reset Graph" },
-      content: "<p>This will delete <strong>all nodes, links and scene binding</strong>. This cannot be undone.</p><p>Are you sure?</p>",
+      content: "<p>This will delete <strong>all nodes, links and their Foundry Scenes</strong>. This cannot be undone.</p><p>Are you sure?</p>",
       rejectClose: false
     });
     if (!confirmed) return;
+
+    // Delete all scenes in the "Click Adventure" folder
+    const folder = game.folders.find(
+      f => f.name === "Click Adventure" && f.type === "Scene"
+    );
+    if (folder) {
+      const folderScenes = game.scenes.filter(s => s.folder?.id === folder.id);
+      for (const scene of folderScenes) await scene.delete();
+      await folder.delete();
+    }
 
     await game.settings.set("click-adventure", "graph", {
       sceneId: "",

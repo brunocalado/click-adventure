@@ -12,8 +12,8 @@ export class AdventureDataModel extends foundry.abstract.DataModel {
     const { ArrayField, ObjectField, StringField } = foundry.data.fields;
     return {
       /**
-       * The Foundry Scene id this entire graph is bound to.
-       * Empty string means no scene has been created yet.
+       * Legacy graph-level scene binding — unused in the per-node scene architecture.
+       * Kept in schema to avoid DataModel validation errors on existing settings data.
        * @type {string}
        */
       sceneId: new StringField({ required: true, initial: "" }),
@@ -24,9 +24,9 @@ export class AdventureDataModel extends foundry.abstract.DataModel {
        */
       currentNodeId: new StringField({ required: true, initial: "" }),
       /**
-       * Node shape: { id, label, images: [{id,src,label}], activeImageIndex, x, y }
-       * sceneId is intentionally NOT a per-node property.
-       * @type {Array<{id:string, label:string, images:object[], activeImageIndex:number, x:number, y:number}>}
+       * Node shape: { id, label, images: [{id,src,label}], activeImageIndex, x, y, sceneId }
+       * sceneId (per-node) holds the Foundry Scene id created for that node; null until "Create Scenes" runs.
+       * @type {Array<{id:string, label:string, images:object[], activeImageIndex:number, x:number, y:number, sceneId:string|null}>}
        */
       nodes: new ArrayField(new ObjectField()),
       /** @type {Array<{sourceId:string, sourceAnchor:string, targetId:string, targetAnchor:string}>} */

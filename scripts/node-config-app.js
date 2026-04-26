@@ -8,6 +8,8 @@
  * Lifecycle hook: renderNodeConfigApp
  */
 
+import { syncNodeTile } from "./node-utils.js";
+
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
@@ -180,8 +182,8 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   /**
-   * Persists the active image index immediately and updates the background tile if this
-   * node is the current navigation position. Called without waiting for the Save button.
+   * Persists the active image index immediately and syncs the node's managed background
+   * tile via syncNodeTile. Called without waiting for the Save button.
    *
    * @param {number} index
    * @returns {Promise<void>}
@@ -195,12 +197,9 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     });
     await game.settings.set("click-adventure", "graph", { sceneId, currentNodeId, nodes: updatedNodes, links });
 
-    if (currentNodeId === this.nodeId) {
-      const scene = game.scenes.active;
-      const tile = scene?.tiles?.contents[0];
-      const newSrc = images[index]?.src || "modules/click-adventure/assets/imgs/empty.webp";
-      if (tile) await tile.update({ "texture.src": newSrc });
-    }
+    // Sync the tile in this node's own scene immediately
+    const updatedNode = updatedNodes.find(n => n.id === this.nodeId);
+    if (updatedNode) await syncNodeTile(updatedNode);
 
     const manager = foundry.applications.instances.get("manager-app");
     if (manager?.rendered) manager.render({ force: true });
@@ -208,6 +207,7 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
   /**
    * Persists all pending changes (label + images + activeIndex) in a single settings write.
+   * Also syncs the scene name and background tile for this node's Foundry Scene.
    * Clears pending state, refreshes ManagerApp, and closes the panel.
    *
    * @param {string} label
@@ -222,6 +222,14 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
       return { ...n, label, images, activeImageIndex: activeIndex, imageSrc: undefined };
     });
     await game.settings.set("click-adventure", "graph", { sceneId, currentNodeId, nodes: updatedNodes, links });
+
+    const updatedNode = updatedNodes.find(n => n.id === this.nodeId);
+    if (updatedNode?.sceneId) {
+      const scene = game.scenes.get(updatedNode.sceneId);
+      if (scene && scene.name !== label) await scene.update({ name: label });
+      await syncNodeTile(updatedNode);
+    }
+
     this._pendingImages = null;
     this._pendingActiveIndex = null;
     this._pendingLabel = null;
@@ -232,7 +240,7 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   /**
-   * Deletes this node and all associated links after user confirmation.
+   * Deletes this node, all associated links, and its Foundry Scene after user confirmation.
    * Refreshes ManagerApp after deletion.
    *
    * @returns {Promise<void>}
@@ -240,12 +248,19 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
   async _deleteNode() {
     const confirmed = await foundry.applications.api.DialogV2.confirm({
       window: { title: "Delete Node" },
-      content: "<p>Delete this node and all its connections?</p>",
+      content: "<p>Delete this node, all its connections, and its Foundry Scene?</p>",
       rejectClose: false
     });
     if (!confirmed) return;
 
     const { sceneId, currentNodeId, nodes, links } = this._graphData();
+    const deletedNode = nodes.find(n => n.id === this.nodeId);
+
+    if (deletedNode?.sceneId) {
+      const scene = game.scenes.get(deletedNode.sceneId);
+      await scene?.delete();
+    }
+
     const filteredNodes = nodes.filter(n => n.id !== this.nodeId);
     const filteredLinks = links.filter(l =>
       l.sourceId !== this.nodeId && l.targetId !== this.nodeId
