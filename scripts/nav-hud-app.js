@@ -8,7 +8,7 @@
  * Lifecycle hook: renderNavHudApp
  */
 
-import { getNodeActiveImage } from "./node-utils.js";
+import { getNodeActiveImage, isMultiPassage, getEffectiveDirection } from "./node-utils.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -87,26 +87,55 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     if (node) {
       const { nodes, links } = this._graphData();
+      // seen deduplicates destinations that appear via multiple single-passage links
       const seen = new Set();
+
       for (const link of links) {
-        const dir = link.direction ?? "both";
-        if (dir === "blocked") continue;
-        let otherId = null;
+        if (isMultiPassage(link)) {
+          // Each passage is listed as its own destination button (no dedup — distinct traversal options)
+          for (const passage of link.passages) {
+            const passDir = passage.direction ?? "both";
+            if (passDir === "blocked") continue;
+            let otherId = null;
 
-        if (dir === "both") {
-          if (link.sourceId === node.id)      otherId = link.targetId;
-          else if (link.targetId === node.id) otherId = link.sourceId;
-        } else if (dir === "forward" && link.sourceId === node.id) {
-          otherId = link.targetId;
-        } else if (dir === "backward" && link.targetId === node.id) {
-          otherId = link.sourceId;
-        }
+            if (passDir === "both") {
+              if (link.sourceId === node.id)      otherId = link.targetId;
+              else if (link.targetId === node.id) otherId = link.sourceId;
+            } else if (passDir === "forward" && link.sourceId === node.id) {
+              otherId = link.targetId;
+            } else if (passDir === "backward" && link.targetId === node.id) {
+              otherId = link.sourceId;
+            }
 
-        if (!otherId) continue;
-        const other = nodes.find(n => n.id === otherId);
-        if (other && !seen.has(other.id)) {
-          seen.add(other.id);
-          availableDestinations.push({ id: other.id, label: other.label || other.id });
+            if (!otherId) continue;
+            const other = nodes.find(n => n.id === otherId);
+            if (!other) continue;
+            const label = passage.label
+              ? `${other.label || other.id} (${passage.label})`
+              : (other.label || other.id);
+            availableDestinations.push({ id: other.id, label });
+          }
+        } else {
+          // Single-passage: existing direction logic; dedup so the same node appears only once
+          const dir = getEffectiveDirection(link);
+          if (dir === "blocked") continue;
+          let otherId = null;
+
+          if (dir === "both") {
+            if (link.sourceId === node.id)      otherId = link.targetId;
+            else if (link.targetId === node.id) otherId = link.sourceId;
+          } else if (dir === "forward" && link.sourceId === node.id) {
+            otherId = link.targetId;
+          } else if (dir === "backward" && link.targetId === node.id) {
+            otherId = link.sourceId;
+          }
+
+          if (!otherId) continue;
+          const other = nodes.find(n => n.id === otherId);
+          if (other && !seen.has(other.id)) {
+            seen.add(other.id);
+            availableDestinations.push({ id: other.id, label: other.label || other.id });
+          }
         }
       }
     }

@@ -710,3 +710,266 @@
 .ca-btn-delete:hover {
   background: #7a2a2a;
 }
+
+/* ----------------------------------------------------------
+   Instructions toolbar button
+   ---------------------------------------------------------- */
+
+.ca-instructions-btn {
+  box-sizing: border-box;
+  height: 32px;
+  min-height: 32px;
+  padding: 0 12px;
+  margin: 0;
+  background: #1e2a3a;
+  border: 1px solid #3a5a7a;
+  border-radius: 4px;
+  color: #aabbdd;
+  font-size: 12px;
+  line-height: 32px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.ca-instructions-btn:hover {
+  background: #2a3a5a;
+  border-color: #5a8aaa;
+  color: #ccddf0;
+}
+
+/* ----------------------------------------------------------
+   Multi-passage link visual
+   ---------------------------------------------------------- */
+
+.ca-link[data-multi="true"] {
+  stroke-width: 4px;
+  stroke: #a855f7;
+}
+
+.ca-link[data-multi="true"].ca-link--hover {
+  stroke: #c084fc;
+  stroke-width: 5px;
+}
+
+.ca-link-direction[data-direction="multi"] {
+  fill: #a855f7;
+  font-size: 14px;
+}
+
+/* ----------------------------------------------------------
+   Link Editor sheet
+   ---------------------------------------------------------- */
+
+.click-adventure.link-editor .window-content {
+  padding: 0;
+}
+
+.ca-link-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: #1a1c2e;
+  color: #c8d8ff;
+}
+
+.ca-link-editor-header {
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(100, 130, 200, 0.25);
+  background: #141628;
+}
+
+.ca-link-editor-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #99b4dd;
+}
+
+.ca-passages-list {
+  list-style: none;
+  padding: 10px 14px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.ca-passage-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ca-passage-label {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 3px;
+  color: #c8d8ff;
+  padding: 4px 8px;
+  box-sizing: border-box;
+}
+
+.ca-passage-label:focus {
+  outline: none;
+  border-color: rgba(100, 150, 255, 0.5);
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.ca-passage-direction {
+  flex-shrink: 0;
+  width: 36px;
+  height: 28px;
+  padding: 0;
+  background: rgba(40, 60, 120, 0.6);
+  border: 1px solid rgba(100, 140, 220, 0.4);
+  border-radius: 4px;
+  color: #c8d8ff;
+  font-size: 14px;
+  cursor: pointer;
+  text-align: center;
+  line-height: 28px;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.ca-passage-direction:hover {
+  background: rgba(60, 90, 180, 0.8);
+  border-color: rgba(140, 180, 255, 0.7);
+}
+
+.ca-passage-remove {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: #c87070;
+  font-size: 13px;
+  cursor: pointer;
+  line-height: 26px;
+  text-align: center;
+  border-radius: 3px;
+  transition: background 0.12s, color 0.12s;
+}
+
+.ca-passage-remove:hover {
+  background: rgba(160, 40, 40, 0.3);
+  color: #ffaaaa;
+}
+
+.ca-link-editor-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  border-top: 1px solid rgba(100, 130, 200, 0.2);
+  background: #141628;
+}
+
+.ca-passage-add {
+  padding: 5px 12px;
+  background: rgba(30, 60, 50, 0.7);
+  border: 1px solid rgba(60, 140, 100, 0.5);
+  border-radius: 4px;
+  color: #88ddaa;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.ca-passage-add:hover {
+  background: rgba(40, 90, 70, 0.85);
+  border-color: rgba(80, 180, 130, 0.7);
+  color: #aaeebb;
+}
+
+.ca-link-editor-save {
+  padding: 5px 18px;
+  background: #2a4a7a;
+  border: 1px solid #4a6aaa;
+  border-radius: 4px;
+  color: #dde;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.ca-link-editor-save:hover {
+  background: #3a5a9a;
+}
+
+/* ----------------------------------------------------------
+   Instructions popover
+   ---------------------------------------------------------- */
+
+.click-adventure.instructions {
+  position: fixed !important;
+  z-index: 10000 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  pointer-events: none;
+}
+
+.click-adventure.instructions .ca-instructions {
+  pointer-events: all;
+}
+
+.ca-instructions {
+  background: rgba(10, 12, 30, 0.95);
+  border: 1px solid rgba(100, 130, 200, 0.3);
+  border-radius: 8px;
+  padding: 14px 16px;
+  color: #c8d8ff;
+  font-size: 12px;
+  backdrop-filter: blur(6px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ca-instructions-section h3 {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #7fa8dd;
+  border-bottom: 1px solid rgba(100, 130, 200, 0.2);
+  padding-bottom: 4px;
+}
+
+.ca-instructions-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ca-instructions-section li {
+  line-height: 1.5;
+}
+
+.ca-instructions-section p {
+  margin: 0;
+  line-height: 1.5;
+  color: #a8b8d8;
+}
+
+.ca-instructions kbd {
+  display: inline-block;
+  padding: 1px 5px;
+  background: rgba(80, 100, 160, 0.4);
+  border: 1px solid rgba(120, 150, 210, 0.5);
+  border-radius: 3px;
+  font-size: 11px;
+  font-family: monospace;
+  color: #dde8ff;
+}

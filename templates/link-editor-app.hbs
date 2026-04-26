@@ -1,0 +1,19 @@
+<div class="ca-link-editor">
+  <div class="ca-link-editor-header">
+    <span class="ca-link-editor-title">{{fromLabel}} ↔ {{toLabel}}</span>
+  </div>
+  <ul class="ca-passages-list">
+    {{#each passages}}
+    <li class="ca-passage-row" data-index="{{index}}">
+      <input class="ca-passage-label" type="text" value="{{label}}" placeholder="Passage name (optional)" />
+      <button class="ca-passage-direction" type="button" title="Click to cycle direction"
+              data-direction="{{direction}}">{{caDirectionIcon direction}}</button>
+      <button class="ca-passage-remove" type="button" title="Remove passage">✕</button>
+    </li>
+    {{/each}}
+  </ul>
+  <div class="ca-link-editor-footer">
+    <button class="ca-passage-add" type="button">+ Add passage</button>
+    <button class="ca-link-editor-save" type="button">Save</button>
+  </div>
+</div>

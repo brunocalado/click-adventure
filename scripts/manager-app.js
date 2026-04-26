@@ -12,8 +12,10 @@
  */
 
 import { NodeConfigApp } from "./node-config-app.js";
+import { LinkEditorApp } from "./link-editor-app.js";
+import { InstructionsApp } from "./instructions-app.js";
 import { buildSceneData } from "./scene-template.js";
-import { getNodeActiveImage } from "./node-utils.js";
+import { getNodeActiveImage, isMultiPassage, getEffectiveDirection } from "./node-utils.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -56,6 +58,9 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     // Bound versions kept so document listeners can be removed on close.
     this._docMouseMove = this._onDocMouseMove.bind(this);
     this._docMouseUp = this._onDocMouseUp.bind(this);
+
+    /** @type {InstructionsApp|null} — active instructions popover instance. */
+    this._instructionsApp = null;
   }
 
   // ---------------------------------------------------------------------------
@@ -162,6 +167,21 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     html.querySelector(".ca-view-scene")?.addEventListener("click", () => this._onViewScene());
     html.querySelector(".ca-reset-graph")?.addEventListener("click", () => this._onResetGraph());
 
+    const instrBtn = html.querySelector(".ca-instructions-btn");
+    if (instrBtn) {
+      instrBtn.addEventListener("mouseenter", () => {
+        if (!this._instructionsApp?.rendered) {
+          const rect = instrBtn.getBoundingClientRect();
+          this._instructionsApp = new InstructionsApp(rect);
+          this._instructionsApp.render(true);
+        }
+      });
+      instrBtn.addEventListener("mouseleave", () => {
+        this._instructionsApp?.close();
+        this._instructionsApp = null;
+      });
+    }
+
     this._renderLinks();
   }
 
@@ -178,6 +198,8 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     document.removeEventListener("mouseup", this._docMouseUp);
     this._dragState = null;
     this._linkState = null;
+    this._instructionsApp?.close();
+    this._instructionsApp = null;
     await super._onClose(options);
   }
 
@@ -377,7 +399,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     await game.settings.set("click-adventure", "graph", {
       sceneId, currentNodeId, nodes,
-      links: [...links, { sourceId, sourceAnchor, targetId, targetAnchor, direction: "both" }]
+      links: [...links, { sourceId, sourceAnchor, targetId, targetAnchor, passages: [{ label: "", direction: "both" }] }]
     });
     this.render({ force: true });
   }
@@ -457,11 +479,13 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       const d = `M ${p1.x},${p1.y} C ${p1.x + c1.dx},${p1.y + c1.dy} ${p2.x + c2.dx},${p2.y + c2.dy} ${p2.x},${p2.y}`;
 
       // Visible path — pointer events disabled so the hit area path on top handles interactions
-      const direction = link.direction ?? "both";
+      const direction = getEffectiveDirection(link);
+      const multi = isMultiPassage(link);
       const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
       path.classList.add("ca-link");
       path.setAttribute("d", d);
       path.dataset.direction = direction;
+      if (multi) path.dataset.multi = "true";
       path.style.pointerEvents = "none";
       svg.appendChild(path);
 
@@ -474,7 +498,12 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       hitPath.addEventListener("click", e => {
         e.preventDefault();
         e.stopPropagation();
-        this._onCycleLink(i);
+        // Shift+click or multi-passage link → open editor; plain click on single-passage → cycle direction
+        if (e.shiftKey || multi) {
+          new LinkEditorApp(i).render(true);
+        } else {
+          this._onCycleLink(i);
+        }
       });
       hitPath.addEventListener("contextmenu", e => {
         e.preventDefault();
@@ -485,10 +514,21 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       hitPath.addEventListener("mouseleave", () => path.classList.remove("ca-link--hover"));
       svg.appendChild(hitPath);
 
-      // Midpoint indicator — text for both/blocked, SVG polygon arrow for forward/backward
+      // Midpoint indicator — ⊕ for multi-passage, text for both/blocked, arrow for forward/backward
       const mid = this._pathMidpoint(p1, c1, p2, c2);
 
-      if (direction === "both" || direction === "blocked") {
+      if (multi) {
+        const indicator = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        indicator.classList.add("ca-link-direction");
+        indicator.setAttribute("x", mid.x);
+        indicator.setAttribute("y", mid.y);
+        indicator.setAttribute("text-anchor", "middle");
+        indicator.setAttribute("dominant-baseline", "central");
+        indicator.dataset.direction = "multi";
+        indicator.style.pointerEvents = "none";
+        indicator.textContent = "⊕";
+        svg.appendChild(indicator);
+      } else if (direction === "both" || direction === "blocked") {
         const indicator = document.createElementNS("http://www.w3.org/2000/svg", "text");
         indicator.classList.add("ca-link-direction");
         indicator.setAttribute("x", mid.x);
@@ -590,7 +630,14 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const cycle = { both: "forward", forward: "backward", backward: "blocked", blocked: "both" };
     const updatedLinks = links.map((l, i) => {
       if (i !== linkIndex) return l;
-      return { ...l, direction: cycle[l.direction ?? "both"] };
+      // Multi-passage links are edited via LinkEditorApp — cycling is a no-op here
+      if (isMultiPassage(l)) return l;
+      const currentDir = l.passages?.[0]?.direction ?? l.direction ?? "both";
+      const newDir = cycle[currentDir];
+      const updatedPassages = l.passages
+        ? [{ ...l.passages[0], direction: newDir }]
+        : [{ label: "", direction: newDir }];
+      return { ...l, passages: updatedPassages };
     });
     await game.settings.set("click-adventure", "graph", { sceneId, currentNodeId, nodes, links: updatedLinks });
     this._renderLinks();

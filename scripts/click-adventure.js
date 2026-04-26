@@ -31,8 +31,39 @@ Hooks.on("canvasReady", () => {
   }
 });
 
+/**
+ * One-time migration: wrap the legacy flat `direction` field on each link into a
+ * single-element `passages` array so all downstream code can rely on the new schema.
+ * Runs in the `ready` hook (after world data is available) and only writes if any
+ * link still has the old shape.  Only GMs can write world-scope settings.
+ */
+Hooks.on("ready", async () => {
+  if (!game.user.isGM) return;
+  const graph = game.settings.get("click-adventure", "graph");
+  const raw = typeof graph?.toObject === "function" ? graph.toObject() : (graph ?? {});
+  const links = raw.links ?? [];
+
+  const needsMigration = links.some(l => !Array.isArray(l.passages));
+  if (!needsMigration) return;
+
+  const migratedLinks = links.map(l => {
+    if (Array.isArray(l.passages)) return l;
+    const { direction, ...rest } = l;
+    return { ...rest, passages: [{ label: "", direction: direction ?? "both" }] };
+  });
+
+  await game.settings.set("click-adventure", "graph", { ...raw, links: migratedLinks });
+  console.log("[ClickAdventure] Migrated links to passages[] schema.");
+});
+
 Hooks.on("init", () => {
   Handlebars.registerHelper("eq", (a, b) => a === b);
+
+  // Returns a Unicode glyph for a passage direction value.
+  Handlebars.registerHelper("caDirectionIcon", dir => {
+    const icons = { both: "⟷", forward: "→", backward: "←", blocked: "✕" };
+    return icons[dir] ?? "⟷";
+  });
 
   game.settings.register("click-adventure", "graph", {
     name: "Adventure Graph",

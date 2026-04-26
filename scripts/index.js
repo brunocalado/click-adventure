@@ -9,6 +9,8 @@ export { buildSceneData }     from "./scene-template.js";
 export { ManagerApp }         from "./manager-app.js";
 export { NodeConfigApp }      from "./node-config-app.js";
 export { NavHudApp }          from "./nav-hud-app.js";
+export { LinkEditorApp }      from "./link-editor-app.js";
+export { InstructionsApp }    from "./instructions-app.js";
 
 // Main init — must be last because it references all the above
 import "./click-adventure.js";
