@@ -592,6 +592,10 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     });
     await game.settings.set("click-adventure", "graph", { sceneId, currentNodeId, nodes, links: updatedLinks });
     this._renderLinks();
+
+    // Notify HUD immediately so destination list reflects the new link state
+    const hud = globalThis.ClickAdventure._hud;
+    if (hud?.rendered) hud.render({ force: true });
   }
 
   /**
