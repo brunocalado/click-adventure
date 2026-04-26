@@ -13,6 +13,7 @@
 
 import { NodeConfigApp } from "./node-config-app.js";
 import { buildSceneData } from "./scene-template.js";
+import { getNodeActiveImage } from "./node-utils.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -92,7 +93,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
     const { nodes, links, sceneId, currentNodeId } = this._graphData();
-    context.nodes = nodes;
+    context.nodes = nodes.map(n => ({ ...n, imageSrc: getNodeActiveImage(n) }));
     context.links = links;
     context.currentNodeId = currentNodeId ?? "";
 
@@ -328,7 +329,8 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const newNode = {
       id: foundry.utils.randomID(),
       label: "Scene",
-      imageSrc: "",
+      images: [],
+      activeImageIndex: 0,
       x: Math.round((w - NODE_W) / 2),
       y: Math.round((h - NODE_H) / 2)
     };

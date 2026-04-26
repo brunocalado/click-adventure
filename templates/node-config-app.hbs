@@ -1,26 +1,43 @@
 <div class="ca-node-config">
 
-  <div class="ca-node-preview">
-    {{#if node.imageSrc}}
-    <img src="{{node.imageSrc}}" alt="{{node.label}}" class="ca-node-preview-image"/>
+  <div class="ca-node-config-row">
+    <label>Label <span class="ca-char-limit">(max 100)</span></label>
+    <input type="text" class="ca-node-label-input" value="{{nodeLabel}}" maxlength="100"/>
+  </div>
+
+  <div class="ca-images-section">
+    <div class="ca-images-header">
+      <span>Images</span>
+      <button type="button" data-action="add-image" title="Add image">+ Add</button>
+    </div>
+
+    {{#if images.length}}
+    <ul class="ca-images-list">
+      {{#each images}}
+      <li class="ca-image-item {{#if isActive}}ca-image-item--active{{/if}}">
+        <div class="ca-image-thumb" style="background-image: url('{{src}}');"></div>
+        <div class="ca-image-info">
+          <input type="text" class="ca-image-label-input" data-index="{{index}}" value="{{label}}"/>
+          <div class="ca-image-actions">
+            {{#unless isActive}}
+            <button type="button" data-action="set-active" data-index="{{index}}" title="Set as active">&#9654; Use</button>
+            {{else}}
+            <span class="ca-image-active-badge">&#9679; Active</span>
+            {{/unless}}
+            <button type="button" data-action="remove-image" data-index="{{index}}" title="Remove image" class="ca-btn-remove">&#10005;</button>
+          </div>
+        </div>
+      </li>
+      {{/each}}
+    </ul>
     {{else}}
-    <div class="ca-node-preview-empty">No image</div>
+    <div class="ca-images-empty">No images yet. Click "+ Add" to browse.</div>
     {{/if}}
-  </div>
-
-  <div class="ca-node-config-row">
-    <label>Label</label>
-    <input type="text" class="ca-node-label-input" value="{{node.label}}"/>
-  </div>
-
-  <div class="ca-node-config-row">
-    <label>Image</label>
-    <button type="button" data-action="pick-image">Browse</button>
   </div>
 
   <div class="ca-node-config-actions">
     <button type="button" class="ca-btn-save" data-action="save">Save</button>
-    <button type="button" class="ca-btn-delete" data-action="delete-node">Delete</button>
+    <button type="button" class="ca-btn-delete" data-action="delete-node">Delete Node</button>
   </div>
 
 </div>

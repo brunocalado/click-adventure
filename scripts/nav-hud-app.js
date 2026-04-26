@@ -8,6 +8,8 @@
  * Lifecycle hook: renderNavHudApp
  */
 
+import { getNodeActiveImage } from "./node-utils.js";
+
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
@@ -280,7 +282,7 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
       return;
     }
 
-    const newSrc = targetNode.imageSrc || "modules/click-adventure/assets/imgs/empty.webp";
+    const newSrc = getNodeActiveImage(targetNode) || "modules/click-adventure/assets/imgs/empty.webp";
     await tile.update({ "texture.src": newSrc });
 
     // Persist the new current node so the HUD directions refresh correctly
