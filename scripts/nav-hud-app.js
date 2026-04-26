@@ -1,7 +1,7 @@
 /**
  * Floating navigation HUD displayed during gameplay.
- * Shows four 3D-styled directional arrow buttons around a central drag handle.
- * Clicking an arrow navigates to the adjacent graph node by replacing the background tile
+ * Shows a single orb that expands a destination panel on click and initiates drag on hold.
+ * Clicking an arrow navigates to the target graph node by replacing the background tile
  * texture in the currently active scene — the active scene itself never changes.
  * The current node position is tracked via graph.currentNodeId in the world setting.
  *
@@ -19,7 +19,7 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     id: "nav-hud-app",
     classes: ["click-adventure", "nav-hud"],
     window: { frame: false, positioned: true },
-    position: { width: 160, height: 160, left: 120, top: 120 }
+    position: { width: 220, height: "auto", left: 120, top: 120 }
   };
 
   /** @override */
@@ -33,6 +33,10 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     super(options);
     /** @type {{ offsetX: number, offsetY: number }|null} */
     this._dragState = null;
+    /** @type {boolean} — true once the hold threshold has been crossed */
+    this._dragStarted = false;
+    /** @type {number|null} — setTimeout handle for drag threshold detection */
+    this._holdTimer = null;
     this._docMouseMove = this._onDocMouseMove.bind(this);
     this._docMouseUp   = this._onDocMouseUp.bind(this);
   }
@@ -64,8 +68,8 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   /**
-   * Builds available directions from the current node's outgoing links.
-   * Keys are "top", "right", "bottom", "left"; values are target nodes or null.
+   * Builds a flat array of available destination nodes from the current node's outgoing links.
+   * Replaces the previous direction-keyed object — direction metadata is no longer needed by the HUD.
    * Triggered during the ApplicationV2 _prepareContext lifecycle stage.
    *
    * @override
@@ -75,20 +79,27 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
     const node = this._currentNode();
-    const directions = { top: null, right: null, bottom: null, left: null };
+    const availableDestinations = [];
 
     if (node) {
       const { nodes, links } = this._graphData();
+      const seen = new Set();
       for (const link of links) {
-        if (link.sourceId === node.id && directions[link.sourceAnchor] === null) {
+        if (link.sourceId === node.id) {
           const target = nodes.find(n => n.id === link.targetId);
-          if (target) directions[link.sourceAnchor] = target;
+          // Deduplicate in case multiple links point to the same target node
+          if (target && !seen.has(target.id)) {
+            seen.add(target.id);
+            availableDestinations.push({ id: target.id, label: target.label || target.id });
+          }
         }
       }
     }
 
-    context.directions = directions;
-    context.hasAnyDirection = Object.values(directions).some(Boolean);
+    context.availableDestinations = availableDestinations;
+    context.hasAnyDirection = availableDestinations.length > 0;
+    // isOpen is managed via DOM class toggle — default false on each render
+    context.isOpen = false;
     return context;
   }
 
@@ -132,7 +143,9 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   /**
-   * Wires direction button clicks and the central drag handle after every render.
+   * Wires destination button clicks and the orb mousedown after every render.
+   * The orb uses a hold-threshold pattern: release before 200ms = click (toggle panel);
+   * hold beyond 200ms = drag mode.
    * Triggered during the ApplicationV2 _onRender lifecycle stage.
    *
    * @override
@@ -143,44 +156,92 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     super._onRender(context, options);
     const html = this.element;
 
-    html.querySelectorAll("[data-direction]").forEach(btn => {
+    html.querySelectorAll(".ca-hud-dest-btn").forEach(btn => {
       btn.addEventListener("click", () => {
-        const dir = btn.dataset.direction;
-        const target = context.directions[dir];
-        if (target) this._navigateTo(target);
+        const nodeId = btn.dataset.nodeId;
+        const { nodes } = this._graphData();
+        const target = nodes.find(n => n.id === nodeId);
+        if (target) {
+          this._closePanelDOM();
+          this._navigateTo(target);
+        }
       });
     });
 
-    const handle = html.querySelector(".ca-hud-handle");
-    if (!handle) {
-      console.warn("NavHudApp | .ca-hud-handle not found — drag will not work.");
+    const orb = html.querySelector(".ca-hud-orb");
+    if (!orb) {
+      console.warn("NavHudApp | .ca-hud-orb not found — interaction will not work.");
       return;
     }
-    handle.addEventListener("mousedown", e => {
+
+    orb.addEventListener("mousedown", e => {
+      if (e.button !== 0) return;
       e.preventDefault();
+
+      this._dragStarted = false;
       const rect = this.element.getBoundingClientRect();
-      this._dragState = {
-        offsetX: e.clientX - rect.left,
-        offsetY: e.clientY - rect.top
-      };
+
+      // Crossing the threshold commits to drag; releasing before it is treated as a click
+      this._holdTimer = setTimeout(() => {
+        this._dragStarted = true;
+        this._dragState = {
+          offsetX: e.clientX - rect.left,
+          offsetY: e.clientY - rect.top
+        };
+        orb.classList.add("ca-hud-orb--dragging");
+      }, 200);
     });
   }
 
   /**
+   * Moves the HUD while dragging.
    * @param {MouseEvent} e
    */
   _onDocMouseMove(e) {
-    if (!this._dragState) return;
+    if (!this._dragState || !this._dragStarted) return;
     const x = e.clientX - this._dragState.offsetX;
     const y = e.clientY - this._dragState.offsetY;
     this.setPosition({ left: x, top: y });
   }
 
   /**
+   * Ends drag or triggers panel toggle depending on whether the hold threshold was crossed.
    * @param {MouseEvent} e
    */
   _onDocMouseUp(e) {
-    this._dragState = null;
+    if (this._holdTimer) {
+      clearTimeout(this._holdTimer);
+      this._holdTimer = null;
+    }
+
+    if (this._dragStarted) {
+      this._dragStarted = false;
+      this._dragState = null;
+      const orb = this.element?.querySelector(".ca-hud-orb");
+      orb?.classList.remove("ca-hud-orb--dragging");
+      return;
+    }
+
+    // Released before threshold — treat as click to toggle the destinations panel
+    this._togglePanelDOM();
+  }
+
+  /**
+   * Toggles the destinations panel open/closed via CSS class.
+   * Direct DOM manipulation avoids a full ApplicationV2 re-render for a UI-only state change.
+   */
+  _togglePanelDOM() {
+    const panel = this.element?.querySelector(".ca-hud-destinations");
+    if (!panel) return;
+    panel.classList.toggle("ca-hud-destinations--open");
+  }
+
+  /**
+   * Closes the destinations panel.
+   */
+  _closePanelDOM() {
+    const panel = this.element?.querySelector(".ca-hud-destinations");
+    panel?.classList.remove("ca-hud-destinations--open");
   }
 
   /**
