@@ -279,13 +279,24 @@
 }
 
 /* ----------------------------------------------------------
-   Nav HUD shell
+   Nav HUD shell — free-floating above the Foundry UI
    ---------------------------------------------------------- */
 
 .click-adventure.nav-hud {
+  position: fixed !important;
+  z-index: 9999 !important;
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
+  pointer-events: none;
+  width: 160px !important;
+  height: 160px !important;
+}
+
+/* Re-enable pointer events only on interactive children */
+.click-adventure.nav-hud .ca-hud-dpad,
+.click-adventure.nav-hud .ca-hud-handle {
+  pointer-events: all;
 }
 
 .ca-hud-dpad {
@@ -345,10 +356,10 @@
 /* ---- 3D arrows (CSS fake 3D using transform + drop-shadow) ---- */
 .ca-arrow-3d {
   position: relative;
-  background: #ff6400;
+  background: #22c55e;
   filter:
-    drop-shadow(1px 1px 0px #8b3700)
-    drop-shadow(2px 2px 0px #4d1e00);
+    drop-shadow(1px 1px 0px #166534)
+    drop-shadow(2px 2px 0px #052e16);
   transform-style: preserve-3d;
 }
 
@@ -364,7 +375,7 @@
   left: 100%;
   top: 50%;
   transform: translateY(-50%);
-  border-left: 10px solid #cc5000;
+  border-left: 10px solid #16a34a;
   border-top: 10px solid transparent;
   border-bottom: 10px solid transparent;
 }
@@ -381,7 +392,7 @@
   right: 100%;
   top: 50%;
   transform: translateY(-50%);
-  border-right: 10px solid #cc5000;
+  border-right: 10px solid #16a34a;
   border-top: 10px solid transparent;
   border-bottom: 10px solid transparent;
 }
@@ -398,7 +409,7 @@
   bottom: 100%;
   left: 50%;
   transform: translateX(-50%);
-  border-bottom: 10px solid #cc5000;
+  border-bottom: 10px solid #16a34a;
   border-left: 10px solid transparent;
   border-right: 10px solid transparent;
 }
@@ -415,15 +426,15 @@
   top: 100%;
   left: 50%;
   transform: translateX(-50%);
-  border-top: 10px solid #cc5000;
+  border-top: 10px solid #16a34a;
   border-left: 10px solid transparent;
   border-right: 10px solid transparent;
 }
 
 .ca-hud-arrow:not(.ca-hud-arrow--inactive):hover .ca-arrow-3d {
   filter:
-    drop-shadow(1px 1px 0px #8b3700)
-    drop-shadow(2px 2px 0px #4d1e00)
+    drop-shadow(1px 1px 0px #166534)
+    drop-shadow(2px 2px 0px #052e16)
     brightness(1.3);
 }
 

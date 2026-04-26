@@ -101,6 +101,17 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     super._onFirstRender(context, options);
     document.addEventListener("mousemove", this._docMouseMove);
     document.addEventListener("mouseup",   this._docMouseUp);
+
+    // Re-parent to document.body so Foundry's UI layout cannot reflow this element.
+    // ApplicationV2 may insert it into #interface; moving it here ensures position:fixed
+    // works against the true viewport origin.
+    if (this.element.parentElement !== document.body) {
+      document.body.appendChild(this.element);
+    }
+
+    // Force ApplicationV2 to re-apply position styles now that the element
+    // is correctly anchored in document.body under position:fixed.
+    this.setPosition(this.constructor.DEFAULT_OPTIONS.position);
   }
 
   /**
@@ -138,7 +149,11 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     });
 
     const handle = html.querySelector(".ca-hud-handle");
-    handle?.addEventListener("mousedown", e => {
+    if (!handle) {
+      console.warn("NavHudApp | .ca-hud-handle not found — drag will not work.");
+      return;
+    }
+    handle.addEventListener("mousedown", e => {
       e.preventDefault();
       const rect = this.element.getBoundingClientRect();
       this._dragState = {
