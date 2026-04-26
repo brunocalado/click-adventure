@@ -94,7 +94,17 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const { nodes, links, sceneId } = this._graphData();
     context.nodes = nodes;
     context.links = links;
-    context.graphSceneId = sceneId;
+
+    // Validate that the linked scene still exists in the world.
+    // If it was deleted externally, clear the stale sceneId silently so the
+    // template renders the "New Scene" button without requiring a manual click.
+    if (sceneId && !game.scenes.get(sceneId)) {
+      await game.settings.set("click-adventure", "graph", { sceneId: "", nodes, links });
+      context.graphSceneId = "";
+    } else {
+      context.graphSceneId = sceneId ?? "";
+    }
+
     return context;
   }
 
