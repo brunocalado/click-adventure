@@ -314,6 +314,24 @@
   color: #cceecc;
 }
 
+.ca-reset-graph {
+  margin-left: auto;
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid rgba(180, 60, 60, 0.5);
+  border-radius: 4px;
+  color: #c87070;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.ca-reset-graph:hover {
+  background: rgba(160, 40, 40, 0.3);
+  border-color: rgba(220, 80, 80, 0.8);
+  color: #ffaaaa;
+}
+
 /* ----------------------------------------------------------
    Nav HUD shell — free-floating above the Foundry UI
    ---------------------------------------------------------- */

@@ -159,6 +159,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     html.querySelector(".ca-auto-arrange")?.addEventListener("click", () => this._onAutoArrange());
     html.querySelector(".ca-new-scene")?.addEventListener("click", () => this._onNewScene());
     html.querySelector(".ca-view-scene")?.addEventListener("click", () => this._onViewScene());
+    html.querySelector(".ca-reset-graph")?.addEventListener("click", () => this._onResetGraph());
 
     this._renderLinks();
   }
@@ -712,5 +713,35 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     // Activate the scene on the canvas (visible to all players)
     await scene.activate();
+  }
+
+  /**
+   * Resets the entire graph — clears all nodes, links, sceneId and currentNodeId.
+   * Requires explicit confirmation before proceeding.
+   * Triggered by the "Reset" toolbar button.
+   * @returns {Promise<void>}
+   */
+  async _onResetGraph() {
+    const confirmed = await foundry.applications.api.DialogV2.confirm({
+      window: { title: "Reset Graph" },
+      content: "<p>This will delete <strong>all nodes, links and scene binding</strong>. This cannot be undone.</p><p>Are you sure?</p>",
+      rejectClose: false
+    });
+    if (!confirmed) return;
+
+    await game.settings.set("click-adventure", "graph", {
+      sceneId: "",
+      currentNodeId: "",
+      nodes: [],
+      links: []
+    });
+
+    // Close HUD if open — it no longer has a valid state
+    if (globalThis.ClickAdventure._hud?.rendered) {
+      globalThis.ClickAdventure._hud.close();
+    }
+
+    this.render({ force: true });
+    ui.notifications.info("Click Adventure: graph reset.");
   }
 }
