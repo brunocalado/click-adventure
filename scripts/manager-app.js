@@ -808,13 +808,19 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     sceneData.folder = folderId;
     sceneData.navigation = false;
 
-    // Replace placeholder src if the node already has an active image
-    if (activeImage) {
-      sceneData.tiles[0].texture.src = activeImage;
-    }
-
-    sceneData.tiles[0].locked = true;
-    sceneData.tiles[0].flags = { "click-adventure": { managed: true } };
+    // Rebuild tiles[0] as a new object to avoid mutating the shared template reference
+    const baseTile = sceneData.tiles[0];
+    sceneData.tiles = [
+      {
+        ...baseTile,
+        texture: {
+          ...baseTile.texture,
+          src: activeImage ?? baseTile.texture.src
+        },
+        locked: true,
+        flags: { "click-adventure": { managed: true } }
+      }
+    ];
 
     const scene = await Scene.create(sceneData);
     return scene.id;
