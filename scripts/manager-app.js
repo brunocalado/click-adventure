@@ -143,6 +143,14 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       anchor.addEventListener("mousedown", e => this._onAnchorMouseDown(e, anchor));
     });
 
+    html.querySelectorAll(".ca-view-scene-btn").forEach(btn => {
+      btn.addEventListener("mousedown", e => e.stopPropagation()); // prevents accidental drag start
+      btn.addEventListener("click", e => {
+        e.stopPropagation();
+        this._onViewScene(btn.dataset.sceneId);
+      });
+    });
+
     html.querySelector(".ca-add-node")?.addEventListener("click", () => this._onAddNode());
     html.querySelector(".ca-auto-arrange")?.addEventListener("click", () => this._onAutoArrange());
     html.querySelector(".ca-create-scenes")?.addEventListener("click", () => this._onCreateScenes());
@@ -253,6 +261,24 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
   _onNodeDblClick(e, nodeEl) {
     e.preventDefault();
     new NodeConfigApp(nodeEl.dataset.nodeId).render(true);
+  }
+
+  /**
+   * Switches the GM's canvas view to the scene associated with the clicked node.
+   * Uses scene.view() — only the GM's perspective changes, players are unaffected.
+   * Triggered by click on .ca-view-scene-btn in _onRender.
+   *
+   * @param {string} sceneId
+   * @returns {Promise<void>}
+   */
+  async _onViewScene(sceneId) {
+    if (!sceneId) return;
+    const scene = game.scenes.get(sceneId);
+    if (!scene) {
+      ui.notifications.warn("Click Adventure: Scene not found. Try running Update Scenes.");
+      return;
+    }
+    await scene.view();
   }
 
   /**
