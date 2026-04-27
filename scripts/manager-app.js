@@ -367,11 +367,15 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       instrBtn.addEventListener("mouseenter", () => {
         if (!this._instructionsApp?.rendered) {
           const rect = instrBtn.getBoundingClientRect();
-          this._instructionsApp = new InstructionsApp(rect);
+          this._instructionsApp = new InstructionsApp(rect, () => {
+            this._instructionsApp = null;
+          });
           this._instructionsApp.render(true);
         }
       });
-      instrBtn.addEventListener("mouseleave", () => {
+      instrBtn.addEventListener("mouseleave", (e) => {
+        // Only close if the mouse did not move into the popover itself
+        if (this._instructionsApp?.element?.contains(e.relatedTarget)) return;
         this._instructionsApp?.close();
         this._instructionsApp = null;
       });

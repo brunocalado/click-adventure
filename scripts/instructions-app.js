@@ -27,18 +27,22 @@ export class InstructionsApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
   /**
    * @param {DOMRect} buttonRect — bounding rect of the Instructions button used to anchor the popover
+   * @param {Function|null} [onClose] — callback fired when the popover closes itself on mouseleave
    * @param {object} [options]
    */
-  constructor(buttonRect, options = {}) {
+  constructor(buttonRect, onClose, options = {}) {
     super(options);
     /** @type {DOMRect} */
     this._buttonRect = buttonRect;
+    /** @type {Function|null} */
+    this._onCloseCallback = onClose ?? null;
   }
 
   /**
    * Positions the popover directly below the Instructions button after first paint.
    * Re-parented to document.body (same technique as NavHudApp) so position:fixed works
    * against the true viewport origin and is not clipped by the Manager window.
+   * Wires mouseleave so the popover closes immediately when the pointer leaves it.
    * Triggered during the ApplicationV2 _onFirstRender lifecycle stage.
    *
    * @override
@@ -55,6 +59,11 @@ export class InstructionsApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this.setPosition({
       left: Math.round(this._buttonRect.left),
       top:  Math.round(this._buttonRect.bottom + 6)
+    });
+
+    this.element.addEventListener("mouseleave", () => {
+      this.close();
+      this._onCloseCallback?.();
     });
   }
 }
