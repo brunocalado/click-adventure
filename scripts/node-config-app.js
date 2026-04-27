@@ -135,6 +135,10 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
       const manager = foundry.applications.instances.get("manager-app");
       if (manager?.rendered) manager.render({ force: true });
+
+      // Re-assert z-index after Manager renders on top.
+      // ApplicationV2.bringToTop() is the canonical v14 method to reclaim focus.
+      this.bringToTop();
     });
 
     html.querySelector("[data-action='add-image']")?.addEventListener("click", () => {
