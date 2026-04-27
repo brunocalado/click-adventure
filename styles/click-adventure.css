@@ -142,7 +142,7 @@
   user-select: none;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
   transition: border-color 0.15s, box-shadow 0.15s;
-  /* sem overflow:hidden — estrela e âncoras ficam visíveis fora da borda */
+  overflow: visible;  /* avatares e âncoras ficam visíveis fora da borda do node */
 }
 
 .ca-node:hover {
@@ -339,14 +339,14 @@
 
 .ca-node-occupants {
   position: absolute;
-  top: -14px;
-  left: 0;
-  right: 0;
+  top: -18px;
+  left: 4px;
+  right: 4px;
   display: flex;
-  justify-content: center;
-  gap: 2px;
+  justify-content: flex-start;
+  gap: 3px;
   pointer-events: none;
-  z-index: 5;
+  z-index: 10;
 }
 
 .ca-occupant-avatar {
