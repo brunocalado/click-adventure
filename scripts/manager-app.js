@@ -341,7 +341,6 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     });
 
     html.querySelector(".ca-add-node")?.addEventListener("click", () => this._onAddNode());
-    html.querySelector(".ca-auto-arrange")?.addEventListener("click", () => this._onAutoArrange());
     html.querySelector(".ca-sync-scenes")?.addEventListener("click", () => this._onSyncScenes());
     html.querySelector(".ca-reset-graph")?.addEventListener("click", () => this._onResetGraph());
 
@@ -1004,89 +1003,6 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       nodes: freshGraph.nodes,
       links: filtered
     });
-    this.render({ force: true });
-  }
-
-  /**
-   * Repositions all nodes using a layered graph layout based on link topology.
-   * Algorithm: topological sort → assign depth levels → position columns left-to-right.
-   * Nodes with no links are placed in a final column on the right.
-   * This only affects cosmetic x/y — no link data is modified.
-   *
-   * Triggered by the Auto Arrange toolbar button.
-   * @returns {Promise<void>}
-   */
-  async _onAutoArrange() {
-    const { sceneId, startNodeId, nodes, links } = this._graphData();
-    if (nodes.length === 0) return;
-
-    const COL_GAP = 80;
-    const ROW_GAP = 40;
-
-    // Build adjacency: sourceId → Set of targetIds
-    const outEdges = new Map(nodes.map(n => [n.id, new Set()]));
-    const inDegree = new Map(nodes.map(n => [n.id, 0]));
-    for (const link of links) {
-      outEdges.get(link.sourceId)?.add(link.targetId);
-      inDegree.set(link.targetId, (inDegree.get(link.targetId) ?? 0) + 1);
-    }
-
-    // Kahn's algorithm for topological layering
-    const level = new Map();
-    const queue = nodes.filter(n => (inDegree.get(n.id) ?? 0) === 0).map(n => n.id);
-    queue.forEach(id => level.set(id, 0));
-
-    let head = 0;
-    while (head < queue.length) {
-      const id = queue[head++];
-      for (const targetId of (outEdges.get(id) ?? [])) {
-        const nextLevel = (level.get(id) ?? 0) + 1;
-        if (!level.has(targetId) || level.get(targetId) < nextLevel) {
-          level.set(targetId, nextLevel);
-        }
-        inDegree.set(targetId, (inDegree.get(targetId) ?? 1) - 1);
-        if (inDegree.get(targetId) === 0) queue.push(targetId);
-      }
-    }
-
-    // Nodes not reached (cycles or isolated) go to a final column
-    const maxLevel = Math.max(0, ...level.values());
-    nodes.forEach(n => { if (!level.has(n.id)) level.set(n.id, maxLevel + 1); });
-
-    // Group nodes by level
-    const columns = new Map();
-    for (const n of nodes) {
-      const col = level.get(n.id) ?? 0;
-      if (!columns.has(col)) columns.set(col, []);
-      columns.get(col).push(n.id);
-    }
-
-    // Compute column x positions
-    const colX = new Map();
-    let x = COL_GAP;
-    for (const col of [...columns.keys()].sort((a, b) => a - b)) {
-      colX.set(col, x);
-      x += NODE_W + COL_GAP;
-    }
-
-    // Assign y positions within each column, centred in the workspace
-    const workspace = this.element?.querySelector(".ca-workspace");
-    const wsH = workspace?.clientHeight ?? 500;
-
-    const updatedNodes = nodes.map(n => {
-      const col = level.get(n.id) ?? 0;
-      const colNodes = columns.get(col) ?? [];
-      const rowIndex = colNodes.indexOf(n.id);
-      const totalH = colNodes.length * NODE_H + (colNodes.length - 1) * ROW_GAP;
-      const startY = Math.max(ROW_GAP, (wsH - totalH) / 2);
-      return {
-        ...n,
-        x: colX.get(col) ?? COL_GAP,
-        y: startY + rowIndex * (NODE_H + ROW_GAP)
-      };
-    });
-
-    await game.settings.set("click-adventure", "graph", { sceneId, startNodeId, nodes: updatedNodes, links });
     this.render({ force: true });
   }
 

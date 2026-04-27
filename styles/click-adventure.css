@@ -403,71 +403,30 @@
   color: #fff;
 }
 
-.ca-auto-arrange {
+.ca-sync-scenes {
   box-sizing: border-box;
   height: 32px;
-  min-height: 32px;
   padding: 0 12px;
-  margin: 0;
-  background: #1e3a2e;
-  border: 1px solid #3a7a5a;
-  border-radius: 4px;
-  color: #aad4bb;
-  font-size: 12px;
-  line-height: 32px;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: background 0.15s, border-color 0.15s;
-}
-
-.ca-auto-arrange:hover {
-  background: #2a5a3e;
-  border-color: #5aaa7a;
-  color: #cceecc;
-}
-
-.ca-create-scenes {
-  box-sizing: border-box;
-  height: 32px;
-  min-height: 32px;
-  padding: 0 12px;
-  margin: 0;
-  background: #1e3a2e;
-  border: 1px solid #3a7a5a;
-  border-radius: 4px;
-  color: #aad4bb;
-  font-size: 12px;
-  line-height: 32px;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: background 0.15s, border-color 0.15s;
-}
-.ca-create-scenes:hover {
-  background: #2a5a3e;
-  border-color: #5aaa7a;
-  color: #cceecc;
-}
-
-.ca-update-scenes {
-  box-sizing: border-box;
-  height: 32px;
-  min-height: 32px;
-  padding: 0 12px;
-  margin: 0;
   background: #1e2a3a;
   border: 1px solid #3a5a7a;
   border-radius: 4px;
   color: #aabbdd;
   font-size: 12px;
-  line-height: 32px;
   cursor: pointer;
   flex-shrink: 0;
-  transition: background 0.15s, border-color 0.15s;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
-.ca-update-scenes:hover {
+
+.ca-sync-scenes:hover {
   background: #2a3a5a;
   border-color: #5a8aaa;
   color: #ccddf0;
+}
+
+/* Suprime o outline laranja injetado pelo Foundry VTT em botões da toolbar */
+.ca-toolbar button:focus {
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .ca-reset-graph {
