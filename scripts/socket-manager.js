@@ -42,6 +42,12 @@ export class AdventureSocketManager {
         case "PLAYER_MOVED":
           this._handlePlayerMoved(payload);
           break;
+        case "TELEPORT_USER":
+          this._handleTeleportUser(payload);
+          break;
+        case "HUD_REFRESH":
+          this._handleHudRefresh(payload);
+          break;
         default:
           console.warn(`AdventureSocketManager | Unknown message type: ${type}`);
       }
@@ -121,5 +127,45 @@ export class AdventureSocketManager {
     }
 
     await scene.view();
+  }
+
+  /**
+   * Received by all clients. Only the target user views the scene and refreshes their HUD.
+   * Triggered by GM-initiated teleport from the manager right-click menu.
+   * @param {{ sceneId: string, userId: string }} payload
+   */
+  async _handleTeleportUser({ sceneId, userId } = {}) {
+    if (game.userId !== userId) return;
+    const scene = game.scenes.get(sceneId);
+    if (scene) await scene.view();
+    const hud = globalThis.ClickAdventure._hud;
+    if (hud?.rendered) hud.render({ force: true });
+  }
+
+  /**
+   * Received by all clients. Only the target user refreshes their HUD (no scene change).
+   * @param {{ userId: string }} payload
+   */
+  _handleHudRefresh({ userId } = {}) {
+    if (game.userId !== userId) return;
+    const hud = globalThis.ClickAdventure._hud;
+    if (hud?.rendered) hud.render({ force: true });
+  }
+
+  /**
+   * Tells a specific user's client to view a scene (GM-initiated teleport).
+   * @param {string} sceneId
+   * @param {string} userId
+   */
+  teleportUser(sceneId, userId) {
+    this._emit("TELEPORT_USER", { sceneId, userId });
+  }
+
+  /**
+   * Tells a specific user's client to re-render their HUD without changing scene.
+   * @param {string} userId
+   */
+  notifyHudRefresh(userId) {
+    this._emit("HUD_REFRESH", { userId });
   }
 }

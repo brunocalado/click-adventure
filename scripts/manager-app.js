@@ -200,6 +200,11 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     html.querySelectorAll(".ca-node").forEach(nodeEl => {
       nodeEl.addEventListener("mousedown", e => this._onNodeMouseDown(e, nodeEl));
       nodeEl.addEventListener("dblclick", e => this._onNodeDblClick(e, nodeEl));
+      nodeEl.addEventListener("contextmenu", e => {
+        e.preventDefault();
+        e.stopPropagation();
+        this._onNodeContextMenu(e, nodeEl.dataset.nodeId);
+      });
     });
 
     html.querySelectorAll(".ca-anchor").forEach(anchor => {
@@ -261,6 +266,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this._linkState = null;
     this._instructionsApp?.close();
     this._instructionsApp = null;
+    document.querySelector(".ca-context-menu")?.remove();
     await super._onClose(options);
   }
 
@@ -367,6 +373,100 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
     await scene.view();
     if (nodeId) await this._onSetActiveNode(nodeId);
+  }
+
+  /**
+   * Shows a context menu on right-click over a node with options to teleport players.
+   * @param {MouseEvent} e
+   * @param {string} nodeId
+   */
+  _onNodeContextMenu(e, nodeId) {
+    document.querySelector(".ca-context-menu")?.remove();
+
+    const players = game.users.filter(u => !u.isGM && u.active);
+    if (players.length === 0) return;
+
+    const { nodes } = this._graphData();
+    const node = nodes.find(n => n.id === nodeId);
+    if (!node) return;
+
+    const menu = document.createElement("div");
+    menu.className = "ca-context-menu";
+    menu.style.left = `${e.clientX}px`;
+    menu.style.top  = `${e.clientY}px`;
+
+    const header = document.createElement("div");
+    header.className = "ca-context-menu-header";
+    header.textContent = `Teleport to "${node.label || nodeId}"`;
+    menu.appendChild(header);
+
+    menu.appendChild(Object.assign(document.createElement("div"), { className: "ca-context-menu-divider" }));
+
+    for (const user of players) {
+      const currentNodeId = user.getFlag("click-adventure", "currentNodeId");
+      const isHere = currentNodeId === nodeId;
+
+      const item = document.createElement("div");
+      item.className = "ca-context-menu-item" + (isHere ? " ca-context-menu-item--active" : "");
+
+      const dot = document.createElement("span");
+      dot.className = "ca-context-menu-dot";
+      dot.style.background = user.color?.css ?? user.color ?? "#fff";
+
+      const label = document.createElement("span");
+      label.textContent = user.name;
+
+      item.appendChild(dot);
+      item.appendChild(label);
+
+      if (isHere) {
+        const badge = document.createElement("span");
+        badge.className = "ca-context-menu-badge";
+        badge.textContent = "here";
+        item.appendChild(badge);
+      } else {
+        item.addEventListener("click", () => {
+          menu.remove();
+          this._onTeleportPlayer(user, nodeId);
+        });
+      }
+
+      menu.appendChild(item);
+    }
+
+    document.body.appendChild(menu);
+
+    const closeMenu = (ev) => {
+      if (!menu.contains(ev.target)) {
+        menu.remove();
+        document.removeEventListener("mousedown", closeMenu);
+      }
+    };
+    // Delay one tick so this very mousedown event doesn't immediately close the menu
+    setTimeout(() => document.addEventListener("mousedown", closeMenu), 0);
+  }
+
+  /**
+   * Teleports a specific player to a target node.
+   * Updates their currentNodeId flag and notifies their client via socket.
+   * @param {User} user
+   * @param {string} nodeId
+   * @returns {Promise<void>}
+   */
+  async _onTeleportPlayer(user, nodeId) {
+    const { nodes } = this._graphData();
+    const targetNode = nodes.find(n => n.id === nodeId);
+    if (!targetNode) return;
+
+    await user.setFlag("click-adventure", "currentNodeId", nodeId);
+
+    if (targetNode.sceneId) {
+      await globalThis.ClickAdventure._socket.teleportUser(targetNode.sceneId, user.id);
+    } else {
+      await globalThis.ClickAdventure._socket.notifyHudRefresh(user.id);
+    }
+
+    this._patchOccupantAvatars();
   }
 
   /**
