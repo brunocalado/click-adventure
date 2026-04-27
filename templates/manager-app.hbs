@@ -4,13 +4,11 @@
     <button class="ca-auto-arrange" type="button" title="Auto Arrange">Auto Arrange</button>
     <button class="ca-create-scenes" type="button" title="Create one Foundry Scene per node">Create Scenes</button>
     <button class="ca-update-scenes" type="button" title="Sync all node scenes with current data">Update Scenes</button>
-    <button class="ca-reset-graph" type="button" title="Delete all nodes, links and scenes">Reset</button>
-    <button class="ca-instructions-btn" type="button" title="Keyboard shortcuts and link type guide">Instructions</button>
 
     {{!-- Navigation mode control --}}
     <select class="ca-nav-mode-select" title="Navigation mode for players">
-      <option value="open"  {{#if (eq navigationMode "open")}}selected{{/if}}>Open Navigation</option>
-      <option value="gated" {{#if (eq navigationMode "gated")}}selected{{/if}}>Gated Navigation</option>
+      <option value="open"  {{#if (eq navigationMode "open")}}selected{{/if}}>Open</option>
+      <option value="gated" {{#if (eq navigationMode "gated")}}selected{{/if}}>Gated</option>
     </select>
 
     {{!-- Requests button — shows count badge when queue is non-empty --}}
@@ -18,6 +16,12 @@
             type="button" title="Pending navigation requests">
       {{#if requestCount}}Requests ({{requestCount}}){{else}}Requests{{/if}}
     </button>
+
+    {{!-- Spacer pushes Reset and Instructions to the far right --}}
+    <span class="ca-toolbar-spacer"></span>
+
+    <button class="ca-reset-graph" type="button" title="Delete all nodes, links and scenes">Reset</button>
+    <button class="ca-instructions-btn" type="button" title="Keyboard shortcuts and link type guide">Instructions</button>
   </div>
 
   {{!-- Navigation requests drawer --}}

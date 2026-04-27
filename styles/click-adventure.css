@@ -1108,7 +1108,9 @@
 
 .ca-nav-mode-select {
   height: 32px;
-  padding: 0 8px;
+  width: 80px;
+  max-width: 80px;
+  padding: 0 6px;
   background: #1e2a3a;
   border: 1px solid #3a5a7a;
   border-radius: 4px;
@@ -1121,6 +1123,10 @@
 .ca-nav-mode-select:focus {
   outline: none;
   border-color: #5a8aaa;
+}
+
+.ca-toolbar-spacer {
+  flex: 1;
 }
 
 /* ----------------------------------------------------------
