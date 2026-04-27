@@ -83,6 +83,17 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
    */
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
+
+    // Lazy init: if the user has no currentNodeId yet, seed it from startNodeId now.
+    // This handles players who joined after the ready hook ran or mid-session additions.
+    const existingNodeId = game.user.getFlag("click-adventure", "currentNodeId");
+    if (!existingNodeId) {
+      const { startNodeId } = this._graphData();
+      if (startNodeId) {
+        await game.user.setFlag("click-adventure", "currentNodeId", startNodeId);
+      }
+    }
+
     const node = this._currentNode();
     const availableDestinations = [];
 
@@ -294,17 +305,20 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   /**
-   * Navigates the current user to a target node, activating its Foundry Scene
-   * and persisting the new position in the user's own flag (per-user, not global).
-   * scene.activate() affects all clients — intentional for party-wide scene transitions.
+   * Navigates the current user to a target node.
+   * - Scene transition is per-client only (scene.view() via socket), never global.
+   * - Persists the new position in the user's own flag (per-user, not global).
    *
-   * @param {object} targetNode — graph node with optional sceneId
+   * @param {object} targetNode - graph node with optional sceneId
    * @returns {Promise<void>}
    */
   async _navigateTo(targetNode) {
     if (targetNode.sceneId) {
-      const scene = game.scenes.get(targetNode.sceneId);
-      if (scene) await scene.activate();
+      // Per-client scene view — does not affect other players' screens
+      await globalThis.ClickAdventure._socket.viewSceneForUser(
+        targetNode.sceneId,
+        game.userId
+      );
     }
 
     // Per-user position — does not affect other players' currentNodeId flags

@@ -4,12 +4,13 @@
  * Import order: data models and utilities first, then applications, then main init.
  */
 
-export { AdventureDataModel } from "./adventure-data-model.js";
-export { ManagerApp }         from "./manager-app.js";
-export { NodeConfigApp }      from "./node-config-app.js";
-export { NavHudApp }          from "./nav-hud-app.js";
-export { LinkEditorApp }      from "./link-editor-app.js";
-export { InstructionsApp }    from "./instructions-app.js";
+export { AdventureDataModel }     from "./adventure-data-model.js";
+export { ManagerApp }             from "./manager-app.js";
+export { NodeConfigApp }          from "./node-config-app.js";
+export { NavHudApp }              from "./nav-hud-app.js";
+export { LinkEditorApp }          from "./link-editor-app.js";
+export { InstructionsApp }        from "./instructions-app.js";
+export { AdventureSocketManager } from "./socket-manager.js";
 
 // Main init — must be last because it references all the above
 import "./click-adventure.js";

@@ -11,6 +11,7 @@
 import { AdventureDataModel } from "./adventure-data-model.js";
 import { ManagerApp } from "./manager-app.js";
 import { NavHudApp } from "./nav-hud-app.js";
+import { AdventureSocketManager } from "./socket-manager.js";
 
 /**
  * Automatically show or hide the NavHUD based on whether the active scene
@@ -62,6 +63,10 @@ Hooks.on("init", () => {
     default: { sceneId: "", startNodeId: "", nodes: [], links: [] }
   });
 
+  // Instantiate socket manager — must run during init so the listener
+  // is registered before any socket messages can arrive.
+  const socketManager = new AdventureSocketManager();
+
   globalThis.ClickAdventure = {
     /**
      * Opens the scene-graph manager window, or brings the existing one to front.
@@ -97,6 +102,9 @@ Hooks.on("init", () => {
     },
 
     /** @type {NavHudApp|null} — active HUD instance. */
-    _hud: null
+    _hud: null,
+
+    /** @type {AdventureSocketManager} — socket handler instance */
+    _socket: socketManager
   };
 });

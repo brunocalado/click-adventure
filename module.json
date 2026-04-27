@@ -17,7 +17,9 @@
     }
   ],
   
+  "socket": true,
+
   "url": "https://github.com/brunocalado/click-adventure",
   "manifest": "https://raw.githubusercontent.com/brunocalado/click-adventure/main/module.json"
-  
+
 }
