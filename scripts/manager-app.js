@@ -267,6 +267,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     context.links = links;
     context.startNodeId = startNodeId ?? "";
     context.activeNodeId = activeNodeId;
+    context.hasAnyScene = nodes.some(n => n.sceneId && game.scenes.get(n.sceneId));
 
     const getLabel = id => nodes.find(n => n.id === id)?.label || id;
     context.navigationMode = game.settings.get("click-adventure", "navigationMode");
@@ -341,8 +342,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     html.querySelector(".ca-add-node")?.addEventListener("click", () => this._onAddNode());
     html.querySelector(".ca-auto-arrange")?.addEventListener("click", () => this._onAutoArrange());
-    html.querySelector(".ca-create-scenes")?.addEventListener("click", () => this._onCreateScenes());
-    html.querySelector(".ca-update-scenes")?.addEventListener("click", () => this._onUpdateScenes());
+    html.querySelector(".ca-sync-scenes")?.addEventListener("click", () => this._onSyncScenes());
     html.querySelector(".ca-reset-graph")?.addEventListener("click", () => this._onResetGraph());
 
     html.querySelector(".ca-nav-mode-select")?.addEventListener("change", async e => {
@@ -1140,41 +1140,13 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   /**
-   * Creates one Foundry Scene per node that does not already have a valid scene.
-   * Skips nodes where node.sceneId still resolves to an existing scene.
-   *
-   * Triggered by the "Create Scenes" toolbar button.
-   * @returns {Promise<void>}
-   */
-  async _onCreateScenes() {
-    const { sceneId, startNodeId, nodes, links } = this._graphData();
-    const folder = await this._getOrCreateFolder();
-    let created = 0;
-
-    const updatedNodes = [...nodes];
-    for (let i = 0; i < updatedNodes.length; i++) {
-      const node = updatedNodes[i];
-      if (node.sceneId && game.scenes.get(node.sceneId)) continue;
-      const newSceneId = await this._createSceneForNode(node, folder.id);
-      updatedNodes[i] = { ...node, sceneId: newSceneId };
-      created++;
-    }
-
-    await game.settings.set("click-adventure", "graph", {
-      sceneId, startNodeId, nodes: updatedNodes, links
-    });
-    this.render({ force: true });
-    ui.notifications.info(`Click Adventure: ${created} scene(s) created.`);
-  }
-
-  /**
    * Syncs all node scenes: deletes orphaned scenes, creates missing scenes, and
    * updates scene names and background tiles to match current node data.
    *
-   * Triggered by the "Update Scenes" toolbar button.
+   * Triggered by the "Sync Scenes" toolbar button.
    * @returns {Promise<void>}
    */
-  async _onUpdateScenes() {
+  async _onSyncScenes() {
     const { sceneId, startNodeId, nodes, links } = this._graphData();
     const folder = await this._getOrCreateFolder();
     let updated = 0;
@@ -1231,7 +1203,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       sceneId, startNodeId, nodes: updatedNodes, links
     });
     this.render({ force: true });
-    ui.notifications.info(`Click Adventure: ${updated} scene(s) updated.`);
+    ui.notifications.info(`Click Adventure: ${updated} scene(s) synced.`);
   }
 
   /**

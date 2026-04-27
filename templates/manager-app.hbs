@@ -2,8 +2,10 @@
   <div class="ca-toolbar">
     <button class="ca-add-node" type="button" title="Add Scene Node">+</button>
     <button class="ca-auto-arrange" type="button" title="Auto Arrange">Auto Arrange</button>
-    <button class="ca-create-scenes" type="button" title="Create one Foundry Scene per node">Create Scenes</button>
-    <button class="ca-update-scenes" type="button" title="Sync all node scenes with current data">Update Scenes</button>
+    <button class="ca-sync-scenes" type="button"
+            title="{{#if hasAnyScene}}Sync all node scenes with current data{{else}}Create one Foundry Scene per node{{/if}}">
+      {{#if hasAnyScene}}Update Scenes{{else}}Create Scenes{{/if}}
+    </button>
 
     {{!-- Navigation mode control --}}
     <select class="ca-nav-mode-select" title="Navigation mode for players">
