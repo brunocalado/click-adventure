@@ -69,9 +69,8 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
   /**
    * Builds a map of nodeId → occupant display data for all active non-GM users.
-   * img priority: prototype token image → actor portrait → user avatar → fallback icon.
    * name priority: linked actor name → user name.
-   * @returns {Map<string, Array<{name: string, img: string, color: string}>>}
+   * @returns {Map<string, Array<{name: string, color: string}>>}
    */
   _buildOccupants() {
     const map = new Map();
@@ -80,22 +79,17 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       const nodeId = user.getFlag("click-adventure", "currentNodeId");
       if (!nodeId) continue;
 
-      const actor = user.character;
-      const name  = actor?.name ?? user.name;
-      const img   = actor?.prototypeToken?.texture?.src
-                 ?? actor?.img
-                 ?? user.avatar
-                 ?? "icons/svg/mystery-man.svg";
+      const name  = user.character?.name ?? user.name;
       const color = user.color?.css ?? user.color ?? "#ffffff";
 
       if (!map.has(nodeId)) map.set(nodeId, []);
-      map.get(nodeId).push({ name, img, color });
+      map.get(nodeId).push({ name, color });
     }
     return map;
   }
 
   /**
-   * Updates occupant avatar strips in-place without triggering a full re-render.
+   * Updates occupant name label strips in-place without triggering a full re-render.
    * Called when a PLAYER_MOVED socket message is received while the manager is open.
    * Safe to call at any time — no-op if the manager is not rendered.
    */
@@ -116,16 +110,13 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       const strip = document.createElement("div");
       strip.className = "ca-node-occupants";
 
-      for (const { name, img, color } of list) {
-        const avatar = document.createElement("img");
-        avatar.className = "ca-occupant-avatar";
-        avatar.src = img;
-        avatar.alt = name;
-        avatar.title = name;
-        avatar.style.borderColor = color;
-        avatar.width = 20;
-        avatar.height = 20;
-        strip.appendChild(avatar);
+      for (const { name, color } of list) {
+        const label = document.createElement("span");
+        label.className = "ca-occupant-label";
+        label.textContent = name;
+        label.title = name;
+        label.style.borderColor = color;
+        strip.appendChild(label);
       }
 
       nodeEl.appendChild(strip);
