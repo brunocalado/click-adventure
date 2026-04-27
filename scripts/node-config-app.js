@@ -124,7 +124,15 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
       }));
       await User.updateDocuments(userUpdates);
 
-      this.render({ force: true });
+      // Update the toggle button DOM directly instead of re-rendering the whole app.
+      // Re-rendering would cause the window to lose z-index focus behind ManagerApp.
+      const btn = html.querySelector("[data-action='toggle-start']");
+      if (btn) {
+        btn.textContent = "★ Start";
+        btn.title = "This is the start node (click another node to change)";
+        btn.classList.add("ca-toggle-start--active");
+      }
+
       const manager = foundry.applications.instances.get("manager-app");
       if (manager?.rendered) manager.render({ force: true });
     });
