@@ -157,14 +157,17 @@
 .ca-node-body {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: 4px;
   /* Body should not steal mouse events from anchors */
   pointer-events: none;
+  padding: 6px 0 4px 6px;
+  width: calc(100% - 28px);
+  box-sizing: border-box;
 }
 
 .ca-node-image {
-  width: 60px;
+  width: 100%;
   height: 60px;
   background-size: cover;
   background-position: center;
@@ -198,16 +201,17 @@
 /* Start point star icon — top-left corner of node */
 .ca-start-icon {
   position: absolute;
-  top: 3px;
-  left: 5px;
-  width: 16px;
-  height: 16px;
+  top: -6px;
+  left: -6px;
+  width: 22px;
+  height: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #f59e0b;
   pointer-events: none;
-  z-index: 1;
+  z-index: 10;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.7));
 }
 
 .ca-start-icon svg {
@@ -228,12 +232,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: none;
-  border: none;
+  background: rgba(15, 25, 60, 0.75);
+  border: 1px solid rgba(100, 140, 220, 0.35);
   color: #7a8fa6;
   cursor: pointer;
   pointer-events: all;
-  transition: color 0.15s;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
   border-radius: 3px;
 }
 
@@ -243,6 +247,8 @@
 
 .ca-set-active-btn--active {
   color: #22c55e;
+  background: rgba(34, 197, 94, 0.15);
+  border-color: rgba(34, 197, 94, 0.45);
 }
 
 .ca-set-active-btn svg {
@@ -263,12 +269,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: none;
-  border: none;
+  background: rgba(15, 25, 60, 0.75);
+  border: 1px solid rgba(100, 140, 220, 0.35);
   color: #7a8fa6;
   cursor: pointer;
   pointer-events: all;
-  transition: color 0.15s, opacity 0.15s;
+  transition: color 0.15s, opacity 0.15s, background 0.15s, border-color 0.15s;
   border-radius: 3px;
 }
 
