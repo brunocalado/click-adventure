@@ -14,6 +14,7 @@
 import { NodeConfigApp } from "./node-config-app.js";
 import { LinkEditorApp } from "./link-editor-app.js";
 import { InstructionsApp } from "./instructions-app.js";
+import { SettingsApp } from "./settings-app.js";
 import { getNodeActiveImage, isMultiPassage, getEffectiveDirection } from "./node-utils.js";
 import { buildSceneData } from "./scene-template.js";
 
@@ -61,6 +62,9 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     /** @type {InstructionsApp|null} — active instructions popover instance. */
     this._instructionsApp = null;
+
+    /** @type {SettingsApp|null} — active settings popover instance. */
+    this._settingsApp = null;
 
     /**
      * Pending navigation requests from non-GM players.
@@ -381,6 +385,25 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       });
     }
 
+    const gearBtn = html.querySelector(".ca-settings-btn");
+    if (gearBtn) {
+      gearBtn.addEventListener("click", () => {
+        if (this._settingsApp?.rendered) {
+          this._settingsApp.close();
+          this._settingsApp = null;
+          gearBtn.classList.remove("ca-settings-btn--active");
+          return;
+        }
+        const rect = gearBtn.getBoundingClientRect();
+        this._settingsApp = new SettingsApp(rect, () => {
+          this._settingsApp = null;
+          gearBtn.classList.remove("ca-settings-btn--active");
+        });
+        gearBtn.classList.add("ca-settings-btn--active");
+        this._settingsApp.render(true);
+      });
+    }
+
     this._renderLinks();
   }
 
@@ -399,6 +422,8 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this._linkState = null;
     this._instructionsApp?.close();
     this._instructionsApp = null;
+    this._settingsApp?.close();
+    this._settingsApp = null;
     document.querySelector(".ca-context-menu")?.remove();
     await super._onClose(options);
   }
@@ -1041,6 +1066,9 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     sceneData.folder = folderId;
     sceneData.navigation = false;
 
+    const rawTransition = game.settings.get("click-adventure", "transitionType");
+    sceneData.transition.type = rawTransition === "null" ? null : rawTransition;
+
     // Rebuild tiles[0] as a new object to avoid mutating the shared template reference
     const baseTile = sceneData.tiles[0];
     sceneData.tiles = [
@@ -1092,7 +1120,11 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
       const scene = game.scenes.get(node.sceneId);
 
-      if (scene.name !== node.label) await scene.update({ name: node.label });
+      const rawTransitionSync = game.settings.get("click-adventure", "transitionType");
+      const transitionTypeSync = rawTransitionSync === "null" ? null : rawTransitionSync;
+      const sceneUpdate = { "transition.type": transitionTypeSync };
+      if (scene.name !== node.label) sceneUpdate.name = node.label;
+      await scene.update(sceneUpdate);
 
       const activeImage = node.images?.[node.activeImageIndex ?? 0]?.src
                        ?? node.images?.[0]?.src

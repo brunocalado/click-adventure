@@ -1,0 +1,14 @@
+<div class="ca-settings-panel">
+  <div class="ca-settings-section">
+    <div class="ca-settings-section-title">Scene Transition</div>
+    <div class="ca-settings-row">
+      <label class="ca-settings-label" for="ca-transition-type">Transition Type</label>
+      <select class="ca-settings-transition" id="ca-transition-type">
+        {{#each transitionOptions}}
+        <option value="{{value}}" {{#if (eq value ../transitionType)}}selected{{/if}}>{{label}}</option>
+        {{/each}}
+      </select>
+    </div>
+    <p class="ca-settings-hint">Applied to all scenes on Create / Update Scenes.</p>
+  </div>
+</div>

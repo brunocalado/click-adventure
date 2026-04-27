@@ -73,6 +73,14 @@ Hooks.on("init", () => {
     choices: { open: "Open Navigation", gated: "Gated Navigation" }
   });
 
+  game.settings.register("click-adventure", "transitionType", {
+    name: "Scene Transition Type",
+    scope: "world",
+    config: false,
+    type: String,
+    default: "null"
+  });
+
   // Instantiate socket manager — must run during init so the listener
   // is registered before any socket messages can arrive.
   const socketManager = new AdventureSocketManager();
