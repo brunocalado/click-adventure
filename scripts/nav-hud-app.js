@@ -324,8 +324,12 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     // Per-user position — does not affect other players' currentNodeId flags
     await game.user.setFlag("click-adventure", "currentNodeId", targetNode.id);
 
+    // Notify GM's manager of position change (lightweight DOM patch, no full re-render)
+    globalThis.ClickAdventure._socket.emitPlayerMoved(targetNode.id);
+
+    // Patch the manager locally if this client is also the GM
     const manager = foundry.applications.instances.get("manager-app");
-    if (manager?.rendered) manager.render({ force: true });
+    if (manager?.rendered) manager._patchOccupantAvatars();
 
     this.render({ force: true });
   }

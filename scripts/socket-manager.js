@@ -10,6 +10,7 @@
  *
  * Supported message types:
  *   VIEW_SCENE_FOR_USER — target client calls scene.view() locally.
+ *   PLAYER_MOVED — notifies the GM's manager to patch occupant avatars without re-render.
  *
  * Per-client scene viewing:
  *   Players cannot call scene.activate() (GM-only). Instead, a player emits
@@ -37,6 +38,9 @@ export class AdventureSocketManager {
       switch (type) {
         case "VIEW_SCENE_FOR_USER":
           this._handleViewSceneForUser(payload);
+          break;
+        case "PLAYER_MOVED":
+          this._handlePlayerMoved(payload);
           break;
         default:
           console.warn(`AdventureSocketManager | Unknown message type: ${type}`);
@@ -76,6 +80,28 @@ export class AdventureSocketManager {
 
     // Broadcast to all other clients; they check userId in the handler
     this._emit("VIEW_SCENE_FOR_USER", { sceneId, userId });
+  }
+
+  /**
+   * Broadcasts that a player has moved to a new node.
+   * Called from NavHudApp._navigateTo() after setFlag.
+   * @param {string} nodeId — the node the player just arrived at
+   */
+  emitPlayerMoved(nodeId) {
+    this._emit("PLAYER_MOVED", { userId: game.userId, nodeId });
+  }
+
+  /**
+   * Received by all clients when any player changes node.
+   * On the GM client, triggers a lightweight DOM patch of the manager (no full re-render).
+   * Triggered by socket message type PLAYER_MOVED.
+   * @param {{ userId: string, nodeId: string }} payload
+   */
+  _handlePlayerMoved({ userId, nodeId } = {}) {
+    if (!game.user.isGM) return;
+    const manager = foundry.applications.instances.get("manager-app");
+    if (!manager?.rendered) return;
+    manager._patchOccupantAvatars();
   }
 
   /**

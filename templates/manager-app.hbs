@@ -58,6 +58,24 @@
       </span>
       {{/if}}
 
+      {{!-- Player occupant avatars — rendered as a row of circular thumbnails --}}
+      {{#if occupants.length}}
+      <div class="ca-node-occupants">
+        {{#each occupants}}
+        <img
+          class="ca-occupant-avatar"
+          src="{{img}}"
+          alt="{{name}}"
+          title="{{name}}"
+          style="border-color: {{color}};"
+          width="20"
+          height="20"
+          loading="lazy"
+        />
+        {{/each}}
+      </div>
+      {{/if}}
+
       <div class="ca-anchor ca-anchor-top"    data-anchor="top"></div>
       <div class="ca-anchor ca-anchor-right"  data-anchor="right"></div>
       <div class="ca-anchor ca-anchor-bottom" data-anchor="bottom"></div>

@@ -68,6 +68,71 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
   // ---------------------------------------------------------------------------
 
   /**
+   * Builds a map of nodeId → occupant display data for all active non-GM users.
+   * img priority: prototype token image → actor portrait → user avatar → fallback icon.
+   * name priority: linked actor name → user name.
+   * @returns {Map<string, Array<{name: string, img: string, color: string}>>}
+   */
+  _buildOccupants() {
+    const map = new Map();
+    for (const user of game.users) {
+      if (user.isGM || !user.active) continue;
+      const nodeId = user.getFlag("click-adventure", "currentNodeId");
+      if (!nodeId) continue;
+
+      const actor = user.character;
+      const name  = actor?.name ?? user.name;
+      const img   = actor?.prototypeToken?.texture?.src
+                 ?? actor?.img
+                 ?? user.avatar
+                 ?? "icons/svg/mystery-man.svg";
+      const color = user.color?.css ?? user.color ?? "#ffffff";
+
+      if (!map.has(nodeId)) map.set(nodeId, []);
+      map.get(nodeId).push({ name, img, color });
+    }
+    return map;
+  }
+
+  /**
+   * Updates occupant avatar strips in-place without triggering a full re-render.
+   * Called when a PLAYER_MOVED socket message is received while the manager is open.
+   * Safe to call at any time — no-op if the manager is not rendered.
+   */
+  _patchOccupantAvatars() {
+    if (!this.rendered) return;
+    const workspace = this.element?.querySelector(".ca-workspace");
+    if (!workspace) return;
+
+    const occupants = this._buildOccupants();
+
+    workspace.querySelectorAll(".ca-node").forEach(nodeEl => {
+      const nodeId = nodeEl.dataset.nodeId;
+      const list = occupants.get(nodeId) ?? [];
+
+      nodeEl.querySelector(".ca-node-occupants")?.remove();
+      if (list.length === 0) return;
+
+      const strip = document.createElement("div");
+      strip.className = "ca-node-occupants";
+
+      for (const { name, img, color } of list) {
+        const avatar = document.createElement("img");
+        avatar.className = "ca-occupant-avatar";
+        avatar.src = img;
+        avatar.alt = name;
+        avatar.title = name;
+        avatar.style.borderColor = color;
+        avatar.width = 20;
+        avatar.height = 20;
+        strip.appendChild(avatar);
+      }
+
+      nodeEl.appendChild(strip);
+    });
+  }
+
+  /**
    * Returns the graph as a plain POJO regardless of whether the setting returns
    * a DataModel instance (normal v14 behaviour) or a raw object (first-run default).
    * @returns {{ sceneId: string, startNodeId: string, nodes: object[], links: object[] }}
@@ -99,7 +164,12 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const context = await super._prepareContext(options);
     const { nodes, links, startNodeId } = this._graphData();
     const activeNodeId = game.user.getFlag("click-adventure", "currentNodeId") ?? "";
-    context.nodes = nodes.map(n => ({ ...n, imageSrc: getNodeActiveImage(n) }));
+    const occupants = this._buildOccupants();
+    context.nodes = nodes.map(n => ({
+      ...n,
+      imageSrc: getNodeActiveImage(n),
+      occupants: occupants.get(n.id) ?? []
+    }));
     context.links = links;
     context.startNodeId = startNodeId ?? "";
     context.activeNodeId = activeNodeId;
