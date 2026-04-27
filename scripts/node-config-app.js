@@ -44,6 +44,13 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this._pendingActiveIndex = null;
     /** @type {string|null} */
     this._pendingLabel = null;
+    /**
+     * Tracks whether the user staged this node as the start point without saving yet.
+     * null = no pending change; true = user wants this to be the start node.
+     * Committed to the graph setting only on _saveAll.
+     * @type {boolean|null}
+     */
+    this._pendingStartNode = null;
   }
 
   /**
@@ -86,7 +93,7 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     context.node = node;
     context.nodeLabel = this._pendingLabel ?? node.label ?? "Scene";
-    context.isStartNode = startNodeId === this.nodeId;
+    context.isStartNode = this._pendingStartNode ?? (startNodeId === this.nodeId);
     context.images = workingImages.map((img, i) => ({
       ...img,
       index: i,
@@ -108,37 +115,20 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     super._onRender(context, options);
     const html = this.element;
 
-    html.querySelector("[data-action='toggle-start']")?.addEventListener("click", async () => {
-      const { sceneId, startNodeId, nodes, links } = this._graphData();
-      // No-op when this node is already start — at least one node must always be the start
-      if (startNodeId === this.nodeId) return;
+    html.querySelector("[data-action='toggle-start']")?.addEventListener("click", () => {
+      const { startNodeId } = this._graphData();
+      const currentlyStart = this._pendingStartNode ?? (startNodeId === this.nodeId);
+      if (currentlyStart) return;
 
-      await game.settings.set("click-adventure", "graph", {
-        sceneId, startNodeId: this.nodeId, nodes, links
-      });
+      // Stage the intent locally — nothing is written until Save
+      this._pendingStartNode = true;
 
-      // Reset all users' position to the new start node in a single batch [V14]
-      const userUpdates = game.users.map(u => ({
-        _id: u.id,
-        flags: { "click-adventure": { "currentNodeId": this.nodeId } }
-      }));
-      await User.updateDocuments(userUpdates);
-
-      // Update the toggle button DOM directly instead of re-rendering the whole app.
-      // Re-rendering would cause the window to lose z-index focus behind ManagerApp.
       const btn = html.querySelector("[data-action='toggle-start']");
       if (btn) {
         btn.textContent = "★ Start";
         btn.title = "This is the start node (click another node to change)";
         btn.classList.add("ca-toggle-start--active");
       }
-
-      const manager = foundry.applications.instances.get("manager-app");
-      if (manager?.rendered) manager.render({ force: true });
-
-      // Re-assert z-index after Manager renders on top.
-      // ApplicationV2.bringToTop() is the canonical v14 method to reclaim focus.
-      this.bringToTop();
     });
 
     html.querySelector("[data-action='add-image']")?.addEventListener("click", () => {
@@ -248,7 +238,8 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @returns {Promise<void>}
    */
   async _saveAll(label) {
-    const { sceneId, startNodeId, nodes, links } = this._graphData();
+    const { sceneId, startNodeId: persistedStartNodeId, nodes, links } = this._graphData();
+    const startNodeId = this._pendingStartNode ? this.nodeId : persistedStartNodeId;
     const images = this._getWorkingImages();
     const activeIndex = this._pendingActiveIndex ?? 0;
     const updatedNodes = nodes.map(n => {
@@ -256,6 +247,15 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
       return { ...n, label, images, activeImageIndex: activeIndex, imageSrc: undefined };
     });
     await game.settings.set("click-adventure", "graph", { sceneId, startNodeId, nodes: updatedNodes, links });
+
+    // Reset all users' position to the new start node in a single batch [V14]
+    if (this._pendingStartNode && startNodeId !== persistedStartNodeId) {
+      const userUpdates = game.users.map(u => ({
+        _id: u.id,
+        flags: { "click-adventure": { "currentNodeId": startNodeId } }
+      }));
+      await User.updateDocuments(userUpdates);
+    }
 
     const updatedNode = updatedNodes.find(n => n.id === this.nodeId);
     if (updatedNode?.sceneId) {
@@ -267,6 +267,7 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this._pendingImages = null;
     this._pendingActiveIndex = null;
     this._pendingLabel = null;
+    this._pendingStartNode = null;
 
     const manager = foundry.applications.instances.get("manager-app");
     if (manager?.rendered) manager.render({ force: true });
