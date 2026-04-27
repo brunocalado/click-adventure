@@ -98,9 +98,11 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
     const { nodes, links, startNodeId } = this._graphData();
+    const activeNodeId = game.user.getFlag("click-adventure", "currentNodeId") ?? "";
     context.nodes = nodes.map(n => ({ ...n, imageSrc: getNodeActiveImage(n) }));
     context.links = links;
     context.startNodeId = startNodeId ?? "";
+    context.activeNodeId = activeNodeId;
     return context;
   }
 
@@ -148,6 +150,14 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       btn.addEventListener("click", e => {
         e.stopPropagation();
         this._onViewScene(btn.dataset.sceneId);
+      });
+    });
+
+    html.querySelectorAll(".ca-set-active-btn").forEach(btn => {
+      btn.addEventListener("mousedown", e => e.stopPropagation());
+      btn.addEventListener("click", e => {
+        e.stopPropagation();
+        this._onSetActiveNode(btn.dataset.nodeId);
       });
     });
 
@@ -261,6 +271,20 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
   _onNodeDblClick(e, nodeEl) {
     e.preventDefault();
     new NodeConfigApp(nodeEl.dataset.nodeId).render(true);
+  }
+
+  /**
+   * Sets the GM's current position flag to the clicked node.
+   * Only updates the current user's flag — does not affect other players.
+   * Triggered by click on .ca-set-active-btn in _onRender.
+   *
+   * @param {string} nodeId
+   * @returns {Promise<void>}
+   */
+  async _onSetActiveNode(nodeId) {
+    if (!nodeId) return;
+    await game.user.setFlag("click-adventure", "currentNodeId", nodeId);
+    this.render({ force: true });
   }
 
   /**
