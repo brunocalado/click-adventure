@@ -11,7 +11,7 @@
     <svg class="ca-links-layer" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"></svg>
     {{#each nodes}}
     <div class="ca-node" data-node-id="{{id}}" style="left: {{x}}px; top: {{y}}px;"
-         {{#if (eq id ../currentNodeId)}}data-current="true"{{/if}}>
+         {{#if (eq id ../startNodeId)}}data-start="true"{{/if}}>
       <div class="ca-node-body">
         {{#if imageSrc}}
         <div class="ca-node-image" style="background-image: url('{{imageSrc}}');"></div>
@@ -20,11 +20,6 @@
         {{/if}}
         <span class="ca-node-label">{{label}}</span>
       </div>
-      <button class="ca-set-current-btn" data-node-id="{{id}}" type="button"
-              title="Set as current location">
-        <span class="ca-scb-ring"></span>
-        <span class="ca-scb-dot"></span>
-      </button>
       <div class="ca-anchor ca-anchor-top"    data-anchor="top"></div>
       <div class="ca-anchor ca-anchor-right"  data-anchor="right"></div>
       <div class="ca-anchor ca-anchor-bottom" data-anchor="bottom"></div>

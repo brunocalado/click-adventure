@@ -70,14 +70,14 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
   /**
    * Returns the graph as a plain POJO regardless of whether the setting returns
    * a DataModel instance (normal v14 behaviour) or a raw object (first-run default).
-   * @returns {{ sceneId: string, currentNodeId: string, nodes: object[], links: object[] }}
+   * @returns {{ sceneId: string, startNodeId: string, nodes: object[], links: object[] }}
    */
   _graphData() {
     const graph = game.settings.get("click-adventure", "graph");
     const raw = typeof graph?.toObject === "function" ? graph.toObject() : (graph ?? {});
     return {
       sceneId: raw.sceneId ?? "",
-      currentNodeId: raw.currentNodeId ?? "",
+      startNodeId: raw.startNodeId ?? "",
       nodes: raw.nodes ?? [],
       links: raw.links ?? []
     };
@@ -97,10 +97,10 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
    */
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
-    const { nodes, links, currentNodeId } = this._graphData();
+    const { nodes, links, startNodeId } = this._graphData();
     context.nodes = nodes.map(n => ({ ...n, imageSrc: getNodeActiveImage(n) }));
     context.links = links;
-    context.currentNodeId = currentNodeId ?? "";
+    context.startNodeId = startNodeId ?? "";
     return context;
   }
 
@@ -137,13 +137,6 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     html.querySelectorAll(".ca-node").forEach(nodeEl => {
       nodeEl.addEventListener("mousedown", e => this._onNodeMouseDown(e, nodeEl));
       nodeEl.addEventListener("dblclick", e => this._onNodeDblClick(e, nodeEl));
-    });
-
-    html.querySelectorAll(".ca-set-current-btn").forEach(btn => {
-      btn.addEventListener("click", e => {
-        e.stopPropagation();
-        this._onSetCurrentNode(btn.dataset.nodeId);
-      });
     });
 
     html.querySelectorAll(".ca-anchor").forEach(anchor => {
@@ -332,7 +325,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @returns {Promise<void>}
    */
   async _onAddNode() {
-    const { sceneId, currentNodeId, nodes, links } = this._graphData();
+    const { sceneId, startNodeId, nodes, links } = this._graphData();
     const workspace = this.element?.querySelector(".ca-workspace");
     const w = workspace?.clientWidth  ?? 600;
     const h = workspace?.clientHeight ?? 400;
@@ -347,8 +340,10 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       y: Math.round((h - NODE_H) / 2)
     };
 
+    // First node added automatically becomes the start node
+    const newStartNodeId = nodes.length === 0 ? newNode.id : startNodeId;
     await game.settings.set("click-adventure", "graph", {
-      sceneId, currentNodeId, nodes: [...nodes, newNode], links
+      sceneId, startNodeId: newStartNodeId, nodes: [...nodes, newNode], links
     });
     this.render({ force: true });
   }
@@ -365,9 +360,9 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @returns {Promise<void>}
    */
   async _saveNodePosition(nodeId, x, y) {
-    const { sceneId, currentNodeId, nodes: rawNodes, links } = this._graphData();
+    const { sceneId, startNodeId, nodes: rawNodes, links } = this._graphData();
     const nodes = rawNodes.map(n => n.id === nodeId ? { ...n, x, y } : n);
-    await game.settings.set("click-adventure", "graph", { sceneId, currentNodeId, nodes, links });
+    await game.settings.set("click-adventure", "graph", { sceneId, startNodeId, nodes, links });
     this._renderLinks();
   }
 
@@ -380,7 +375,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @returns {Promise<void>}
    */
   async _saveLink(sourceId, sourceAnchor, targetId, targetAnchor) {
-    const { sceneId, currentNodeId, nodes, links } = this._graphData();
+    const { sceneId, startNodeId, nodes, links } = this._graphData();
     const duplicate = links.some(l =>
       l.sourceId === sourceId && l.sourceAnchor === sourceAnchor &&
       l.targetId === targetId && l.targetAnchor === targetAnchor
@@ -388,7 +383,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     if (duplicate) return;
 
     await game.settings.set("click-adventure", "graph", {
-      sceneId, currentNodeId, nodes,
+      sceneId, startNodeId, nodes,
       links: [...links, { sourceId, sourceAnchor, targetId, targetAnchor, passages: [{ label: "", direction: "both" }] }]
     });
     this.render({ force: true });
@@ -616,7 +611,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @returns {Promise<void>}
    */
   async _onCycleLink(linkIndex) {
-    const { sceneId, currentNodeId, nodes, links } = this._graphData();
+    const { sceneId, startNodeId, nodes, links } = this._graphData();
     const cycle = { both: "forward", forward: "backward", backward: "blocked", blocked: "both" };
     const updatedLinks = links.map((l, i) => {
       if (i !== linkIndex) return l;
@@ -629,7 +624,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
         : [{ label: "", direction: newDir }];
       return { ...l, passages: updatedPassages };
     });
-    await game.settings.set("click-adventure", "graph", { sceneId, currentNodeId, nodes, links: updatedLinks });
+    await game.settings.set("click-adventure", "graph", { sceneId, startNodeId, nodes, links: updatedLinks });
     this._renderLinks();
 
     // Notify HUD immediately so destination list reflects the new link state
@@ -661,33 +656,10 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const filtered = freshGraph.links.filter((_, idx) => idx !== linkIndex);
     await game.settings.set("click-adventure", "graph", {
       sceneId: freshGraph.sceneId,
-      currentNodeId: freshGraph.currentNodeId,
+      startNodeId: freshGraph.startNodeId,
       nodes: freshGraph.nodes,
       links: filtered
     });
-    this.render({ force: true });
-  }
-
-  /**
-   * Sets the given node as the current position in the graph.
-   * Defines the starting point for HUD navigation.
-   * Triggered by the "Set Current" button on each node in the Manager workspace.
-   *
-   * @param {string} nodeId
-   * @returns {Promise<void>}
-   */
-  async _onSetCurrentNode(nodeId) {
-    const { sceneId, nodes, links } = this._graphData();
-    await game.settings.set("click-adventure", "graph", {
-      sceneId,
-      currentNodeId: nodeId,
-      nodes,
-      links
-    });
-    // Refresh HUD immediately if open so destinations reflect the new position
-    if (globalThis.ClickAdventure._hud?.rendered) {
-      globalThis.ClickAdventure._hud.render({ force: true });
-    }
     this.render({ force: true });
   }
 
@@ -701,7 +673,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @returns {Promise<void>}
    */
   async _onAutoArrange() {
-    const { sceneId, currentNodeId, nodes, links } = this._graphData();
+    const { sceneId, startNodeId, nodes, links } = this._graphData();
     if (nodes.length === 0) return;
 
     const NODE_W = 120;
@@ -772,7 +744,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       };
     });
 
-    await game.settings.set("click-adventure", "graph", { sceneId, currentNodeId, nodes: updatedNodes, links });
+    await game.settings.set("click-adventure", "graph", { sceneId, startNodeId, nodes: updatedNodes, links });
     this.render({ force: true });
   }
 
@@ -833,7 +805,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @returns {Promise<void>}
    */
   async _onCreateScenes() {
-    const { sceneId, currentNodeId, nodes, links } = this._graphData();
+    const { sceneId, startNodeId, nodes, links } = this._graphData();
     const folder = await this._getOrCreateFolder();
     let created = 0;
 
@@ -847,7 +819,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     await game.settings.set("click-adventure", "graph", {
-      sceneId, currentNodeId, nodes: updatedNodes, links
+      sceneId, startNodeId, nodes: updatedNodes, links
     });
     this.render({ force: true });
     ui.notifications.info(`Click Adventure: ${created} scene(s) created.`);
@@ -861,7 +833,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @returns {Promise<void>}
    */
   async _onUpdateScenes() {
-    const { sceneId, currentNodeId, nodes, links } = this._graphData();
+    const { sceneId, startNodeId, nodes, links } = this._graphData();
     const folder = await this._getOrCreateFolder();
     let updated = 0;
 
@@ -914,7 +886,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     await game.settings.set("click-adventure", "graph", {
-      sceneId, currentNodeId, nodes: updatedNodes, links
+      sceneId, startNodeId, nodes: updatedNodes, links
     });
     this.render({ force: true });
     ui.notifications.info(`Click Adventure: ${updated} scene(s) updated.`);
@@ -944,9 +916,16 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       await folder.delete();
     }
 
+    // Clear all users' position flags in a single batch — sequential await loops are prohibited
+    const userUpdates = game.users.map(u => ({
+      _id: u.id,
+      flags: { "click-adventure": { "currentNodeId": null } }
+    }));
+    await User.updateDocuments(userUpdates);
+
     await game.settings.set("click-adventure", "graph", {
       sceneId: "",
-      currentNodeId: "",
+      startNodeId: "",
       nodes: [],
       links: []
     });

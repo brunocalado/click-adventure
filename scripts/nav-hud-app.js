@@ -3,7 +3,7 @@
  * Shows a single orb that expands a destination panel on click and initiates drag on hold.
  * Clicking an arrow navigates to the target graph node by replacing the background tile
  * texture in the currently active scene — the active scene itself never changes.
- * The current node position is tracked via graph.currentNodeId in the world setting.
+ * The current node position is tracked via a per-user flag (click-adventure.currentNodeId).
  *
  * Lifecycle hook: renderNavHudApp
  */
@@ -47,27 +47,28 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
   /**
    * Returns the graph as a plain POJO regardless of DataModel or raw object.
-   * @returns {{ sceneId: string, currentNodeId: string, nodes: object[], links: object[] }}
+   * @returns {{ sceneId: string, startNodeId: string, nodes: object[], links: object[] }}
    */
   _graphData() {
     const graph = game.settings.get("click-adventure", "graph");
     const raw = typeof graph?.toObject === "function" ? graph.toObject() : (graph ?? {});
     return {
       sceneId: raw.sceneId ?? "",
-      currentNodeId: raw.currentNodeId ?? "",
+      startNodeId: raw.startNodeId ?? "",
       nodes: raw.nodes ?? [],
       links: raw.links ?? []
     };
   }
 
   /**
-   * Finds the graph node the player is currently at, tracked via graph.currentNodeId.
-   * Returns null when no navigation has occurred yet.
+   * Resolves the node the current user occupies by reading their per-user flag.
+   * Returns null when no position has been set yet (first session before ready hook fires).
    * @returns {object|null}
    */
   _currentNode() {
-    const { currentNodeId, nodes } = this._graphData();
+    const currentNodeId = game.user.getFlag("click-adventure", "currentNodeId");
     if (!currentNodeId) return null;
+    const { nodes } = this._graphData();
     return nodes.find(n => n.id === currentNodeId) ?? null;
   }
 
@@ -293,9 +294,9 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   /**
-   * Navigates to a target node by activating that node's Foundry Scene and updating
-   * currentNodeId in the graph setting. Each node owns its own scene; navigation
-   * switches scenes rather than swapping a tile texture.
+   * Navigates the current user to a target node, activating its Foundry Scene
+   * and persisting the new position in the user's own flag (per-user, not global).
+   * scene.activate() affects all clients — intentional for party-wide scene transitions.
    *
    * @param {object} targetNode — graph node with optional sceneId
    * @returns {Promise<void>}
@@ -306,13 +307,9 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
       if (scene) await scene.activate();
     }
 
-    // Persist the new current node so the HUD directions refresh correctly
-    const { sceneId, nodes, links } = this._graphData();
-    await game.settings.set("click-adventure", "graph", {
-      sceneId, currentNodeId: targetNode.id, nodes, links
-    });
+    // Per-user position — does not affect other players' currentNodeId flags
+    await game.user.setFlag("click-adventure", "currentNodeId", targetNode.id);
 
-    // Notify the Manager so its current-node highlight updates immediately
     const manager = foundry.applications.instances.get("manager-app");
     if (manager?.rendered) manager.render({ force: true });
 

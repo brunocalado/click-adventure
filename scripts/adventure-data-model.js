@@ -18,11 +18,11 @@ export class AdventureDataModel extends foundry.abstract.DataModel {
        */
       sceneId: new StringField({ required: true, initial: "" }),
       /**
-       * The id of the graph node the player is currently "at" for HUD navigation.
-       * Updated on every successful _navigateTo call.
+       * The id of the graph node that is the starting position for all players.
+       * Set via the NodeConfigApp toggle; per-user current position is tracked in user flags.
        * @type {string}
        */
-      currentNodeId: new StringField({ required: true, initial: "" }),
+      startNodeId: new StringField({ required: true, initial: "" }),
       /**
        * Node shape: { id, label, images: [{id,src,label}], activeImageIndex, x, y, sceneId }
        * sceneId (per-node) holds the Foundry Scene id created for that node; null until "Create Scenes" runs.

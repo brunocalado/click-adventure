@@ -48,14 +48,14 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
   /**
    * Returns the full graph as a plain POJO regardless of DataModel or raw object.
-   * @returns {{ sceneId: string, currentNodeId: string, nodes: object[], links: object[] }}
+   * @returns {{ sceneId: string, startNodeId: string, nodes: object[], links: object[] }}
    */
   _graphData() {
     const graph = game.settings.get("click-adventure", "graph");
     const raw = typeof graph?.toObject === "function" ? graph.toObject() : (graph ?? {});
     return {
       sceneId: raw.sceneId ?? "",
-      currentNodeId: raw.currentNodeId ?? "",
+      startNodeId: raw.startNodeId ?? "",
       nodes: raw.nodes ?? [],
       links: raw.links ?? []
     };
@@ -72,7 +72,7 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
    */
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
-    const { nodes } = this._graphData();
+    const { nodes, startNodeId } = this._graphData();
     const node = nodes.find(n => n.id === this.nodeId)
       ?? { id: this.nodeId, label: "Scene", images: [], activeImageIndex: 0, x: 0, y: 0 };
 
@@ -86,6 +86,7 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     context.node = node;
     context.nodeLabel = this._pendingLabel ?? node.label ?? "Scene";
+    context.isStartNode = startNodeId === this.nodeId;
     context.images = workingImages.map((img, i) => ({
       ...img,
       index: i,
@@ -106,6 +107,27 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
   _onRender(context, options) {
     super._onRender(context, options);
     const html = this.element;
+
+    html.querySelector("[data-action='toggle-start']")?.addEventListener("click", async () => {
+      const { sceneId, startNodeId, nodes, links } = this._graphData();
+      // No-op when this node is already start — at least one node must always be the start
+      if (startNodeId === this.nodeId) return;
+
+      await game.settings.set("click-adventure", "graph", {
+        sceneId, startNodeId: this.nodeId, nodes, links
+      });
+
+      // Reset all users' position to the new start node in a single batch [V14]
+      const userUpdates = game.users.map(u => ({
+        _id: u.id,
+        flags: { "click-adventure": { "currentNodeId": this.nodeId } }
+      }));
+      await User.updateDocuments(userUpdates);
+
+      this.render({ force: true });
+      const manager = foundry.applications.instances.get("manager-app");
+      if (manager?.rendered) manager.render({ force: true });
+    });
 
     html.querySelector("[data-action='add-image']")?.addEventListener("click", () => {
       const FilePickerClass = foundry.applications.apps.FilePicker.implementation
@@ -189,13 +211,13 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @returns {Promise<void>}
    */
   async _saveActiveIndex(index) {
-    const { sceneId, currentNodeId, nodes, links } = this._graphData();
+    const { sceneId, startNodeId, nodes, links } = this._graphData();
     const images = this._getWorkingImages();
     const updatedNodes = nodes.map(n => {
       if (n.id !== this.nodeId) return n;
       return { ...n, images, activeImageIndex: index };
     });
-    await game.settings.set("click-adventure", "graph", { sceneId, currentNodeId, nodes: updatedNodes, links });
+    await game.settings.set("click-adventure", "graph", { sceneId, startNodeId, nodes: updatedNodes, links });
 
     // Sync the tile in this node's own scene immediately
     const updatedNode = updatedNodes.find(n => n.id === this.nodeId);
@@ -214,14 +236,14 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @returns {Promise<void>}
    */
   async _saveAll(label) {
-    const { sceneId, currentNodeId, nodes, links } = this._graphData();
+    const { sceneId, startNodeId, nodes, links } = this._graphData();
     const images = this._getWorkingImages();
     const activeIndex = this._pendingActiveIndex ?? 0;
     const updatedNodes = nodes.map(n => {
       if (n.id !== this.nodeId) return n;
       return { ...n, label, images, activeImageIndex: activeIndex, imageSrc: undefined };
     });
-    await game.settings.set("click-adventure", "graph", { sceneId, currentNodeId, nodes: updatedNodes, links });
+    await game.settings.set("click-adventure", "graph", { sceneId, startNodeId, nodes: updatedNodes, links });
 
     const updatedNode = updatedNodes.find(n => n.id === this.nodeId);
     if (updatedNode?.sceneId) {
@@ -253,7 +275,7 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     });
     if (!confirmed) return;
 
-    const { sceneId, currentNodeId, nodes, links } = this._graphData();
+    const { sceneId, startNodeId, nodes, links } = this._graphData();
     const deletedNode = nodes.find(n => n.id === this.nodeId);
 
     if (deletedNode?.sceneId) {
@@ -265,8 +287,10 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const filteredLinks = links.filter(l =>
       l.sourceId !== this.nodeId && l.targetId !== this.nodeId
     );
+    // Clear startNodeId if the deleted node was the start
+    const newStartNodeId = startNodeId === this.nodeId ? (filteredNodes[0]?.id ?? "") : startNodeId;
     await game.settings.set("click-adventure", "graph", {
-      sceneId, currentNodeId, nodes: filteredNodes, links: filteredLinks
+      sceneId, startNodeId: newStartNodeId, nodes: filteredNodes, links: filteredLinks
     });
 
     const manager = foundry.applications.instances.get("manager-app");

@@ -35,6 +35,15 @@
     {{/if}}
   </div>
 
+  <div class="ca-node-config-row ca-start-node-row">
+    <span>Start Node</span>
+    <button type="button" data-action="toggle-start"
+            class="ca-toggle-start {{#if isStartNode}}ca-toggle-start--active{{/if}}"
+            title="{{#if isStartNode}}This is the start node (set another node as start to change){{else}}Set this node as the start position for all players{{/if}}">
+      {{#if isStartNode}}★ Start{{else}}☆ Set as Start{{/if}}
+    </button>
+  </div>
+
   <div class="ca-node-config-actions">
     <button type="button" class="ca-btn-save" data-action="save">Save</button>
     <button type="button" class="ca-btn-delete" data-action="delete-node">Delete Node</button>

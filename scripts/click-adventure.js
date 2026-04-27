@@ -32,28 +32,17 @@ Hooks.on("canvasReady", () => {
 });
 
 /**
- * One-time migration: wrap the legacy flat `direction` field on each link into a
- * single-element `passages` array so all downstream code can rely on the new schema.
- * Runs in the `ready` hook (after world data is available) and only writes if any
- * link still has the old shape.  Only GMs can write world-scope settings.
+ * Seeds this user's per-user currentNodeId flag from startNodeId on first load.
+ * Runs for every user (GM and players alike) — each gets their own independent flag.
+ * Only writes when the user has no position yet and a startNodeId is defined.
  */
 Hooks.on("ready", async () => {
-  if (!game.user.isGM) return;
   const graph = game.settings.get("click-adventure", "graph");
   const raw = typeof graph?.toObject === "function" ? graph.toObject() : (graph ?? {});
-  const links = raw.links ?? [];
-
-  const needsMigration = links.some(l => !Array.isArray(l.passages));
-  if (!needsMigration) return;
-
-  const migratedLinks = links.map(l => {
-    if (Array.isArray(l.passages)) return l;
-    const { direction, ...rest } = l;
-    return { ...rest, passages: [{ label: "", direction: direction ?? "both" }] };
-  });
-
-  await game.settings.set("click-adventure", "graph", { ...raw, links: migratedLinks });
-  console.log("[ClickAdventure] Migrated links to passages[] schema.");
+  const existing = game.user.getFlag("click-adventure", "currentNodeId");
+  if (!existing && raw.startNodeId) {
+    await game.user.setFlag("click-adventure", "currentNodeId", raw.startNodeId);
+  }
 });
 
 Hooks.on("init", () => {
@@ -70,7 +59,7 @@ Hooks.on("init", () => {
     scope: "world",
     config: false,
     type: AdventureDataModel,
-    default: { sceneId: "", currentNodeId: "", nodes: [], links: [] }
+    default: { sceneId: "", startNodeId: "", nodes: [], links: [] }
   });
 
   globalThis.ClickAdventure = {

@@ -48,16 +48,16 @@ export class LinkEditorApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
   /**
    * Returns the graph as a plain POJO regardless of DataModel or raw object.
-   * @returns {{ sceneId: string, currentNodeId: string, nodes: object[], links: object[] }}
+   * @returns {{ sceneId: string, startNodeId: string, nodes: object[], links: object[] }}
    */
   _graphData() {
     const graph = game.settings.get("click-adventure", "graph");
     const raw = typeof graph?.toObject === "function" ? graph.toObject() : (graph ?? {});
     return {
-      sceneId:       raw.sceneId       ?? "",
-      currentNodeId: raw.currentNodeId ?? "",
-      nodes:         raw.nodes         ?? [],
-      links:         raw.links         ?? []
+      sceneId:     raw.sceneId     ?? "",
+      startNodeId: raw.startNodeId ?? "",
+      nodes:       raw.nodes       ?? [],
+      links:       raw.links       ?? []
     };
   }
 
@@ -153,13 +153,13 @@ export class LinkEditorApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @returns {Promise<void>}
    */
   async _onSave() {
-    const { sceneId, currentNodeId, nodes, links } = this._graphData();
+    const { sceneId, startNodeId, nodes, links } = this._graphData();
     const updatedLinks = links.map((l, i) =>
       i === this._linkIndex
         ? { ...l, passages: structuredClone(this._pendingPassages) }
         : l
     );
-    await game.settings.set("click-adventure", "graph", { sceneId, currentNodeId, nodes, links: updatedLinks });
+    await game.settings.set("click-adventure", "graph", { sceneId, startNodeId, nodes, links: updatedLinks });
 
     const manager = foundry.applications.instances.get("manager-app");
     if (manager?.rendered) manager.render({ force: true });
