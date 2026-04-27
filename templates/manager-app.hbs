@@ -14,43 +14,44 @@
          {{#if (eq id ../startNodeId)}}data-start="true"{{/if}}
          {{#if (eq id ../activeNodeId)}}data-active="true"{{/if}}>
 
-      <div class="ca-node-body">
-        {{#if imageSrc}}
-        <div class="ca-node-image" style="background-image: url('{{imageSrc}}');"></div>
-        {{else}}
-        <div class="ca-node-image ca-node-image--empty"></div>
-        {{/if}}
+      {{!-- Image — flush no topo, border-radius superior via CSS --}}
+      {{#if imageSrc}}
+      <div class="ca-node-image" style="background-image: url('{{imageSrc}}');"></div>
+      {{else}}
+      <div class="ca-node-image ca-node-image--empty"></div>
+      {{/if}}
+
+      {{!-- Label — área centralizada no rodapé --}}
+      <div class="ca-node-label-area">
         <span class="ca-node-label">{{label}}</span>
       </div>
 
-      <div class="ca-node-actions">
-        {{!-- View Scene button --}}
+      {{!-- Button cluster — dois botões idênticos empilhados no canto superior direito --}}
+      <div class="ca-node-buttons">
         <button class="ca-view-scene-btn" data-node-id="{{id}}" data-scene-id="{{sceneId}}"
                 type="button" title="View Scene"
                 {{#unless sceneId}}disabled{{/unless}}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
                fill="none" stroke="currentColor" stroke-width="2.5"
                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
             <circle cx="12" cy="12" r="3"/>
           </svg>
         </button>
-
-        {{!-- Set Active button --}}
         <button class="ca-set-active-btn {{#if (eq id ../activeNodeId)}}ca-set-active-btn--active{{/if}}"
                 data-node-id="{{id}}" type="button"
                 title="{{#if (eq id ../activeNodeId)}}Current location{{else}}Set as current location{{/if}}">
-          <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24"
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
                fill="currentColor" aria-hidden="true">
             <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
           </svg>
         </button>
       </div>
 
-      {{!-- Start point icon --}}
+      {{!-- Start point star — canto superior esquerdo --}}
       {{#if (eq id ../startNodeId)}}
       <span class="ca-start-icon" title="Start point">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
              fill="currentColor" aria-hidden="true">
           <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
         </svg>

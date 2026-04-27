@@ -131,19 +131,18 @@
 .ca-node {
   position: absolute;
   width: 100px;
-  height: 100px;
+  height: 100px;            /* quadrado: imagem 66px + label 34px */
   background: #16213e;
   border: 2px solid #0f3460;
   border-radius: 8px;
   cursor: grab;
   z-index: 2;
   display: flex;
-  flex-direction: row;          /* LEFT: image+label column | RIGHT: buttons column */
-  align-items: stretch;
+  flex-direction: column;   /* imagem em cima, label embaixo */
   user-select: none;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
   transition: border-color 0.15s, box-shadow 0.15s;
-  overflow: visible;
+  /* sem overflow:hidden — estrela e âncoras ficam visíveis fora da borda */
 }
 
 .ca-node:hover {
@@ -155,67 +154,68 @@
   cursor: grabbing;
 }
 
-.ca-node-body {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-  pointer-events: none;
-  padding: 5px 0 4px 5px;
-  flex: 1;
-  min-width: 0;
-  box-sizing: border-box;
-  justify-content: flex-start;
+/* Imagem ocupa o topo do card, flush com as bordas arredondadas */
+.ca-node-image {
+  width: 100%;
+  height: 66px;
+  flex-shrink: 0;
+  background-size: cover;
+  background-position: center top;
+  border-radius: 6px 6px 0 0;
+  position: relative;
 }
 
-.ca-node-image {
-  width: 62px;
-  height: 58px;
-  background-size: cover;
-  background-position: center;
-  border-radius: 4px;
-  flex-shrink: 0;
+/* Gradiente sutil para os botões serem legíveis sobre qualquer imagem */
+.ca-node-image::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, transparent 55%);
+  border-radius: inherit;
+  pointer-events: none;
 }
 
 .ca-node-image--empty {
   background-color: #0f3460;
-  border: 1px dashed #4a6fa5;
+  border-bottom: 1px dashed rgba(74, 111, 165, 0.5);
 }
 
-.ca-node-actions {
+/* Área do label — flex restante, texto centralizado */
+.ca-node-label-area {
+  flex: 1;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  gap: 3px;
-  padding: 4px 4px 4px 2px;
-  flex-shrink: 0;
-  width: 26px;
+  justify-content: center;
+  padding: 0 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(10, 12, 30, 0.35);
+  border-radius: 0 0 6px 6px;
+  overflow: hidden;
 }
 
 .ca-node-label {
-  color: #e2e8f0;
-  font-size: 11px;
+  color: #c8d8ff;
+  font-size: 10.5px;
+  font-weight: 500;
   text-align: center;
-  max-width: 88px;
+  width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  letter-spacing: 0.01em;
 }
 
-/* Active node — green border (where the GM currently is) */
+/* Active node — green border */
 .ca-node[data-active="true"] {
   border-color: #22c55e;
   box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.4), 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
-/* Start node — no border override; the star icon is the sole indicator */
-
-/* Start point star icon — top-left corner of node */
+/* Start point star icon — canto superior esquerdo */
 .ca-start-icon {
   position: absolute;
-  top: 2px;            /* inside the border, with a small gap */
-  left: 4px;           /* inside the border, with a small gap */
+  top: -6px;
+  left: -6px;
   width: 20px;
   height: 20px;
   display: flex;
@@ -224,7 +224,7 @@
   color: #f59e0b;
   pointer-events: none;
   z-index: 10;
-  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.8));
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.8));
 }
 
 .ca-start-icon svg {
@@ -232,63 +232,43 @@
 }
 
 /* ----------------------------------------------------------
-   Set Active button — stacked below View Scene button
+   Button cluster — dois botões idênticos, empilhados no canto superior direito
    ---------------------------------------------------------- */
 
+.ca-node-buttons {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  pointer-events: all;
+  z-index: 10;
+}
+
+/* Estilo base compartilhado pelos dois botões */
+.ca-view-scene-btn,
 .ca-set-active-btn {
-  position: static;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(15, 25, 60, 0.75);
-  border: 1px solid rgba(100, 140, 220, 0.35);
+  background: rgba(10, 15, 40, 0.72);
+  border: 1px solid rgba(100, 140, 220, 0.3);
   color: #7a8fa6;
   cursor: pointer;
   pointer-events: all;
+  border-radius: 3px;
   transition: color 0.15s, background 0.15s, border-color 0.15s;
-  border-radius: 3px;
-}
-
-.ca-set-active-btn:hover {
-  color: #22c55e;
-}
-
-.ca-set-active-btn--active {
-  color: #22c55e;
-  background: rgba(34, 197, 94, 0.15);
-  border-color: rgba(34, 197, 94, 0.45);
-}
-
-.ca-set-active-btn svg {
-  pointer-events: none;
-}
-
-/* ----------------------------------------------------------
-   View Scene button
-   ---------------------------------------------------------- */
-
-.ca-view-scene-btn {
-  position: static;
-  width: 20px;
-  height: 20px;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(15, 25, 60, 0.75);
-  border: 1px solid rgba(100, 140, 220, 0.35);
-  color: #7a8fa6;
-  cursor: pointer;
-  pointer-events: all;
-  transition: color 0.15s, opacity 0.15s, background 0.15s, border-color 0.15s;
-  border-radius: 3px;
+  backdrop-filter: blur(4px);
 }
 
 .ca-view-scene-btn:hover:not(:disabled) {
   color: #4fc3f7;
+  background: rgba(20, 40, 90, 0.85);
+  border-color: rgba(100, 170, 255, 0.55);
 }
 
 .ca-view-scene-btn:disabled {
@@ -296,8 +276,21 @@
   cursor: default;
 }
 
-.ca-view-scene-btn svg {
+.ca-view-scene-btn svg,
+.ca-set-active-btn svg {
   pointer-events: none;
+}
+
+.ca-set-active-btn:hover {
+  color: #22c55e;
+  background: rgba(20, 40, 90, 0.85);
+  border-color: rgba(100, 170, 255, 0.55);
+}
+
+.ca-set-active-btn--active {
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.15);
+  border-color: rgba(34, 197, 94, 0.5);
 }
 
 /* Override Foundry's global button focus ring inside node cards only */
