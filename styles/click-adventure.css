@@ -138,11 +138,12 @@
   cursor: grab;
   z-index: 2;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: row;          /* LEFT: image+label column | RIGHT: buttons column */
+  align-items: stretch;
   user-select: none;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
   transition: border-color 0.15s, box-shadow 0.15s;
+  overflow: visible;
 }
 
 .ca-node:hover {
@@ -159,16 +160,17 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 4px;
-  /* Body should not steal mouse events from anchors */
   pointer-events: none;
-  padding: 6px 0 4px 6px;
-  width: calc(100% - 28px);
+  padding: 5px 0 4px 5px;
+  flex: 1;
+  min-width: 0;
   box-sizing: border-box;
+  justify-content: flex-start;
 }
 
 .ca-node-image {
-  width: 100%;
-  height: 60px;
+  width: 62px;
+  height: 58px;
   background-size: cover;
   background-position: center;
   border-radius: 4px;
@@ -178,6 +180,17 @@
 .ca-node-image--empty {
   background-color: #0f3460;
   border: 1px dashed #4a6fa5;
+}
+
+.ca-node-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 3px;
+  padding: 4px 4px 4px 2px;
+  flex-shrink: 0;
+  width: 26px;
 }
 
 .ca-node-label {
@@ -201,17 +214,17 @@
 /* Start point star icon — top-left corner of node */
 .ca-start-icon {
   position: absolute;
-  top: -6px;
-  left: -6px;
-  width: 22px;
-  height: 22px;
+  top: 2px;            /* inside the border, with a small gap */
+  left: 4px;           /* inside the border, with a small gap */
+  width: 20px;
+  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #f59e0b;
   pointer-events: none;
   z-index: 10;
-  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.7));
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.8));
 }
 
 .ca-start-icon svg {
@@ -223,9 +236,7 @@
    ---------------------------------------------------------- */
 
 .ca-set-active-btn {
-  position: absolute;
-  top: 26px;
-  right: 5px;
+  position: static;
   width: 20px;
   height: 20px;
   padding: 0;
@@ -260,9 +271,7 @@
    ---------------------------------------------------------- */
 
 .ca-view-scene-btn {
-  position: absolute;
-  top: 3px;
-  right: 5px;
+  position: static;
   width: 20px;
   height: 20px;
   padding: 0;
