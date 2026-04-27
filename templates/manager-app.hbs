@@ -6,7 +6,42 @@
     <button class="ca-update-scenes" type="button" title="Sync all node scenes with current data">Update Scenes</button>
     <button class="ca-reset-graph" type="button" title="Delete all nodes, links and scenes">Reset</button>
     <button class="ca-instructions-btn" type="button" title="Keyboard shortcuts and link type guide">Instructions</button>
+
+    {{!-- Navigation mode control --}}
+    <select class="ca-nav-mode-select" title="Navigation mode for players">
+      <option value="open"  {{#if (eq navigationMode "open")}}selected{{/if}}>Open Navigation</option>
+      <option value="gated" {{#if (eq navigationMode "gated")}}selected{{/if}}>Gated Navigation</option>
+    </select>
+
+    {{!-- Requests button — shows count badge when queue is non-empty --}}
+    <button class="ca-requests-btn {{#if requestCount}}ca-requests-btn--active{{/if}}"
+            type="button" title="Pending navigation requests">
+      {{#if requestCount}}Requests ({{requestCount}}){{else}}Requests{{/if}}
+    </button>
   </div>
+
+  {{!-- Navigation requests drawer --}}
+  <div class="ca-requests-drawer {{#if drawerOpen}}ca-requests-drawer--open{{/if}}">
+    <div class="ca-requests-drawer-header">Pending Navigation Requests</div>
+    {{#if requests.length}}
+    <ul class="ca-requests-list">
+      {{#each requests}}
+      <li class="ca-request-item" data-user-id="{{userId}}">
+        <span class="ca-request-dot" style="background: {{userColor}};"></span>
+        <span class="ca-request-info">
+          <strong>{{userName}}</strong>
+          <span class="ca-request-route">{{fromLabel}} → {{toLabel}}</span>
+        </span>
+        <button class="ca-request-approve" data-user-id="{{userId}}" data-node-id="{{toNodeId}}" type="button" title="Approve">✓</button>
+        <button class="ca-request-reject"  data-user-id="{{userId}}" type="button" title="Reject">✗</button>
+      </li>
+      {{/each}}
+    </ul>
+    {{else}}
+    <div class="ca-requests-empty">No pending requests.</div>
+    {{/if}}
+  </div>
+
   <div class="ca-workspace">
     <svg class="ca-links-layer" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"></svg>
     {{#each nodes}}

@@ -48,6 +48,15 @@ export class AdventureSocketManager {
         case "HUD_REFRESH":
           this._handleHudRefresh(payload);
           break;
+        case "NAV_REQUEST":
+          this._handleNavRequest(payload);
+          break;
+        case "NAV_APPROVED":
+          this._handleNavApproved(payload);
+          break;
+        case "NAV_REJECTED":
+          this._handleNavRejected(payload);
+          break;
         default:
           console.warn(`AdventureSocketManager | Unknown message type: ${type}`);
       }
@@ -167,5 +176,92 @@ export class AdventureSocketManager {
    */
   notifyHudRefresh(userId) {
     this._emit("HUD_REFRESH", { userId });
+  }
+
+  /**
+   * Emits a navigation request from a player to the GM.
+   * @param {{ fromNodeId: string|null, toNodeId: string }} param0
+   */
+  requestNavigation({ fromNodeId, toNodeId }) {
+    this._emit("NAV_REQUEST", { userId: game.userId, fromNodeId, toNodeId });
+  }
+
+  /**
+   * Emits GM approval of a navigation request to the target player.
+   * @param {string} userId
+   * @param {string} toNodeId
+   * @param {string|null} sceneId
+   */
+  approveNavRequest(userId, toNodeId, sceneId) {
+    this._emit("NAV_APPROVED", { userId, toNodeId, sceneId });
+  }
+
+  /**
+   * Emits GM rejection of a navigation request to the target player.
+   * @param {string} userId
+   */
+  rejectNavRequest(userId) {
+    this._emit("NAV_REJECTED", { userId });
+  }
+
+  /**
+   * Received by all clients. Only the GM processes it — adds to the manager's request queue.
+   * Opens the manager if it is not already rendered.
+   * @param {{ userId: string, fromNodeId: string|null, toNodeId: string }} payload
+   */
+  _handleNavRequest({ userId, fromNodeId, toNodeId } = {}) {
+    if (!game.user.isGM) return;
+
+    const user = game.users.get(userId);
+    if (!user) return;
+
+    let manager = foundry.applications.instances.get("manager-app");
+    if (!manager?.rendered) {
+      manager = new globalThis.ClickAdventure.ManagerApp();
+      globalThis.ClickAdventure._manager = manager;
+      manager.render({ force: true });
+    }
+
+    manager._navRequests.set(userId, {
+      userId,
+      userName:  user.character?.name ?? user.name,
+      userColor: user.color?.css ?? user.color ?? "#ffffff",
+      fromNodeId,
+      toNodeId,
+      timestamp: Date.now()
+    });
+
+    manager._patchRequestsDrawer();
+  }
+
+  /**
+   * Received by all clients. Only the target player navigates.
+   * @param {{ userId: string, toNodeId: string, sceneId: string|null }} payload
+   * @returns {Promise<void>}
+   */
+  async _handleNavApproved({ userId, toNodeId, sceneId } = {}) {
+    if (game.userId !== userId) return;
+
+    if (sceneId) {
+      const scene = game.scenes.get(sceneId);
+      if (scene) await scene.view();
+    }
+
+    await game.user.setFlag("click-adventure", "currentNodeId", toNodeId);
+    this.emitPlayerMoved(toNodeId);
+
+    const hud = globalThis.ClickAdventure._hud;
+    if (hud?.rendered) hud.render({ force: true });
+
+    ui.notifications.info("Navigation approved!");
+  }
+
+  /**
+   * Received by all clients. Only the target player sees the rejection notice.
+   * @param {{ userId: string }} payload
+   */
+  _handleNavRejected({ userId } = {}) {
+    if (game.userId !== userId) return;
+    ui.notifications.warn("Navigation request denied by the GM.");
   }
 }

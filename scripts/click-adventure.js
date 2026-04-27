@@ -63,11 +63,24 @@ Hooks.on("init", () => {
     default: { sceneId: "", startNodeId: "", nodes: [], links: [] }
   });
 
+  game.settings.register("click-adventure", "navigationMode", {
+    name: "Navigation Mode",
+    hint: "Open: players navigate freely. Gated: players must request GM approval.",
+    scope: "world",
+    config: false,
+    type: String,
+    default: "open",
+    choices: { open: "Open Navigation", gated: "Gated Navigation" }
+  });
+
   // Instantiate socket manager — must run during init so the listener
   // is registered before any socket messages can arrive.
   const socketManager = new AdventureSocketManager();
 
   globalThis.ClickAdventure = {
+    /** @type {typeof ManagerApp} — exposed so socket-manager can instantiate it. */
+    ManagerApp,
+
     /**
      * Opens the scene-graph manager window, or brings the existing one to front.
      * @returns {ManagerApp}

@@ -61,6 +61,17 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     /** @type {InstructionsApp|null} — active instructions popover instance. */
     this._instructionsApp = null;
+
+    /**
+     * Pending navigation requests from non-GM players.
+     * Map<userId, { userId, userName, userColor, fromNodeId, toNodeId, timestamp }>
+     * One entry per user — a new request from the same user overwrites the old one.
+     * @type {Map<string, object>}
+     */
+    this._navRequests = new Map();
+
+    /** @type {boolean} — tracks drawer open state across renders. */
+    this._drawerOpen = false;
   }
 
   // ---------------------------------------------------------------------------
@@ -86,6 +97,98 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       map.get(nodeId).push({ name, color });
     }
     return map;
+  }
+
+  /**
+   * Approves a pending navigation request: updates the player's flag and emits approval.
+   * Triggered by clicking the approve button in the requests drawer.
+   * @param {string} userId
+   * @param {string} toNodeId
+   * @returns {Promise<void>}
+   */
+  async _approveRequest(userId, toNodeId) {
+    const request = this._navRequests.get(userId);
+    if (!request) return;
+
+    this._navRequests.delete(userId);
+
+    const user = game.users.get(userId);
+    if (user) await user.setFlag("click-adventure", "currentNodeId", toNodeId);
+
+    const { nodes } = this._graphData();
+    const targetNode = nodes.find(n => n.id === toNodeId);
+
+    globalThis.ClickAdventure._socket.approveNavRequest(userId, toNodeId, targetNode?.sceneId ?? null);
+    this._patchOccupantAvatars();
+    this._patchRequestsDrawer();
+  }
+
+  /**
+   * Rejects a pending navigation request and notifies the player.
+   * Triggered by clicking the reject button in the requests drawer.
+   * @param {string} userId
+   */
+  _rejectRequest(userId) {
+    this._navRequests.delete(userId);
+    globalThis.ClickAdventure._socket.rejectNavRequest(userId);
+    this._patchRequestsDrawer();
+  }
+
+  /**
+   * Patches the requests button badge and drawer content in-place after any queue mutation.
+   * Avoids a full re-render — mirrors the pattern used by _patchOccupantAvatars.
+   * Safe to call at any time — no-op if the manager is not rendered.
+   */
+  _patchRequestsDrawer() {
+    if (!this.rendered) return;
+    const html = this.element;
+    const count = this._navRequests.size;
+
+    const btn = html.querySelector(".ca-requests-btn");
+    if (btn) {
+      btn.textContent = count > 0 ? `Requests (${count})` : "Requests";
+      btn.classList.toggle("ca-requests-btn--active", count > 0);
+    }
+
+    const drawer = html.querySelector(".ca-requests-drawer");
+    if (!drawer) return;
+
+    const { nodes } = this._graphData();
+    const getLabel = id => nodes.find(n => n.id === id)?.label || id;
+    const requests = [...this._navRequests.values()].sort((a, b) => a.timestamp - b.timestamp);
+
+    const existing = drawer.querySelector(".ca-requests-list, .ca-requests-empty");
+    if (!existing) return;
+
+    if (requests.length === 0) {
+      existing.outerHTML = `<div class="ca-requests-empty">No pending requests.</div>`;
+      return;
+    }
+
+    const ul = document.createElement("ul");
+    ul.className = "ca-requests-list";
+
+    for (const r of requests) {
+      const li = document.createElement("li");
+      li.className = "ca-request-item";
+      li.dataset.userId = r.userId;
+      li.innerHTML = `
+        <span class="ca-request-dot" style="background:${r.userColor};"></span>
+        <span class="ca-request-info">
+          <strong>${r.userName}</strong>
+          <span class="ca-request-route">${getLabel(r.fromNodeId)} → ${getLabel(r.toNodeId)}</span>
+        </span>
+        <button class="ca-request-approve" data-user-id="${r.userId}" data-node-id="${r.toNodeId}" title="Approve">✓</button>
+        <button class="ca-request-reject"  data-user-id="${r.userId}" title="Reject">✗</button>
+      `;
+      li.querySelector(".ca-request-approve").addEventListener("click", () =>
+        this._approveRequest(r.userId, r.toNodeId));
+      li.querySelector(".ca-request-reject").addEventListener("click", () =>
+        this._rejectRequest(r.userId));
+      ul.appendChild(li);
+    }
+
+    existing.replaceWith(ul);
   }
 
   /**
@@ -164,6 +267,15 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     context.links = links;
     context.startNodeId = startNodeId ?? "";
     context.activeNodeId = activeNodeId;
+
+    const getLabel = id => nodes.find(n => n.id === id)?.label || id;
+    context.navigationMode = game.settings.get("click-adventure", "navigationMode");
+    context.requestCount   = this._navRequests.size;
+    context.drawerOpen     = this._drawerOpen;
+    context.requests       = [...this._navRequests.values()]
+      .sort((a, b) => a.timestamp - b.timestamp)
+      .map(r => ({ ...r, fromLabel: getLabel(r.fromNodeId), toLabel: getLabel(r.toNodeId) }));
+
     return context;
   }
 
@@ -232,6 +344,24 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     html.querySelector(".ca-create-scenes")?.addEventListener("click", () => this._onCreateScenes());
     html.querySelector(".ca-update-scenes")?.addEventListener("click", () => this._onUpdateScenes());
     html.querySelector(".ca-reset-graph")?.addEventListener("click", () => this._onResetGraph());
+
+    html.querySelector(".ca-nav-mode-select")?.addEventListener("change", async e => {
+      await game.settings.set("click-adventure", "navigationMode", e.target.value);
+    });
+
+    html.querySelector(".ca-requests-btn")?.addEventListener("click", () => {
+      this._drawerOpen = !this._drawerOpen;
+      const drawer = html.querySelector(".ca-requests-drawer");
+      drawer?.classList.toggle("ca-requests-drawer--open", this._drawerOpen);
+    });
+
+    html.querySelectorAll(".ca-request-approve").forEach(btn => {
+      btn.addEventListener("click", () => this._approveRequest(btn.dataset.userId, btn.dataset.nodeId));
+    });
+
+    html.querySelectorAll(".ca-request-reject").forEach(btn => {
+      btn.addEventListener("click", () => this._rejectRequest(btn.dataset.userId));
+    });
 
     const instrBtn = html.querySelector(".ca-instructions-btn");
     if (instrBtn) {

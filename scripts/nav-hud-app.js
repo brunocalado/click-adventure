@@ -306,6 +306,7 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
   /**
    * Navigates the current user to a target node.
+   * - In "gated" mode, non-GM players send a request to the GM instead of navigating directly.
    * - Scene transition is per-client only (scene.view() via socket), never global.
    * - Persists the new position in the user's own flag (per-user, not global).
    *
@@ -313,6 +314,18 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @returns {Promise<void>}
    */
   async _navigateTo(targetNode) {
+    const mode = game.settings.get("click-adventure", "navigationMode");
+
+    if (!game.user.isGM && mode === "gated") {
+      const currentNode = this._currentNode();
+      globalThis.ClickAdventure._socket.requestNavigation({
+        fromNodeId: currentNode?.id ?? null,
+        toNodeId:   targetNode.id
+      });
+      ui.notifications.info("Navigation request sent. Waiting for GM approval.");
+      return;
+    }
+
     if (targetNode.sceneId) {
       // Per-client scene view — does not affect other players' screens
       await globalThis.ClickAdventure._socket.viewSceneForUser(

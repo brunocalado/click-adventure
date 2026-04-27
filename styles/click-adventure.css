@@ -1102,6 +1102,178 @@
   user-select: none;
 }
 
+/* ----------------------------------------------------------
+   Navigation mode select (toolbar)
+   ---------------------------------------------------------- */
+
+.ca-nav-mode-select {
+  height: 32px;
+  padding: 0 8px;
+  background: #1e2a3a;
+  border: 1px solid #3a5a7a;
+  border-radius: 4px;
+  color: #aabbdd;
+  font-size: 12px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.ca-nav-mode-select:focus {
+  outline: none;
+  border-color: #5a8aaa;
+}
+
+/* ----------------------------------------------------------
+   Requests button
+   ---------------------------------------------------------- */
+
+.ca-requests-btn {
+  box-sizing: border-box;
+  height: 32px;
+  padding: 0 12px;
+  background: #1e2a3a;
+  border: 1px solid #3a5a7a;
+  border-radius: 4px;
+  color: #aabbdd;
+  font-size: 12px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.ca-requests-btn:hover {
+  background: #2a3a5a;
+  border-color: #5a8aaa;
+  color: #ccddf0;
+}
+
+.ca-requests-btn--active {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: #f59e0b;
+  color: #fcd34d;
+}
+
+.ca-requests-btn--active:hover {
+  background: rgba(245, 158, 11, 0.25);
+}
+
+/* ----------------------------------------------------------
+   Requests drawer
+   ---------------------------------------------------------- */
+
+.ca-requests-drawer {
+  display: none;
+  flex-direction: column;
+  gap: 0;
+  background: #12152a;
+  border-bottom: 1px solid rgba(100, 130, 200, 0.2);
+  flex-shrink: 0;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.ca-requests-drawer--open {
+  display: flex;
+}
+
+.ca-requests-drawer-header {
+  padding: 7px 12px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #7fa8dd;
+  border-bottom: 1px solid rgba(100, 130, 200, 0.15);
+  flex-shrink: 0;
+}
+
+.ca-requests-list {
+  list-style: none;
+  padding: 6px 0;
+  margin: 0;
+}
+
+.ca-request-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  transition: background 0.1s;
+}
+
+.ca-request-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.ca-request-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ca-request-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.ca-request-info strong {
+  font-size: 12px;
+  color: #c8d8ff;
+}
+
+.ca-request-route {
+  font-size: 11px;
+  color: #7a8fa6;
+}
+
+.ca-request-approve,
+.ca-request-reject {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  line-height: 26px;
+  text-align: center;
+  transition: background 0.1s, color 0.1s;
+}
+
+.ca-request-approve {
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  color: #22c55e;
+}
+
+.ca-request-approve:hover {
+  background: rgba(34, 197, 94, 0.25);
+  border-color: rgba(34, 197, 94, 0.6);
+}
+
+.ca-request-reject {
+  background: rgba(160, 40, 40, 0.15);
+  border: 1px solid rgba(200, 80, 80, 0.35);
+  color: #c87070;
+}
+
+.ca-request-reject:hover {
+  background: rgba(160, 40, 40, 0.3);
+  border-color: rgba(220, 80, 80, 0.6);
+  color: #ffaaaa;
+}
+
+.ca-requests-empty {
+  padding: 12px;
+  font-size: 12px;
+  color: #556;
+  text-align: center;
+}
+
 .ca-context-menu-header {
   padding: 7px 12px 6px;
   font-size: 11px;
