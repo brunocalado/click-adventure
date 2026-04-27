@@ -20,7 +20,7 @@ import { buildSceneData } from "./scene-template.js";
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 /** Fixed node dimensions that match the CSS .ca-node rules. */
-const NODE_W = 120;
+const NODE_W = 100;
 const NODE_H = 100;
 
 export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
@@ -149,7 +149,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       btn.addEventListener("mousedown", e => e.stopPropagation()); // prevents accidental drag start
       btn.addEventListener("click", e => {
         e.stopPropagation();
-        this._onViewScene(btn.dataset.sceneId);
+        this._onViewScene(btn.dataset.sceneId, btn.dataset.nodeId);
       });
     });
 
@@ -288,14 +288,16 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   /**
-   * Switches the GM's canvas view to the scene associated with the clicked node.
+   * Switches the GM's canvas view to the scene associated with the clicked node
+   * AND sets that node as the active position.
    * Uses scene.view() — only the GM's perspective changes, players are unaffected.
    * Triggered by click on .ca-view-scene-btn in _onRender.
    *
    * @param {string} sceneId
+   * @param {string} nodeId
    * @returns {Promise<void>}
    */
-  async _onViewScene(sceneId) {
+  async _onViewScene(sceneId, nodeId) {
     if (!sceneId) return;
     const scene = game.scenes.get(sceneId);
     if (!scene) {
@@ -303,6 +305,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       return;
     }
     await scene.view();
+    if (nodeId) await this._onSetActiveNode(nodeId);
   }
 
   /**
@@ -726,8 +729,6 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const { sceneId, startNodeId, nodes, links } = this._graphData();
     if (nodes.length === 0) return;
 
-    const NODE_W = 120;
-    const NODE_H = 100;
     const COL_GAP = 80;
     const ROW_GAP = 40;
 

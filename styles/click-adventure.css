@@ -130,7 +130,7 @@
 
 .ca-node {
   position: absolute;
-  width: 120px;
+  width: 100px;
   height: 100px;
   background: #16213e;
   border: 2px solid #0f3460;
@@ -181,7 +181,7 @@
   color: #e2e8f0;
   font-size: 11px;
   text-align: center;
-  max-width: 108px;
+  max-width: 88px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -193,22 +193,12 @@
   box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.4), 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
-/* Start node — subtle gold tint; star icon is the primary indicator */
-.ca-node[data-start="true"] {
-  border-color: #f59e0b;
-  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.25), 0 2px 8px rgba(0, 0, 0, 0.5);
-}
+/* Start node — no border override; the star icon is the sole indicator */
 
-/* When a node is both start and active, active (green) wins */
-.ca-node[data-start="true"][data-active="true"] {
-  border-color: #22c55e;
-  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.4), 0 2px 8px rgba(0, 0, 0, 0.5);
-}
-
-/* Start point star icon — bottom-left corner of node */
+/* Start point star icon — top-left corner of node */
 .ca-start-icon {
   position: absolute;
-  bottom: 3px;
+  top: 3px;
   left: 5px;
   width: 16px;
   height: 16px;
@@ -217,6 +207,7 @@
   justify-content: center;
   color: #f59e0b;
   pointer-events: none;
+  z-index: 1;
 }
 
 .ca-start-icon svg {
@@ -292,6 +283,13 @@
 
 .ca-view-scene-btn svg {
   pointer-events: none;
+}
+
+/* Override Foundry's global button focus ring inside node cards only */
+.ca-node .ca-view-scene-btn:focus,
+.ca-node .ca-set-active-btn:focus {
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 /* ----------------------------------------------------------
