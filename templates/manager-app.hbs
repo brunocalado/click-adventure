@@ -8,10 +8,13 @@
     </button>
 
     {{!-- Navigation mode control --}}
-    <select class="ca-nav-mode-select" title="Navigation mode for players">
-      <option value="open"  {{#if (eq navigationMode "open")}}selected{{/if}}>Open</option>
-      <option value="gated" {{#if (eq navigationMode "gated")}}selected{{/if}}>Gated</option>
-    </select>
+    <div class="ca-nav-mode-toggle" title="Navigation mode for players">
+      <span class="ca-nav-mode-label">Free Move</span>
+      <button class="ca-nav-mode-btn ca-nav-mode-btn--on  {{#if (eq navigationMode 'open')}}ca-nav-mode-btn--active{{/if}}"
+              type="button" data-mode="open">On</button>
+      <button class="ca-nav-mode-btn ca-nav-mode-btn--off {{#unless (eq navigationMode 'open')}}ca-nav-mode-btn--active{{/unless}}"
+              type="button" data-mode="gated">Off</button>
+    </div>
 
     {{!-- Requests button — shows count badge when queue is non-empty --}}
     <button class="ca-requests-btn {{#if requestCount}}ca-requests-btn--active{{/if}}"

@@ -364,8 +364,14 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     html.querySelector(".ca-sync-scenes")?.addEventListener("click", () => this._onSyncScenes());
     html.querySelector(".ca-reset-graph")?.addEventListener("click", () => this._onResetGraph());
 
-    html.querySelector(".ca-nav-mode-select")?.addEventListener("change", async e => {
-      await game.settings.set("click-adventure", "navigationMode", e.target.value);
+    html.querySelectorAll(".ca-nav-mode-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const mode = btn.dataset.mode;
+        await game.settings.set("click-adventure", "navigationMode", mode);
+        html.querySelectorAll(".ca-nav-mode-btn").forEach(b => {
+          b.classList.toggle("ca-nav-mode-btn--active", b.dataset.mode === mode);
+        });
+      });
     });
 
     html.querySelector(".ca-requests-btn")?.addEventListener("click", () => {
