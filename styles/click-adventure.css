@@ -492,10 +492,15 @@
   border: none !important;
   box-shadow: none !important;
   pointer-events: none;
-  width: 220px !important;
+  width: fit-content !important;
+  height: fit-content !important;
 }
 
 /* Re-enable pointer events only on interactive children */
+.click-adventure.nav-hud [data-application-part] {
+  pointer-events: none;
+}
+
 .click-adventure.nav-hud .ca-hud-root {
   pointer-events: all;
 }
