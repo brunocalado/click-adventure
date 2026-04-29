@@ -433,6 +433,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     if (workspace) {
       workspace.addEventListener("mousedown", e => {
         if (e.target !== workspace && !e.target.classList.contains("ca-canvas")) return;
+        if (e.button !== 2) return;  // pan only on right-click
         e.preventDefault();
         this._panState = {
           startX: e.clientX,
@@ -440,6 +441,15 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
           originX: this._pan.x,
           originY: this._pan.y
         };
+      });
+
+      // Suppress the native browser context menu on the canvas background so
+      // right-drag pan works cleanly. Node contextmenu listeners call
+      // stopPropagation, so they are unaffected.
+      workspace.addEventListener("contextmenu", e => {
+        if (e.target === workspace || e.target.classList.contains("ca-canvas")) {
+          e.preventDefault();
+        }
       });
     }
   }
@@ -698,8 +708,10 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     if (this._dragState) {
       const { nodeEl, offsetX, offsetY } = this._dragState;
-      nodeEl.style.left = `${e.clientX - wsRect.left - this._pan.x - offsetX}px`;
-      nodeEl.style.top  = `${e.clientY - wsRect.top  - this._pan.y - offsetY}px`;
+      const rawX = e.clientX - wsRect.left - this._pan.x - offsetX;
+      const rawY = e.clientY - wsRect.top  - this._pan.y - offsetY;
+      nodeEl.style.left = `${Math.max(0, Math.min(CANVAS_SIZE - NODE_W, Math.round(rawX)))}px`;
+      nodeEl.style.top  = `${Math.max(0, Math.min(CANVAS_SIZE - NODE_H, Math.round(rawY)))}px`;
       this._renderLinks();
     }
 
