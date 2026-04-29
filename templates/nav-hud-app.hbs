@@ -2,7 +2,10 @@
   {{#if hasAnyDirection}}
   <div class="ca-hud-destinations {{#if isOpen}}ca-hud-destinations--open{{/if}}">
     {{#each availableDestinations}}
-    <button class="ca-hud-dest-btn" data-node-id="{{id}}" type="button">
+    <button class="ca-hud-dest-btn {{#if locked}}ca-hud-dest-btn--locked{{/if}}"
+            data-node-id="{{id}}"
+            data-locked="{{locked}}"
+            type="button">
       {{label}}
     </button>
     {{/each}}

@@ -115,7 +115,8 @@
 }
 
 .ca-link-direction[data-direction="both"]    { fill: #22c55e; }
-.ca-link-direction[data-direction="blocked"] { fill: #ef4444; }
+.ca-link-direction[data-direction="blocked"] { fill: #a855f7; }
+.ca-link-direction[data-direction="locked"]  { fill: #ef4444; }
 
 /* Directional arrow polygon */
 .ca-link-direction-arrow {
@@ -138,6 +139,11 @@
 }
 
 .ca-link[data-direction="blocked"] {
+  stroke: #a855f7;
+  stroke-dasharray: 6 4;
+}
+
+.ca-link[data-direction="locked"] {
   stroke: #ef4444;
   stroke-dasharray: 6 4;
 }
@@ -557,6 +563,19 @@
   background: rgba(60, 90, 180, 0.85);
   border-color: rgba(140, 180, 255, 0.7);
   color: #ffffff;
+}
+
+.ca-hud-dest-btn--locked {
+  opacity: 0.55;
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+  cursor: not-allowed;
+}
+
+.ca-hud-dest-btn--locked:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.6);
+  color: #fca5a5;
 }
 
 /* ---- Orb ---- */

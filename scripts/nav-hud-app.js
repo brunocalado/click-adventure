@@ -130,7 +130,7 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
         } else {
           // Single-passage: existing direction logic; dedup so the same node appears only once
           const dir = getEffectiveDirection(link);
-          if (dir === "blocked") continue;
+          if (dir === "blocked") continue;  // hidden — does not appear in HUD
           let otherId = null;
 
           if (dir === "both") {
@@ -140,13 +140,17 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
             otherId = link.targetId;
           } else if (dir === "backward" && link.targetId === node.id) {
             otherId = link.sourceId;
+          } else if (dir === "locked") {
+            // Visible in HUD but not navigable — resolve otherId normally
+            if (link.sourceId === node.id)      otherId = link.targetId;
+            else if (link.targetId === node.id) otherId = link.sourceId;
           }
 
           if (!otherId) continue;
           const other = nodes.find(n => n.id === otherId);
           if (other && !seen.has(other.id)) {
             seen.add(other.id);
-            availableDestinations.push({ id: other.id, label: other.label || other.id });
+            availableDestinations.push({ id: other.id, label: other.label || other.id, locked: dir === "locked" });
           }
         }
       }
@@ -214,6 +218,10 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     html.querySelectorAll(".ca-hud-dest-btn").forEach(btn => {
       btn.addEventListener("click", () => {
+        if (btn.dataset.locked === "true") {
+          ui.notifications.warn("This path is not accessible.");
+          return;
+        }
         const nodeId = btn.dataset.nodeId;
         const { nodes } = this._graphData();
         const target = nodes.find(n => n.id === nodeId);

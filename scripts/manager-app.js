@@ -1080,7 +1080,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
         indicator.style.pointerEvents = "none";
         indicator.textContent = "⊕";
         svg.appendChild(indicator);
-      } else if (direction === "both" || direction === "blocked") {
+      } else if (direction === "both" || direction === "blocked" || direction === "locked") {
         const indicator = document.createElementNS("http://www.w3.org/2000/svg", "text");
         indicator.classList.add("ca-link-direction");
         indicator.setAttribute("x", mid.x);
@@ -1089,7 +1089,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
         indicator.setAttribute("dominant-baseline", "central");
         indicator.dataset.direction = direction;
         indicator.style.pointerEvents = "none";
-        indicator.textContent = direction === "both" ? "⟷" : "✕";
+        indicator.textContent = direction === "both" ? "⟷" : direction === "blocked" ? "✕" : "⊘";
         svg.appendChild(indicator);
       } else {
         // Arrowhead aligned with the curve tangent at t=0.5
@@ -1179,7 +1179,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
    */
   async _onCycleLink(linkIndex) {
     const { sceneId, startNodeId, nodes, links } = this._graphData();
-    const cycle = { both: "forward", forward: "backward", backward: "blocked", blocked: "both" };
+    const cycle = { both: "forward", forward: "backward", backward: "blocked", blocked: "locked", locked: "both" };
     const updatedLinks = links.map((l, i) => {
       if (i !== linkIndex) return l;
       // Multi-passage links are edited via LinkEditorApp — cycling is a no-op here
