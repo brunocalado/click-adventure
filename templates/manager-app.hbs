@@ -1,7 +1,7 @@
 <div class="ca-manager">
   <div class="ca-toolbar">
     <button class="ca-add-node" type="button" title="Add Scene Node">+</button>
-    <button class="ca-import-folder ca-requests-btn" type="button" title="Import nodes from folder">Import</button>
+    <button class="ca-import-folder ca-toolbar-pill" type="button" title="Import nodes from folder">Import</button>
     <button class="ca-sync-scenes" type="button"
             title="{{#if hasAnyScene}}Sync all node scenes with current data{{else}}Create one Foundry Scene per node{{/if}}">
       {{#if hasAnyScene}}Update Scenes{{else}}Create Scenes{{/if}}
@@ -17,7 +17,7 @@
     </div>
 
     {{!-- Requests button — shows count badge when queue is non-empty --}}
-    <button class="ca-requests-btn {{#if requestCount}}ca-requests-btn--active{{/if}}"
+    <button class="ca-requests-btn ca-toolbar-pill {{#if requestCount}}ca-requests-btn--active{{/if}}"
             type="button" title="Pending navigation requests">
       {{#if requestCount}}Requests ({{requestCount}}){{else}}Requests{{/if}}
     </button>

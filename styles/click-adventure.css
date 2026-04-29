@@ -1153,7 +1153,7 @@
    Requests button
    ---------------------------------------------------------- */
 
-.ca-requests-btn {
+.ca-toolbar-pill {
   box-sizing: border-box;
   height: 32px;
   padding: 0 12px;
@@ -1167,7 +1167,7 @@
   transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
-.ca-requests-btn:hover {
+.ca-toolbar-pill:hover {
   background: #2a3a5a;
   border-color: #5a8aaa;
   color: #ccddf0;
