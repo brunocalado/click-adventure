@@ -732,13 +732,17 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
   _onImportFolder() {
     const IMAGE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "gif", "webp", "avif", "svg"]);
 
-    const picker = new FilePicker({
+    // Resolve the active FilePicker implementation (handles The Forge and other hosts)
+    const FilePickerClass = foundry.applications.apps.FilePicker.implementation
+      ?? foundry.applications.apps.FilePicker;
+
+    const picker = new FilePickerClass({
       type: "folder",
       current: "",
       callback: async (folderPath) => {
         let browseResult;
         try {
-          browseResult = await FilePicker.browse("data", folderPath);
+          browseResult = await foundry.applications.apps.FilePicker.browse("data", folderPath);
         } catch (err) {
           ui.notifications.error(`Click Adventure: Could not read folder "${folderPath}". ${err.message}`);
           return;
