@@ -345,6 +345,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     });
 
     html.querySelector(".ca-add-node")?.addEventListener("click", () => this._onAddNode());
+    html.querySelector(".ca-import-folder")?.addEventListener("click", () => this._onImportFolder());
     html.querySelector(".ca-sync-scenes")?.addEventListener("click", () => this._onSyncScenes());
     html.querySelector(".ca-reset-graph")?.addEventListener("click", () => this._onResetGraph());
 
@@ -718,6 +719,114 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       sceneId, startNodeId: newStartNodeId, nodes: [...nodes, newNode], links
     });
     this.render({ force: true });
+  }
+
+  /**
+   * Opens a FilePicker in folder-selection mode.
+   * When the user confirms a folder, reads all image files in it and creates one
+   * new node per image not already present in the graph (duplicate detection via images[0].src).
+   *
+   * Triggered by click on .ca-import-folder in _onRender.
+   * @returns {void}
+   */
+  _onImportFolder() {
+    const IMAGE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "gif", "webp", "avif", "svg"]);
+
+    const picker = new FilePicker({
+      type: "folder",
+      current: "",
+      callback: async (folderPath) => {
+        let browseResult;
+        try {
+          browseResult = await FilePicker.browse("data", folderPath);
+        } catch (err) {
+          ui.notifications.error(`Click Adventure: Could not read folder "${folderPath}". ${err.message}`);
+          return;
+        }
+
+        const imageFiles = (browseResult.files ?? []).filter(filePath => {
+          const ext = filePath.split(".").pop()?.toLowerCase() ?? "";
+          return IMAGE_EXTENSIONS.has(ext);
+        });
+
+        if (imageFiles.length === 0) {
+          ui.notifications.warn("Click Adventure: No image files found in the selected folder.");
+          return;
+        }
+
+        const { sceneId, startNodeId, nodes, links } = this._graphData();
+        const existingPaths = new Set(nodes.map(n => n.images?.[0]?.src).filter(Boolean));
+
+        const workspace = this.element?.querySelector(".ca-workspace");
+        const wsWidth  = workspace?.clientWidth  ?? 800;
+        const COLS     = Math.max(1, Math.floor((wsWidth - 40) / (NODE_W + 20)));
+        const offsetX  = nodes.length;
+
+        const newNodes = [];
+        for (let i = 0; i < imageFiles.length; i++) {
+          const filePath = imageFiles[i];
+          if (existingPaths.has(filePath)) continue;
+
+          const bare  = filePath.split("/").pop().replace(/\.[^.]+$/, "");
+          const label = this._filenameToLabel(bare);
+
+          const totalIndex = offsetX + newNodes.length;
+          const col = totalIndex % COLS;
+          const row = Math.floor(totalIndex / COLS);
+          const x   = 20 + col * (NODE_W + 20);
+          const y   = 20 + row * (NODE_H + 40);
+
+          newNodes.push({
+            id: foundry.utils.randomID(),
+            label,
+            images: [{ src: filePath }],
+            activeImageIndex: 0,
+            sceneId: null,
+            x,
+            y
+          });
+        }
+
+        if (newNodes.length === 0) {
+          ui.notifications.info("Click Adventure: All images in this folder are already imported.");
+          return;
+        }
+
+        const newStartNodeId = nodes.length === 0 ? newNodes[0].id : startNodeId;
+        await game.settings.set("click-adventure", "graph", {
+          sceneId,
+          startNodeId: newStartNodeId,
+          nodes: [...nodes, ...newNodes],
+          links
+        });
+
+        this.render({ force: true });
+        ui.notifications.info(`Click Adventure: Imported ${newNodes.length} node(s).`);
+      }
+    });
+
+    picker.render(true);
+  }
+
+  /**
+   * Converts a raw filename (without extension) to a human-readable label.
+   * Hyphens and underscores become spaces; each word is title-cased except
+   * pure-numeric tokens (e.g. "01") which are left as-is.
+   *
+   * @param {string} filename — bare filename without path or extension
+   * @returns {string}
+   */
+  _filenameToLabel(filename) {
+    return filename
+      .replace(/[-_]+/g, " ")
+      .replace(/\s{2,}/g, " ")
+      .trim()
+      .split(" ")
+      .map(word => {
+        if (/^\d+$/.test(word)) return word;
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      })
+      .join(" ");
   }
 
   // ---------------------------------------------------------------------------
