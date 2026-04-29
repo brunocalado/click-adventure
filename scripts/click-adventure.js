@@ -108,6 +108,14 @@ Hooks.on("init", () => {
     choices: { open: "Open Navigation", gated: "Gated Navigation" }
   });
 
+  game.settings.register("click-adventure", "managerPan", {
+    name: "Manager Pan Position",
+    scope: "client",
+    config: false,
+    type: Object,
+    default: { x: 0, y: 0 }
+  });
+
   game.settings.register("click-adventure", "transitionType", {
     name: "Scene Transition Type",
     scope: "world",

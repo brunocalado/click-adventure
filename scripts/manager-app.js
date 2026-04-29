@@ -84,7 +84,9 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
      * Current pan offset of the canvas.
      * @type {{ x: number, y: number }}
      */
-    this._pan = { x: 0, y: 0 };
+    // Restore pan from client setting so position survives close/reopen
+    const savedPan = game.settings.get("click-adventure", "managerPan");
+    this._pan = { x: savedPan?.x ?? 0, y: savedPan?.y ?? 0 };
 
     /**
      * Active pan drag state.
@@ -741,6 +743,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
   async _onDocMouseUp(e) {
     if (this._panState) {
       this._panState = null;
+      game.settings.set("click-adventure", "managerPan", { x: this._pan.x, y: this._pan.y });
       return;
     }
 
