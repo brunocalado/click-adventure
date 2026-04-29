@@ -1,0 +1,74 @@
+/* @section: instructions
+   @scope: Free-floating instructions popover (toolbar help)
+   @depends: --ca-bg-popover, --ca-border-soft, --ca-text-*, --ca-radius-xl
+
+   Note: window-frame !important rules for .click-adventure.instructions live
+   in _foundry-overrides.css.
+
+   @manifest:
+     .click-adventure.instructions .ca-instructions   Pointer-events re-enabled on the visible card
+     .ca-instructions                                  Card body (column layout, sections)
+     .ca-instructions-section h3                       Section title (uppercase, blue)
+     .ca-instructions-section ul                       Bullet list of tips
+     .ca-instructions-section li                       Single tip line
+     .ca-instructions-section p                        Free-text paragraph variant
+     .ca-instructions kbd                              Inline keyboard key glyph
+*/
+
+.click-adventure.instructions .ca-instructions {
+  pointer-events: all;
+}
+
+.ca-instructions {
+  background: var(--ca-bg-popover);
+  border: 1px solid var(--ca-border-soft);
+  border-radius: var(--ca-radius-xl);
+  padding: 14px 16px;
+  color: var(--ca-text-primary);
+  font-size: 12px;
+  backdrop-filter: blur(6px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ca-instructions-section h3 {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ca-text-section);
+  border-bottom: 1px solid rgba(100, 130, 200, 0.2);
+  padding-bottom: 4px;
+}
+
+.ca-instructions-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ca-instructions-section li {
+  line-height: 1.5;
+}
+
+.ca-instructions-section p {
+  margin: 0;
+  line-height: 1.5;
+  color: #a8b8d8;
+}
+
+.ca-instructions kbd {
+  display: inline-block;
+  padding: 1px 5px;
+  background: rgba(80, 100, 160, 0.4);
+  border: 1px solid rgba(120, 150, 210, 0.5);
+  border-radius: var(--ca-radius-sm);
+  font-size: 11px;
+  font-family: monospace;
+  color: #dde8ff;
+}

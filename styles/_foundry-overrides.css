@@ -1,0 +1,76 @@
+/* @section: foundry-overrides
+   @scope: ApplicationV2 windows + button reset against Foundry global styles
+   @depends: --ca-node-btn-size
+
+   These rules use !important to defeat Foundry VTT's high-specificity global
+   button/window styles. Do NOT add !important elsewhere — put new overrides
+   here and document the original Foundry rule being beaten.
+
+   @manifest:
+     .ca-node .ca-node-buttons .ca-view-scene-btn   Force 18x18 sizing over Foundry button defaults
+     .ca-node .ca-node-buttons .ca-set-active-btn   Force 18x18 sizing over Foundry button defaults
+     .ca-node .ca-view-scene-btn:focus              Suppress Foundry's orange focus ring
+     .ca-node .ca-set-active-btn:focus              Suppress Foundry's orange focus ring
+     .ca-toolbar button:focus                       Suppress Foundry's orange focus ring on toolbar
+     .click-adventure.nav-hud                       Free-floating ApplicationV2 (no chrome)
+     .click-adventure.instructions                  Free-floating popover (no chrome)
+     .click-adventure.settings                      Free-floating settings panel (no chrome)
+*/
+
+/* Foundry assigns a default min-width/padding to all <button> elements. The
+   tiny node icons need to override that to fit the 18x18 slot. */
+.ca-node .ca-node-buttons .ca-view-scene-btn,
+.ca-node .ca-node-buttons .ca-set-active-btn {
+  width: var(--ca-node-btn-size) !important;
+  height: var(--ca-node-btn-size) !important;
+  min-width: var(--ca-node-btn-size) !important;
+  max-width: var(--ca-node-btn-size) !important;
+  padding: 0 !important;
+  box-sizing: border-box;
+}
+
+/* Suppress Foundry's global orange focus ring inside node cards. */
+.ca-node .ca-view-scene-btn:focus,
+.ca-node .ca-set-active-btn:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Suppress Foundry's global orange focus ring on toolbar buttons. */
+.ca-toolbar button:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Foundry's ApplicationV2 ships a window frame (chrome, header, border).
+   The Nav HUD, instructions popover, and settings panel are free-floating
+   overlays — strip the frame so only the inner pointer-event-enabled root
+   is visible. */
+.click-adventure.nav-hud {
+  position: fixed !important;
+  z-index: var(--ca-z-hud) !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  pointer-events: none;
+  width: fit-content !important;
+  height: fit-content !important;
+}
+
+.click-adventure.instructions {
+  position: fixed !important;
+  z-index: var(--ca-z-popover) !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  pointer-events: none;
+}
+
+.click-adventure.settings {
+  position: fixed !important;
+  z-index: var(--ca-z-popover) !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  pointer-events: none;
+}

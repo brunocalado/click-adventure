@@ -1,0 +1,246 @@
+/* @section: node-config
+   @scope: Node Config window — node label form, image gallery, start-node toggle, save/delete actions
+   @depends: --ca-bg-panel, --ca-state-open*, --ca-text-*, --ca-radius-*
+
+   @manifest:
+     .click-adventure.node-config         Window background
+     .ca-node-config                      Form root (column layout)
+     .ca-node-config-row                  Row of form controls (label + input)
+     .ca-node-label-input                 Label input (flex-fill)
+     .ca-char-limit                       Tiny character-limit hint near label
+     .ca-images-section                   Container for image gallery
+     .ca-images-header                    Title row + "Add image" button
+     .ca-images-list                      Vertical list of image entries
+     .ca-image-item                       Single image row (thumb + info + actions)
+     .ca-image-item--active               Highlighted as the active image
+     .ca-image-thumb                      Thumbnail preview
+     .ca-image-info                       Right-side column: label input + actions
+     .ca-image-label-input                Per-image label input
+     .ca-image-actions                    Action button cluster (set active, delete)
+     .ca-image-active-badge               Small green "active" tag
+     .ca-images-empty                     Empty-state copy
+     .ca-btn-remove                       Generic small "x" remove button
+     .ca-start-node-row                   Row holding the toggle for "is start node?"
+     .ca-toggle-start                     Toggle button base
+     .ca-toggle-start--active             On state (green border + label)
+     .ca-node-config-actions              Footer row with Save/Delete
+     .ca-btn-save                         Save button
+     .ca-btn-delete                       Delete button (red)
+*/
+
+.click-adventure.node-config {
+  background: var(--ca-bg-panel);
+}
+
+.ca-node-config {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ca-node-config-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ca-node-config-row label {
+  font-weight: 600;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.ca-node-label-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.ca-char-limit {
+  font-size: 10px;
+  color: var(--ca-text-mute-row);
+  font-weight: normal;
+}
+
+/* Images section */
+.ca-images-section {
+  margin: 4px 0;
+}
+
+.ca-images-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: var(--ca-text-subtle);
+}
+
+.ca-images-header button {
+  padding: 2px 8px;
+  background: rgba(40, 60, 120, 0.6);
+  border: 1px solid rgba(100, 140, 220, 0.4);
+  border-radius: var(--ca-radius-md);
+  color: var(--ca-text-primary);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.ca-images-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.ca-image-item {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--ca-radius-lg);
+}
+
+.ca-image-item--active {
+  border-color: var(--ca-state-open);
+  background: rgba(34, 197, 94, 0.08);
+}
+
+.ca-image-thumb {
+  width: 56px;
+  height: 40px;
+  border-radius: var(--ca-radius-md);
+  background-size: cover;
+  background-position: center;
+  background-color: rgba(255, 255, 255, 0.05);
+  flex-shrink: 0;
+}
+
+.ca-image-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ca-image-label-input {
+  font-size: 11px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--ca-border-mid);
+  border-radius: var(--ca-radius-sm);
+  color: var(--ca-text-primary);
+  padding: 2px 6px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ca-image-actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.ca-image-actions button {
+  padding: 1px 6px;
+  font-size: 11px;
+  cursor: pointer;
+  background: rgba(40, 60, 120, 0.5);
+  border: 1px solid rgba(100, 140, 220, 0.3);
+  border-radius: var(--ca-radius-sm);
+  color: var(--ca-text-primary);
+}
+
+.ca-image-active-badge {
+  font-size: 11px;
+  color: var(--ca-state-open);
+}
+
+.ca-btn-remove {
+  margin-left: auto;
+  color: var(--ca-state-danger) !important;
+  background: none !important;
+  border: none !important;
+  padding: 0 4px !important;
+  cursor: pointer;
+}
+
+.ca-images-empty {
+  font-size: 11px;
+  color: var(--ca-text-mute-row);
+  padding: 8px 0;
+  text-align: center;
+}
+
+/* Start node row */
+.ca-start-node-row {
+  justify-content: space-between;
+}
+
+.ca-start-node-row span {
+  font-size: 12px;
+  color: var(--ca-text-subtle);
+}
+
+.ca-toggle-start {
+  padding: 3px 10px;
+  background: rgba(40, 60, 120, 0.5);
+  border: 1px solid rgba(100, 140, 220, 0.4);
+  border-radius: var(--ca-radius-md);
+  color: var(--ca-text-primary);
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.ca-toggle-start:hover {
+  background: rgba(60, 90, 180, 0.7);
+  border-color: rgba(140, 180, 255, 0.7);
+}
+
+.ca-toggle-start--active {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: var(--ca-state-open);
+  color: var(--ca-state-open);
+  cursor: default;
+}
+
+/* Actions row */
+.ca-node-config-actions {
+  display: flex;
+  gap: 8px;
+  padding: 12px 0 4px;
+  justify-content: flex-end;
+}
+
+.ca-btn-save {
+  padding: 6px 18px;
+  background: #2a4a7a;
+  border: 1px solid #4a6aaa;
+  border-radius: var(--ca-radius-md);
+  color: #dde;
+  cursor: pointer;
+}
+
+.ca-btn-save:hover {
+  background: #3a5a9a;
+}
+
+.ca-btn-delete {
+  padding: 6px 18px;
+  background: #5a1a1a;
+  border: 1px solid #aa3a3a;
+  border-radius: var(--ca-radius-md);
+  color: #ecc;
+  cursor: pointer;
+}
+
+.ca-btn-delete:hover {
+  background: #7a2a2a;
+}

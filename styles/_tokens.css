@@ -1,0 +1,112 @@
+/* @section: tokens
+   @scope: :root
+   Design tokens for Click Adventure. Single source of truth for colors,
+   sizing, radii, and z-layers. All other CSS files in this module reference
+   these variables — do NOT introduce new hex literals or magic numbers
+   elsewhere; add a token here instead.
+
+   @manifest:
+     --ca-bg-*               Background fills
+     --ca-border-*           Border colors
+     --ca-state-*            Semantic state colors (link directions, node states)
+     --ca-text-*             Text colors
+     --ca-node-size          Square side of a node card    @shared-with-js: NODE_W/NODE_H
+     --ca-node-image-h       Height of node image area
+     --ca-canvas-size        Virtual canvas size           @shared-with-js: CANVAS_SIZE
+     --ca-grid-size          Background grid spacing
+     --ca-toolbar-h          Toolbar button height
+     --ca-orb-size           HUD orb hitbox size
+     --ca-radius-{sm,md,lg,xl}  Border radii
+     --ca-z-*                Stacking contexts
+*/
+
+:root {
+  /* Backgrounds */
+  --ca-bg-deep:           #0f1020;                 /* workspace canvas, deep panels */
+  --ca-bg-panel:          #1a1c2e;                 /* form panels (node-config, link-editor) */
+  --ca-bg-panel-alt:      #141628;                 /* link-editor header/footer */
+  --ca-bg-toolbar:        #1e2a3a;                 /* toolbar buttons base */
+  --ca-bg-toolbar-hover:  #2a3a5a;                 /* toolbar buttons hover */
+  --ca-bg-menu:           rgba(10, 12, 30, 0.97);  /* context menu, popovers */
+  --ca-bg-overlay:        rgba(10, 12, 30, 0.85);  /* HUD destinations panel */
+  --ca-bg-popover:        rgba(10, 12, 30, 0.95);  /* instructions popover */
+  --ca-bg-card:           #16213e;                 /* node card */
+  --ca-bg-card-empty:     #0f3460;                 /* node card with no image */
+  --ca-bg-toolbar-row:    #1a1a2e;                 /* manager toolbar row */
+  --ca-bg-requests-drawer:#12152a;
+  --ca-bg-add-node:       #2a2a3e;
+  --ca-bg-add-node-hover: #3a3a5e;
+
+  /* Borders */
+  --ca-border-toolbar:    #3a5a7a;
+  --ca-border-toolbar-hv: #5a8aaa;
+  --ca-border-card:       #0f3460;
+  --ca-border-card-hover: #7faaff;
+  --ca-border-soft:       rgba(100, 130, 200, 0.3);
+  --ca-border-divider:    rgba(100, 130, 200, 0.2);
+  --ca-border-faint:      rgba(255, 255, 255, 0.06);
+  --ca-border-mid:        rgba(255, 255, 255, 0.1);
+
+  /* Semantic states (link directions, node states, etc.) */
+  --ca-state-open:        #22c55e;   /* both / active node / approve */
+  --ca-state-locked:      #ef4444;   /* locked passage */
+  --ca-state-blocked:     #a855f7;   /* blocked passage */
+  --ca-state-multi:       #a855f7;   /* multi-passage link */
+  --ca-state-multi-hover: #c084fc;
+  --ca-state-directional: #f59e0b;   /* forward/backward / start icon */
+  --ca-state-warning:     #f59e0b;
+  --ca-state-danger:      #c87070;   /* delete buttons */
+  --ca-state-danger-hv:   #ffaaaa;
+  --ca-state-temp:        #ffaa44;   /* temp drag link, anchor hover */
+  --ca-state-link-base:   #7888cc;   /* default link color */
+  --ca-state-link-hover:  #ff6666;
+  --ca-state-anchor:      #4a6fa5;
+
+  /* Bg tints used by state-based rows/badges */
+  --ca-state-open-tint:        rgba(34, 197, 94, 0.15);
+  --ca-state-open-tint-hover:  rgba(34, 197, 94, 0.25);
+  --ca-state-open-border:      rgba(34, 197, 94, 0.4);
+  --ca-state-locked-tint:      rgba(239, 68, 68, 0.15);
+  --ca-state-locked-border:    rgba(239, 68, 68, 0.6);
+
+  /* Text */
+  --ca-text-primary:      #c8d8ff;
+  --ca-text-muted:        #aabbdd;
+  --ca-text-subtle:       #8899bb;
+  --ca-text-faint:        #7a8fa6;
+  --ca-text-bright:       #ffffff;
+  --ca-text-section:      #7fa8dd;   /* uppercase section titles */
+  --ca-text-input:        #c8d8ff;
+  --ca-text-link:         #4fc3f7;   /* view-scene button hover */
+  --ca-text-warm:         #fcd34d;   /* requests button active */
+  --ca-text-locked:       #fca5a5;
+  --ca-text-locked-hv:    #fecaca;
+  --ca-text-mute-row:     #556;      /* hint/empty state copy */
+
+  /* Sizing — @shared-with-js: see scripts/manager-app.js NODE_W/NODE_H/CANVAS_SIZE */
+  --ca-node-size:         100px;
+  --ca-node-image-h:      66px;
+  --ca-canvas-size:       8000px;
+  --ca-grid-size:         28px;
+  --ca-toolbar-h:         32px;
+  --ca-orb-size:          80px;
+  --ca-orb-inner:         28px;
+  --ca-anchor-size:       12px;
+  --ca-node-btn-size:     18px;
+
+  /* Radii */
+  --ca-radius-sm:         3px;
+  --ca-radius-md:         4px;
+  --ca-radius-lg:         6px;
+  --ca-radius-xl:         8px;
+  --ca-radius-pill:       10px;
+
+  /* Z-layers */
+  --ca-z-link:            1;
+  --ca-z-node:            2;
+  --ca-z-anchor:          3;
+  --ca-z-node-buttons:    10;
+  --ca-z-hud:             9999;
+  --ca-z-popover:         10000;
+  --ca-z-context-menu:    99999;
+}

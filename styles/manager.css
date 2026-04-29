@@ -1,0 +1,216 @@
+/* @section: manager
+   @scope: Manager window shell, toolbar, workspace, virtual canvas, and toolbar pills
+   @depends: --ca-bg-deep, --ca-bg-toolbar*, --ca-bg-add-node*, --ca-border-toolbar*,
+             --ca-text-muted, --ca-text-bright, --ca-canvas-size, --ca-grid-size,
+             --ca-toolbar-h, --ca-radius-md, --ca-state-danger*
+
+   @manifest:
+     .click-adventure.manager .window-content   Resets ApplicationV2 padding so workspace can flex-fill
+     .ca-manager                                Column layout: toolbar on top, workspace below
+     .ca-toolbar                                Top toolbar row with action buttons
+     .ca-toolbar-spacer                         Flex grow that pushes right-aligned buttons
+     .ca-toolbar-pill                           Generic pill-shaped toolbar button
+     .ca-workspace                              Pan-able viewport over the virtual canvas
+     .ca-canvas                                 Virtual 8000x8000 canvas (transformed via JS)
+     .ca-add-node                               + button to add a scene node
+     .ca-sync-scenes                            "Sync Scenes" toolbar button
+     .ca-instructions-btn                       Toolbar button that opens the instructions popover
+     .ca-reset-graph                            Right-aligned "Reset Graph" danger button
+     .ca-settings-btn                           Toolbar gear button (opens settings panel)
+*/
+
+.click-adventure.manager .window-content {
+  padding: 0;
+  overflow: hidden;
+  /* Flex-fill so .ca-workspace can use height: 100% */
+  flex: 1;
+  height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.ca-manager {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.ca-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: var(--ca-bg-toolbar-row);
+  border-bottom: 1px solid #333;
+  flex-shrink: 0;
+}
+
+.ca-toolbar-spacer {
+  flex: 1;
+}
+
+.ca-workspace {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  background-color: var(--ca-bg-deep);
+  background-image: radial-gradient(circle, #3a3a5a 1px, transparent 1px);
+  background-size: var(--ca-grid-size) var(--ca-grid-size);
+  cursor: grab;
+}
+
+.ca-workspace:active {
+  cursor: grabbing;
+}
+
+.ca-canvas {
+  position: absolute;
+  width: var(--ca-canvas-size);
+  height: var(--ca-canvas-size);
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  /* transform: translate(x, y) is applied via JS in manager-app.js */
+}
+
+/* Generic toolbar pill — base for ca-sync-scenes, ca-instructions-btn, requests button, etc. */
+.ca-toolbar-pill {
+  box-sizing: border-box;
+  height: var(--ca-toolbar-h);
+  padding: 0 12px;
+  background: var(--ca-bg-toolbar);
+  border: 1px solid var(--ca-border-toolbar);
+  border-radius: var(--ca-radius-md);
+  color: var(--ca-text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.ca-toolbar-pill:hover {
+  background: var(--ca-bg-toolbar-hover);
+  border-color: var(--ca-border-toolbar-hv);
+  color: #ccddf0;
+}
+
+.ca-add-node {
+  box-sizing: border-box;
+  width: var(--ca-toolbar-h);
+  height: var(--ca-toolbar-h);
+  min-width: var(--ca-toolbar-h);
+  min-height: var(--ca-toolbar-h);
+  max-width: var(--ca-toolbar-h);
+  max-height: var(--ca-toolbar-h);
+  padding: 0;
+  margin: 0;
+  background: var(--ca-bg-add-node);
+  border: 1px solid #555;
+  border-radius: var(--ca-radius-md);
+  color: #ccc;
+  font-size: 20px;
+  line-height: var(--ca-toolbar-h);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.ca-add-node:hover {
+  background: var(--ca-bg-add-node-hover);
+  border-color: #888;
+  color: var(--ca-text-bright);
+}
+
+.ca-sync-scenes {
+  box-sizing: border-box;
+  height: var(--ca-toolbar-h);
+  padding: 0 12px;
+  background: var(--ca-bg-toolbar);
+  border: 1px solid var(--ca-border-toolbar);
+  border-radius: var(--ca-radius-md);
+  color: var(--ca-text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.ca-sync-scenes:hover {
+  background: var(--ca-bg-toolbar-hover);
+  border-color: var(--ca-border-toolbar-hv);
+  color: #ccddf0;
+}
+
+.ca-instructions-btn {
+  box-sizing: border-box;
+  height: var(--ca-toolbar-h);
+  min-height: var(--ca-toolbar-h);
+  padding: 0 12px;
+  margin: 0;
+  background: var(--ca-bg-toolbar);
+  border: 1px solid var(--ca-border-toolbar);
+  border-radius: var(--ca-radius-md);
+  color: var(--ca-text-muted);
+  font-size: 12px;
+  line-height: var(--ca-toolbar-h);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.ca-instructions-btn:hover {
+  background: var(--ca-bg-toolbar-hover);
+  border-color: var(--ca-border-toolbar-hv);
+  color: #ccddf0;
+}
+
+.ca-reset-graph {
+  margin-left: auto;
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid rgba(180, 60, 60, 0.5);
+  border-radius: var(--ca-radius-md);
+  color: var(--ca-state-danger);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.ca-reset-graph:hover {
+  background: rgba(160, 40, 40, 0.3);
+  border-color: rgba(220, 80, 80, 0.8);
+  color: var(--ca-state-danger-hv);
+}
+
+.ca-settings-btn {
+  box-sizing: border-box;
+  width: var(--ca-toolbar-h);
+  height: var(--ca-toolbar-h);
+  min-width: var(--ca-toolbar-h);
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ca-bg-toolbar);
+  border: 1px solid var(--ca-border-toolbar);
+  border-radius: var(--ca-radius-md);
+  color: var(--ca-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.ca-settings-btn:hover {
+  background: var(--ca-bg-toolbar-hover);
+  border-color: var(--ca-border-toolbar-hv);
+  color: #ccddf0;
+}
+
+.ca-settings-btn--active {
+  background: rgba(100, 150, 220, 0.15);
+  border-color: var(--ca-border-toolbar-hv);
+  color: #ccddf0;
+}

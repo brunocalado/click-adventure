@@ -1,0 +1,259 @@
+/* @section: nodes
+   @scope: .ca-node and its child elements (image, label, anchors, buttons, occupants, start icon)
+   @depends: --ca-bg-card, --ca-bg-card-empty, --ca-border-card*, --ca-state-open*,
+             --ca-state-anchor, --ca-state-temp, --ca-state-warning, --ca-text-primary,
+             --ca-node-size, --ca-node-image-h, --ca-node-btn-size, --ca-anchor-size,
+             --ca-radius-*, --ca-z-node, --ca-z-anchor, --ca-z-node-buttons
+
+   Note: button !important sizing overrides live in _foundry-overrides.css.
+
+   @manifest:
+     .ca-node                              Scene card, var(--ca-node-size) square, base styles
+     .ca-node[data-active="true"]          Active scene (green border + glow)
+     .ca-node-image                        Top portion of card, holds the scene image
+     .ca-node-image::after                 Subtle dark gradient for button legibility
+     .ca-node-image--empty                 Placeholder fill when no image is set
+     .ca-node-label-area                   Bottom portion (label slot)
+     .ca-node-label                        The label text itself (truncated with ellipsis)
+     .ca-start-icon                        Start-node star (top-left corner)
+     .ca-node-buttons                      Stacked button cluster (top-right corner)
+     .ca-view-scene-btn                    Open scene button (icon)
+     .ca-view-scene-btn:disabled           Dim when no scene linked
+     .ca-set-active-btn                    Toggle this node as active
+     .ca-set-active-btn--active            Visual confirmation it is active
+     .ca-anchor                            Drag-handle dot (small circle on a node edge)
+     .ca-anchor-{top|right|bottom|left}    Position variants — center sits on the edge
+     .ca-node-occupants                    Stack of player-name labels above the card
+     .ca-occupant-label                    Single player presence label
+*/
+
+.ca-node {
+  position: absolute;
+  width: var(--ca-node-size);
+  height: var(--ca-node-size);
+  background: var(--ca-bg-card);
+  border: 2px solid var(--ca-border-card);
+  border-radius: var(--ca-radius-xl);
+  cursor: grab;
+  z-index: var(--ca-z-node);
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  transition: border-color 0.15s, box-shadow 0.15s;
+  /* Avatars and anchors render outside the node border. */
+  overflow: visible;
+}
+
+.ca-node:hover {
+  border-color: var(--ca-border-card-hover);
+  box-shadow: 0 0 0 2px rgba(127, 170, 255, 0.3), 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.ca-node:active {
+  cursor: grabbing;
+}
+
+/* Active node — green border. */
+.ca-node[data-active="true"] {
+  border-color: var(--ca-state-open);
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.4), 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* Image fills the top of the card, flush with rounded corners. */
+.ca-node-image {
+  width: 100%;
+  height: var(--ca-node-image-h);
+  flex-shrink: 0;
+  background-size: cover;
+  background-position: center top;
+  border-radius: var(--ca-radius-lg) var(--ca-radius-lg) 0 0;
+  position: relative;
+}
+
+/* Subtle gradient so the top-right buttons stay legible over any image. */
+.ca-node-image::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, transparent 55%);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.ca-node-image--empty {
+  background-color: var(--ca-bg-card-empty);
+  border-bottom: 1px dashed rgba(74, 111, 165, 0.5);
+}
+
+/* Label area — fills the remaining height with centered text. */
+.ca-node-label-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  border-top: 1px solid var(--ca-border-faint);
+  background: rgba(10, 12, 30, 0.35);
+  border-radius: 0 0 var(--ca-radius-lg) var(--ca-radius-lg);
+  overflow: hidden;
+}
+
+.ca-node-label {
+  color: var(--ca-text-primary);
+  font-size: 10.5px;
+  font-weight: 500;
+  text-align: center;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+}
+
+/* Start point star icon — top-left corner. */
+.ca-start-icon {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ca-state-warning);
+  pointer-events: none;
+  z-index: var(--ca-z-node-buttons);
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.8));
+}
+
+.ca-start-icon svg {
+  pointer-events: none;
+}
+
+/* Two identical buttons stacked in the top-right corner. */
+.ca-node-buttons {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  pointer-events: all;
+  z-index: var(--ca-z-node-buttons);
+}
+
+/* Shared base for both node-card buttons. */
+.ca-view-scene-btn,
+.ca-set-active-btn {
+  width: var(--ca-node-btn-size);
+  height: var(--ca-node-btn-size);
+  min-width: var(--ca-node-btn-size);
+  max-width: var(--ca-node-btn-size);
+  min-height: var(--ca-node-btn-size);
+  max-height: var(--ca-node-btn-size);
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 15, 40, 0.72);
+  border: 1px solid rgba(100, 140, 220, 0.3);
+  color: var(--ca-text-faint);
+  cursor: pointer;
+  pointer-events: all;
+  border-radius: var(--ca-radius-sm);
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+  backdrop-filter: blur(4px);
+  box-sizing: border-box;
+}
+
+.ca-view-scene-btn:hover:not(:disabled) {
+  color: var(--ca-text-link);
+  background: rgba(20, 40, 90, 0.85);
+  border-color: rgba(100, 170, 255, 0.55);
+}
+
+.ca-view-scene-btn:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.ca-view-scene-btn svg,
+.ca-set-active-btn svg {
+  pointer-events: none;
+}
+
+.ca-set-active-btn:hover {
+  color: var(--ca-state-open);
+  background: rgba(20, 40, 90, 0.85);
+  border-color: rgba(100, 170, 255, 0.55);
+}
+
+.ca-set-active-btn--active {
+  color: var(--ca-state-open);
+  background: var(--ca-state-open-tint);
+  border-color: rgba(34, 197, 94, 0.5);
+}
+
+/* Anchor dots */
+.ca-anchor {
+  position: absolute;
+  width: var(--ca-anchor-size);
+  height: var(--ca-anchor-size);
+  background: var(--ca-state-anchor);
+  border: 2px solid var(--ca-bg-toolbar-row);
+  border-radius: 50%;
+  cursor: crosshair;
+  z-index: var(--ca-z-anchor);
+  pointer-events: all;
+  transition: background 0.15s, transform 0.15s;
+}
+
+.ca-anchor:hover {
+  background: var(--ca-state-temp);
+}
+
+/* Position variants — offset by half the dot size (6px) so the center sits on the node edge. */
+.ca-anchor-top    { top: -7px;  left: 50%; transform: translateX(-50%); }
+.ca-anchor-right  { right: -7px; top: 50%; transform: translateY(-50%); }
+.ca-anchor-bottom { bottom: -7px; left: 50%; transform: translateX(-50%); }
+.ca-anchor-left   { left: -7px;  top: 50%; transform: translateY(-50%); }
+
+/* Hover scale — must preserve the existing translate. */
+.ca-anchor-top:hover    { transform: translateX(-50%) scale(1.4); }
+.ca-anchor-right:hover  { transform: translateY(-50%) scale(1.4); }
+.ca-anchor-bottom:hover { transform: translateX(-50%) scale(1.4); }
+.ca-anchor-left:hover   { transform: translateY(-50%) scale(1.4); }
+
+/* Player occupant name labels — shown above each node. */
+.ca-node-occupants {
+  position: absolute;
+  top: -8px;
+  left: 0;
+  right: 0;
+  transform: translateY(-100%);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  pointer-events: none;
+  z-index: var(--ca-z-node-buttons);
+}
+
+.ca-occupant-label {
+  display: inline-block;
+  padding: 1px 5px;
+  border-radius: var(--ca-radius-sm);
+  border-left: 3px solid #fff;
+  background: rgba(0, 0, 0, 0.72);
+  color: #f0f0f0;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+  pointer-events: auto;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

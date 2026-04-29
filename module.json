@@ -9,7 +9,19 @@
   },
   "esmodules": ["scripts/index.js"],
   "styles": [
-    "styles/click-adventure.css"
+    "styles/_tokens.css",
+    "styles/_foundry-overrides.css",
+    "styles/manager.css",
+    "styles/nodes.css",
+    "styles/links.css",
+    "styles/nav-hud.css",
+    "styles/nav-mode.css",
+    "styles/node-config.css",
+    "styles/link-editor.css",
+    "styles/instructions.css",
+    "styles/requests.css",
+    "styles/context-menu.css",
+    "styles/settings-panel.css"
   ],
   "authors": [
     {

@@ -20,11 +20,17 @@ import { buildSceneData } from "./scene-template.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
-/** Fixed node dimensions that match the CSS .ca-node rules. */
+/**
+ * Fixed node dimensions that match the CSS .ca-node rules.
+ * @shared-with-css: --ca-node-size in styles/_tokens.css
+ */
 const NODE_W = 100;
 const NODE_H = 100;
 
-/** Virtual canvas size in pixels. */
+/**
+ * Virtual canvas size in pixels.
+ * @shared-with-css: --ca-canvas-size in styles/_tokens.css
+ */
 const CANVAS_SIZE = 8000;
 
 export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
