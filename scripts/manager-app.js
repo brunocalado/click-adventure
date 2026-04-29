@@ -184,17 +184,24 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       btn.classList.toggle("ca-requests-btn--active", count > 0);
     }
 
-    const approveAllBtn = html.querySelector(".ca-approve-all-btn");
-    if (approveAllBtn) {
-      if (count === 0) {
-        approveAllBtn.remove();
-      } else {
-        approveAllBtn.textContent = `Approve All (${count})`;
-      }
-    }
-
     const drawer = html.querySelector(".ca-requests-drawer");
     if (!drawer) return;
+
+    // Sync the approve-all button: create on first request, update count, remove when empty.
+    let approveAllBtn = drawer.querySelector(".ca-approve-all-btn");
+    if (count === 0) {
+      approveAllBtn?.remove();
+    } else if (!approveAllBtn) {
+      approveAllBtn = document.createElement("button");
+      approveAllBtn.className = "ca-approve-all-btn";
+      approveAllBtn.type = "button";
+      approveAllBtn.textContent = `Approve All (${count})`;
+      approveAllBtn.addEventListener("click", () => this._onApproveAll());
+      const header = drawer.querySelector(".ca-requests-drawer-header");
+      header.insertAdjacentElement("afterend", approveAllBtn);
+    } else {
+      approveAllBtn.textContent = `Approve All (${count})`;
+    }
 
     const { nodes } = this._graphData();
     const getLabel = id => nodes.find(n => n.id === id)?.label || id;
