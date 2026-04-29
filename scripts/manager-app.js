@@ -1120,8 +1120,8 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     if (dot) {
       const r = dot.getBoundingClientRect();
       return {
-        x: r.left + r.width  / 2 - wsRect.left,
-        y: r.top  + r.height / 2 - wsRect.top
+        x: r.left + r.width  / 2 - wsRect.left - this._pan.x,
+        y: r.top  + r.height / 2 - wsRect.top  - this._pan.y
       };
     }
     // Fallback when the anchor dot is not in the DOM
