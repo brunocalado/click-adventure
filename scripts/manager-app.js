@@ -428,13 +428,13 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       });
     }
 
-    this._renderLinks();
-
     // Apply saved pan offset to canvas
     const canvas = html.querySelector(".ca-canvas");
     if (canvas) {
       canvas.style.transform = `translate(${this._pan.x}px, ${this._pan.y}px)`;
     }
+
+    this._renderLinks();
 
     // Pan: mousedown on workspace background (not on a node or button)
     const workspace = html.querySelector(".ca-workspace");
