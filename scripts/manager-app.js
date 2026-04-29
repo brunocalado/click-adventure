@@ -24,6 +24,9 @@ const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 const NODE_W = 100;
 const NODE_H = 100;
 
+/** Virtual canvas size in pixels. */
+const CANVAS_SIZE = 8000;
+
 export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
   /** @override */
   static BASE_APPLICATION = ApplicationV2;
@@ -76,6 +79,18 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     /** @type {boolean} — tracks drawer open state across renders. */
     this._drawerOpen = false;
+
+    /**
+     * Current pan offset of the canvas.
+     * @type {{ x: number, y: number }}
+     */
+    this._pan = { x: 0, y: 0 };
+
+    /**
+     * Active pan drag state.
+     * @type {{ startX: number, startY: number, originX: number, originY: number }|null}
+     */
+    this._panState = null;
   }
 
   // ---------------------------------------------------------------------------
@@ -406,6 +421,27 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     this._renderLinks();
+
+    // Apply saved pan offset to canvas
+    const canvas = html.querySelector(".ca-canvas");
+    if (canvas) {
+      canvas.style.transform = `translate(${this._pan.x}px, ${this._pan.y}px)`;
+    }
+
+    // Pan: mousedown on workspace background (not on a node or button)
+    const workspace = html.querySelector(".ca-workspace");
+    if (workspace) {
+      workspace.addEventListener("mousedown", e => {
+        if (e.target !== workspace && !e.target.classList.contains("ca-canvas")) return;
+        e.preventDefault();
+        this._panState = {
+          startX: e.clientX,
+          startY: e.clientY,
+          originX: this._pan.x,
+          originY: this._pan.y
+        };
+      });
+    }
   }
 
   /**
@@ -634,7 +670,27 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @param {MouseEvent} e
    */
   _onDocMouseMove(e) {
-    if (!this._dragState && !this._linkState) return;
+    if (!this._dragState && !this._linkState && !this._panState) return;
+
+    if (this._panState) {
+      const workspace = this.element?.querySelector(".ca-workspace");
+      if (!workspace) return;
+      const wsW = workspace.clientWidth;
+      const wsH = workspace.clientHeight;
+
+      const dx = e.clientX - this._panState.startX;
+      const dy = e.clientY - this._panState.startY;
+
+      const newX = Math.min(0, Math.max(-(CANVAS_SIZE - wsW), this._panState.originX + dx));
+      const newY = Math.min(0, Math.max(-(CANVAS_SIZE - wsH), this._panState.originY + dy));
+
+      this._pan.x = newX;
+      this._pan.y = newY;
+
+      const canvas = this.element?.querySelector(".ca-canvas");
+      if (canvas) canvas.style.transform = `translate(${newX}px, ${newY}px)`;
+      return; // pan and drag are mutually exclusive
+    }
 
     const workspace = this.element?.querySelector(".ca-workspace");
     if (!workspace) return;
@@ -642,8 +698,8 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     if (this._dragState) {
       const { nodeEl, offsetX, offsetY } = this._dragState;
-      nodeEl.style.left = `${e.clientX - wsRect.left - offsetX}px`;
-      nodeEl.style.top  = `${e.clientY - wsRect.top  - offsetY}px`;
+      nodeEl.style.left = `${e.clientX - wsRect.left - this._pan.x - offsetX}px`;
+      nodeEl.style.top  = `${e.clientY - wsRect.top  - this._pan.y - offsetY}px`;
       this._renderLinks();
     }
 
@@ -665,6 +721,11 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @returns {Promise<void>}
    */
   async _onDocMouseUp(e) {
+    if (this._panState) {
+      this._panState = null;
+      return;
+    }
+
     if (this._dragState) {
       const { nodeId, nodeEl, offsetX, offsetY } = this._dragState;
       this._dragState = null;
@@ -672,8 +733,8 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       const workspace = this.element?.querySelector(".ca-workspace");
       const wsRect = workspace?.getBoundingClientRect();
       if (wsRect) {
-        const x = Math.round(e.clientX - wsRect.left - offsetX);
-        const y = Math.round(e.clientY - wsRect.top  - offsetY);
+        const x = Math.max(0, Math.min(CANVAS_SIZE - NODE_W, Math.round(e.clientX - wsRect.left - this._pan.x - offsetX)));
+        const y = Math.max(0, Math.min(CANVAS_SIZE - NODE_H, Math.round(e.clientY - wsRect.top  - this._pan.y - offsetY)));
         await this._saveNodePosition(nodeId, x, y);
       }
     }
@@ -709,8 +770,8 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       images: [],
       activeImageIndex: 0,
       sceneId: null,
-      x: Math.round((w - NODE_W) / 2),
-      y: Math.round((h - NODE_H) / 2)
+      x: Math.round(-this._pan.x + (w - NODE_W) / 2),
+      y: Math.round(-this._pan.y + (h - NODE_H) / 2)
     };
 
     // First node added automatically becomes the start node

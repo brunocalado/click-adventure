@@ -65,7 +65,8 @@
   </div>
 
   <div class="ca-workspace">
-    <svg class="ca-links-layer" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"></svg>
+    <div class="ca-canvas">
+    <svg class="ca-links-layer" xmlns="http://www.w3.org/2000/svg" width="8000" height="8000"></svg>
     {{#each nodes}}
     <div class="ca-node" data-node-id="{{id}}" style="left: {{x}}px; top: {{y}}px;"
          {{#if (eq id ../startNodeId)}}data-start="true"{{/if}}
@@ -132,5 +133,6 @@
       <div class="ca-anchor ca-anchor-left"   data-anchor="left"></div>
     </div>
     {{/each}}
+    </div>
   </div>
 </div>

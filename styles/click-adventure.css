@@ -47,7 +47,25 @@
   background-color: #0f1020;
   background-image: radial-gradient(circle, #3a3a5a 1px, transparent 1px);
   background-size: 28px 28px;
-  cursor: default;
+  cursor: grab;
+}
+
+.ca-workspace:active {
+  cursor: grabbing;
+}
+
+/* ----------------------------------------------------------
+   Virtual canvas (pan-able, 8000×8000)
+   ---------------------------------------------------------- */
+
+.ca-canvas {
+  position: absolute;
+  width: 8000px;
+  height: 8000px;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  /* transform: translate(x, y) applied via JS */
 }
 
 /* ----------------------------------------------------------
