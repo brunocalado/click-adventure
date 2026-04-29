@@ -145,6 +145,19 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   /**
+   * Approves all pending navigation requests in one action.
+   * Iterates a snapshot of the queue so deletions inside _approveRequest
+   * don't mutate the collection mid-loop.
+   * @returns {Promise<void>}
+   */
+  async _onApproveAll() {
+    const pending = [...this._navRequests.values()];
+    for (const request of pending) {
+      await this._approveRequest(request.userId, request.toNodeId);
+    }
+  }
+
+  /**
    * Rejects a pending navigation request and notifies the player.
    * Triggered by clicking the reject button in the requests drawer.
    * @param {string} userId
@@ -169,6 +182,15 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     if (btn) {
       btn.textContent = count > 0 ? `Requests (${count})` : "Requests";
       btn.classList.toggle("ca-requests-btn--active", count > 0);
+    }
+
+    const approveAllBtn = html.querySelector(".ca-approve-all-btn");
+    if (approveAllBtn) {
+      if (count === 0) {
+        approveAllBtn.remove();
+      } else {
+        approveAllBtn.textContent = `Approve All (${count})`;
+      }
     }
 
     const drawer = html.querySelector(".ca-requests-drawer");
@@ -382,6 +404,8 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       const drawer = html.querySelector(".ca-requests-drawer");
       drawer?.classList.toggle("ca-requests-drawer--open", this._drawerOpen);
     });
+
+    html.querySelector(".ca-approve-all-btn")?.addEventListener("click", () => this._onApproveAll());
 
     html.querySelectorAll(".ca-request-approve").forEach(btn => {
       btn.addEventListener("click", () => this._approveRequest(btn.dataset.userId, btn.dataset.nodeId));

@@ -54,6 +54,11 @@
   <div class="ca-requests-drawer {{#if drawerOpen}}ca-requests-drawer--open{{/if}}">
     <div class="ca-requests-drawer-header">Pending Navigation Requests</div>
     {{#if requests.length}}
+    <button class="ca-approve-all-btn" type="button">
+      Approve All ({{requestCount}})
+    </button>
+    {{/if}}
+    {{#if requests.length}}
     <ul class="ca-requests-list">
       {{#each requests}}
       <li class="ca-request-item" data-user-id="{{userId}}">
