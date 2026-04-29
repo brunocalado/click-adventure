@@ -1381,6 +1381,16 @@
   cursor: default;
 }
 
+.ca-context-menu-item--send-all {
+  color: #7faaff;
+  font-weight: 600;
+}
+
+.ca-context-menu-item--send-all:hover {
+  background: rgba(60, 90, 180, 0.35);
+  color: #aacfff;
+}
+
 .ca-context-menu-dot {
   width: 10px;
   height: 10px;

@@ -616,6 +616,17 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     menu.appendChild(Object.assign(document.createElement("div"), { className: "ca-context-menu-divider" }));
 
+    const sendAll = document.createElement("div");
+    sendAll.className = "ca-context-menu-item ca-context-menu-item--send-all";
+    sendAll.textContent = "Send all here";
+    sendAll.addEventListener("click", () => {
+      menu.remove();
+      this._onSendAllToNode(node, players);
+    });
+    menu.appendChild(sendAll);
+
+    menu.appendChild(Object.assign(document.createElement("div"), { className: "ca-context-menu-divider" }));
+
     for (const user of players) {
       const currentNodeId = user.getFlag("click-adventure", "currentNodeId");
       const isHere = currentNodeId === nodeId;
@@ -658,6 +669,27 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     };
     // Delay one tick so this very mousedown event doesn't immediately close the menu
     setTimeout(() => document.addEventListener("mousedown", closeMenu), 0);
+  }
+
+  /**
+   * Moves all provided active players to a target node.
+   * Reuses the same flag + socket pattern as _onTeleportPlayer.
+   * @param {object} targetNode
+   * @param {User[]} players
+   * @returns {Promise<void>}
+   */
+  async _onSendAllToNode(targetNode, players) {
+    for (const user of players) {
+      await user.setFlag("click-adventure", "currentNodeId", targetNode.id);
+
+      if (targetNode.sceneId) {
+        globalThis.ClickAdventure._socket.teleportUser(targetNode.sceneId, user.id);
+      } else {
+        globalThis.ClickAdventure._socket.notifyHudRefresh(user.id);
+      }
+    }
+
+    this._patchOccupantAvatars();
   }
 
   /**
