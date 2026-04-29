@@ -14,21 +14,56 @@ import { NavHudApp } from "./nav-hud-app.js";
 import { AdventureSocketManager } from "./socket-manager.js";
 
 /**
- * Automatically show or hide the NavHUD based on whether the active scene
- * was created by Click Adventure (identified by its flag).
- * Triggered by the canvasReady hook, which fires after every scene activation
- * and initial load, once the canvas is fully initialized.
+ * Returns true if the given sceneId belongs to any node in the current graph.
+ * Used to decide whether to show the HUD regardless of the scene flag.
+ * @param {string|null} sceneId
+ * @returns {boolean}
+ */
+function _isGraphScene(sceneId) {
+  if (!sceneId) return false;
+  const graph = game.settings.get("click-adventure", "graph");
+  const raw = typeof graph?.toObject === "function" ? graph.toObject() : (graph ?? {});
+  const nodes = raw.nodes ?? [];
+  return nodes.some(n => n.sceneId === sceneId);
+}
+
+/**
+ * Show or hide the NavHUD based on the scene currently in view.
+ * Uses canvas.scene (the viewed scene) rather than game.scenes.active so that
+ * "View Scene" in the scene manager also triggers the HUD correctly.
+ * Triggered by the canvasReady hook, which fires on every canvas load/switch.
  */
 Hooks.on("canvasReady", () => {
-  const scene = game.scenes.active;
-  const isAdventureScene = scene?.flags?.["click-adventure"]?.isAdventureScene === true;
+  const scene = canvas.scene;
+  const byFlag = scene?.flags?.["click-adventure"]?.isAdventureScene === true;
+  const byGraph = _isGraphScene(scene?.id);
 
-  if (isAdventureScene) {
+  if (byFlag || byGraph) {
     ClickAdventure.Hud();
   } else {
     if (globalThis.ClickAdventure._hud?.rendered) {
       globalThis.ClickAdventure._hud.close();
     }
+  }
+});
+
+/**
+ * Re-evaluate HUD visibility whenever the graph setting changes.
+ * Covers the case where scenes are created/synced and the current canvas
+ * view is already a graph scene (canvasReady won't fire again).
+ */
+Hooks.on("updateSetting", (setting) => {
+  if (setting.key !== "click-adventure.graph") return;
+  const scene = canvas?.scene;
+  if (!scene) return;
+
+  const graph = game.settings.get("click-adventure", "graph");
+  const raw = typeof graph?.toObject === "function" ? graph.toObject() : (graph ?? {});
+  const nodes = raw.nodes ?? [];
+  const belongs = nodes.some(n => n.sceneId === scene.id);
+
+  if (belongs && !globalThis.ClickAdventure._hud?.rendered) {
+    ClickAdventure.Hud();
   }
 });
 
