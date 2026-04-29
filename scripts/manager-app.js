@@ -364,6 +364,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     html.querySelector(".ca-add-node")?.addEventListener("click", () => this._onAddNode());
     html.querySelector(".ca-import-folder")?.addEventListener("click", () => this._onImportFolder());
     html.querySelector(".ca-sync-scenes")?.addEventListener("click", () => this._onSyncScenes());
+    html.querySelector(".ca-send-to-start")?.addEventListener("click", () => this._onSendToStart());
     html.querySelector(".ca-reset-graph")?.addEventListener("click", () => this._onResetGraph());
 
     html.querySelectorAll(".ca-nav-mode-btn").forEach(btn => {
@@ -680,6 +681,46 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     this._patchOccupantAvatars();
+  }
+
+  /**
+   * Moves all active non-GM players to the graph's start node.
+   * Updates each player's currentNodeId flag and notifies their client via socket.
+   * No-op if there is no startNodeId defined.
+   * Triggered by click on .ca-send-to-start in _onRender.
+   * @returns {Promise<void>}
+   */
+  async _onSendToStart() {
+    const { startNodeId, nodes } = this._graphData();
+    if (!startNodeId) {
+      ui.notifications.warn("Click Adventure: No start node defined.");
+      return;
+    }
+
+    const startNode = nodes.find(n => n.id === startNodeId);
+    if (!startNode) {
+      ui.notifications.warn("Click Adventure: Start node not found in graph.");
+      return;
+    }
+
+    const players = game.users.filter(u => !u.isGM && u.active);
+    if (players.length === 0) {
+      ui.notifications.info("Click Adventure: No active players to move.");
+      return;
+    }
+
+    for (const user of players) {
+      await user.setFlag("click-adventure", "currentNodeId", startNodeId);
+
+      if (startNode.sceneId) {
+        globalThis.ClickAdventure._socket.teleportUser(startNode.sceneId, user.id);
+      } else {
+        globalThis.ClickAdventure._socket.notifyHudRefresh(user.id);
+      }
+    }
+
+    this._patchOccupantAvatars();
+    ui.notifications.info(`Click Adventure: ${players.length} player(s) sent to "${startNode.label || startNodeId}".`);
   }
 
   /**

@@ -566,16 +566,16 @@
 }
 
 .ca-hud-dest-btn--locked {
-  opacity: 0.55;
-  border-color: rgba(239, 68, 68, 0.4);
+  opacity: 0.85;
+  border-color: rgba(239, 68, 68, 0.6);
   color: #fca5a5;
   cursor: not-allowed;
 }
 
 .ca-hud-dest-btn--locked:hover {
   background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.6);
-  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.85);
+  color: #fecaca;
 }
 
 /* ---- Orb ---- */
