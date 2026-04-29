@@ -269,6 +269,10 @@
 .ca-set-active-btn {
   width: 18px;
   height: 18px;
+  min-width: 18px;
+  max-width: 18px;
+  min-height: 18px;
+  max-height: 18px;
   padding: 0;
   display: flex;
   align-items: center;
@@ -281,6 +285,18 @@
   border-radius: 3px;
   transition: color 0.15s, background 0.15s, border-color 0.15s;
   backdrop-filter: blur(4px);
+  box-sizing: border-box;
+}
+
+/* !important override for Foundry's high-specificity global button styles */
+.ca-node .ca-node-buttons .ca-view-scene-btn,
+.ca-node .ca-node-buttons .ca-set-active-btn {
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  max-width: 18px !important;
+  padding: 0 !important;
+  box-sizing: border-box;
 }
 
 .ca-view-scene-btn:hover:not(:disabled) {
@@ -1094,6 +1110,12 @@
   font-size: 12px;
   color: #aabbdd;
   white-space: nowrap;
+  padding: 0 8px;
+  height: 32px;
+  line-height: 32px;
+  background: rgba(100, 130, 200, 0.08);
+  border: 1px solid rgba(100, 130, 200, 0.2);
+  border-radius: 4px;
 }
 
 .ca-nav-mode-btn {
