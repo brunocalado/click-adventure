@@ -12,7 +12,36 @@
   </div>
   {{/if}}
 
-  <div class="ca-hud-orb" title="Click to navigate · Hold to drag">
-    <div class="ca-hud-orb-inner"></div>
+  {{!-- Orb type selector — rendered once, correct type shown based on setting --}}
+  {{#if (eq orbType "orb")}}
+  <div class="ca-hud-orb" title="Click to navigate · Hold to drag"
+       style="--ca-orb-size: {{orbSizePx}}px; --ca-orb-inner: {{orbInnerPx}}px;">
+    <div class="ca-hud-orb-inner" style="background: radial-gradient(circle at 35% 35%, {{orbColor}}cc, {{orbColor}});"></div>
   </div>
+
+  {{else if (eq orbType "triangle")}}
+  <div class="ca-hud-orb ca-hud-orb--triangle" title="Click to navigate · Hold to drag"
+       style="--ca-orb-size: {{orbSizePx}}px; --ca-orb-inner: {{orbInnerPx}}px;">
+    <div class="ca-hud-orb-inner ca-hud-orb-inner--triangle" style="background: {{orbColor}};"></div>
+  </div>
+
+  {{else if (eq orbType "goo")}}
+  <div class="ca-hud-orb ca-hud-orb--goo" title="Click to navigate · Hold to drag"
+       style="--ca-orb-size: {{orbSizePx}}px; width: {{gooCanvasW}}px; height: {{gooCanvasH}}px;">
+    <svg class="ca-goo-filter-def" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="ca-hud-goo-filter">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur"/>
+          <feColorMatrix in="blur" mode="matrix"
+            values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -9" result="goo"/>
+          <feBlend in="SourceGraphic" in2="goo"/>
+        </filter>
+      </defs>
+    </svg>
+    <canvas class="ca-hud-goo-canvas"
+            width="{{gooCanvasW}}" height="{{gooCanvasH}}"
+            data-ball-radius="{{gooBallRadius}}"></canvas>
+  </div>
+  {{/if}}
+
 </div>

@@ -64,6 +64,13 @@ Hooks.on("updateSetting", (setting) => {
   }
 });
 
+Hooks.on("updateSetting", (setting) => {
+  if (setting.key !== "click-adventure.orbStyle") return;
+  if (globalThis.ClickAdventure._hud?.rendered) {
+    globalThis.ClickAdventure._hud.render({ force: true });
+  }
+});
+
 /**
  * Seeds this user's per-user currentNodeId flag from startNodeId on first load.
  * Runs for every user (GM and players alike) — each gets their own independent flag.
@@ -118,6 +125,15 @@ Hooks.on("init", () => {
     config: false,
     type: String,
     default: "null"
+  });
+
+  game.settings.register("click-adventure", "orbStyle", {
+    name: "HUD Orb Style",
+    hint: "Visual appearance of the navigation HUD orb.",
+    scope: "client",       // per-user, not world — each player picks their own
+    config: false,
+    type: Object,
+    default: { type: "orb", size: 1, color: "#3355aa" }
   });
 
   // Instantiate socket manager — must run during init so the listener

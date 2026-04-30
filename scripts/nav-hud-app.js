@@ -9,6 +9,7 @@
  */
 
 import { isMultiPassage, getEffectiveDirection, getGraphData } from "./node-utils.js";
+import { _runGooAnimation } from "./orb-style-app.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -43,6 +44,8 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this._docMouseUp   = this._onDocMouseUp.bind(this);
     /** @type {boolean} — true only when the current mousedown originated on the orb */
     this._orbMouseDownActive = false;
+    /** @type {number|null} — rAF handle for the goo animation */
+    this._gooRaf = null;
   }
 
 
@@ -201,6 +204,23 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     context.hasAnyDirection = availableDestinations.length > 0;
     // isOpen is managed via DOM class toggle — default false on each render
     context.isOpen = false;
+
+    // Orb style — per-client, used by the template to switch render mode
+    const orbStyle = game.settings.get("click-adventure", "orbStyle");
+    context.orbType  = orbStyle.type  ?? "orb";
+    context.orbColor = orbStyle.color ?? "#3355aa";
+
+    // Convert size multiplier to pixel values used by inline style
+    const baseOrb   = 80;   // mirrors --ca-orb-size: 80px
+    const baseInner = 28;   // mirrors --ca-orb-inner: 28px
+    const scale     = orbStyle.size ?? 1;
+    context.orbSizePx  = Math.round(baseOrb   * scale);
+    context.orbInnerPx = Math.round(baseInner * scale);
+    // For goo canvas, needs a taller container to accommodate drips
+    context.gooBallRadius = Math.round(baseInner * scale * 1.2);
+    context.gooCanvasW    = Math.round(baseOrb   * scale * 1.4);
+    context.gooCanvasH    = Math.round(baseOrb   * scale * 2.8);
+
     return context;
   }
 
@@ -238,6 +258,10 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @returns {Promise<void>}
    */
   async _onClose(options) {
+    if (this._gooRaf !== null) {
+      cancelAnimationFrame(this._gooRaf);
+      this._gooRaf = null;
+    }
     document.removeEventListener("mousemove", this._docMouseMove);
     document.removeEventListener("mouseup",   this._docMouseUp);
     await super._onClose(options);
@@ -297,6 +321,25 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
         orb.classList.add("ca-hud-orb--dragging");
       }, 200);
     });
+
+    // Goo animation — start if goo type is active, stop otherwise
+    const gooCanvas = html.querySelector(".ca-hud-goo-canvas");
+    if (gooCanvas) {
+      // Cancel any previous frame before starting a new one (re-render case)
+      if (this._gooRaf !== null) {
+        cancelAnimationFrame(this._gooRaf);
+        this._gooRaf = null;
+      }
+      const color = game.settings.get("click-adventure", "orbStyle").color ?? "#1a6010";
+      const radius = parseInt(gooCanvas.dataset.ballRadius, 10) || 22;
+      _runGooAnimation(gooCanvas, color, radius, this, "_gooRaf");
+    } else {
+      // Clean up if we switched away from goo type
+      if (this._gooRaf !== null) {
+        cancelAnimationFrame(this._gooRaf);
+        this._gooRaf = null;
+      }
+    }
   }
 
   /**

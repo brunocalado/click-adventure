@@ -149,3 +149,50 @@
   font-size: 11px;
   opacity: 0.85;
 }
+
+/* Triangle orb type */
+.ca-hud-orb-inner--triangle {
+  width: var(--ca-orb-inner);
+  height: var(--ca-orb-inner);
+  border-radius: 0;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+  box-shadow: none;
+  border: none;
+  transition: transform 0.15s;
+}
+
+.ca-hud-orb:hover .ca-hud-orb-inner--triangle {
+  transform: scale(1.12);
+}
+
+.ca-hud-orb--dragging .ca-hud-orb-inner--triangle {
+  transform: scale(0.92);
+}
+
+/* Goo orb type — canvas carries the filter; hitbox div is the event target */
+.ca-hud-orb--goo {
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+  /* Override default circle sizing — width/height set via inline style from context */
+  width: auto;
+  height: auto;
+}
+
+.ca-goo-filter-def {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.ca-hud-goo-canvas {
+  display: block;
+  filter: url('#ca-hud-goo-filter') drop-shadow(0 0 8px rgba(30, 120, 15, 0.45));
+  pointer-events: none;
+  /* Canvas is the full size of the goo container — dimensions set via HTML attributes */
+}
+
+.ca-hud-orb--dragging .ca-hud-goo-canvas {
+  opacity: 0.75;
+}

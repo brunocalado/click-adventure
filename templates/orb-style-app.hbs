@@ -1,0 +1,61 @@
+<div class="ca-os-panel">
+
+  {{!-- Type selector --}}
+  <div class="ca-os-section">
+    <div class="ca-settings-section-title">Orb Type</div>
+    <div class="ca-os-type-row">
+      {{#each typeOptions}}
+      <button class="ca-os-type-btn {{#if (eq value ../orbType)}}ca-os-type-btn--active{{/if}}"
+              data-type="{{value}}" type="button">{{label}}</button>
+      {{/each}}
+    </div>
+  </div>
+
+  {{!-- Size (common to all types) --}}
+  <div class="ca-os-section">
+    <div class="ca-settings-section-title">Size</div>
+    <div class="ca-os-row">
+      <label class="ca-settings-label">Scale</label>
+      <input class="ca-os-size" type="range" min="0.75" max="2.5" step="0.25" value="{{orbSize}}">
+      <span class="ca-os-size-label">{{orbSize}}×</span>
+    </div>
+  </div>
+
+  {{!-- Color (common to all types) --}}
+  <div class="ca-os-section">
+    <div class="ca-settings-section-title">Color</div>
+    <div class="ca-os-row">
+      <label class="ca-settings-label">Base Color</label>
+      <input class="ca-os-color" type="color" value="{{orbColor}}">
+    </div>
+    {{#if (eq orbType "goo")}}
+    <p class="ca-settings-hint">Color is applied to the goo fill.</p>
+    {{/if}}
+  </div>
+
+  {{!-- Live preview --}}
+  <div class="ca-os-section">
+    <div class="ca-settings-section-title">Preview</div>
+    <div class="ca-os-preview">
+      {{#if (eq orbType "orb")}}
+        <div class="ca-os-preview-orb" style="background: radial-gradient(circle at 35% 35%, {{orbColor}}cc, {{orbColor}});"></div>
+      {{else if (eq orbType "triangle")}}
+        <div class="ca-os-preview-triangle" style="background: {{orbColor}};"></div>
+      {{else if (eq orbType "goo")}}
+        {{!-- SVG filter defined inline; canvas uses it via CSS --}}
+        <svg class="ca-goo-filter-def" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <filter id="ca-os-goo-filter">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur"/>
+              <feColorMatrix in="blur" mode="matrix"
+                values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -9" result="goo"/>
+              <feBlend in="SourceGraphic" in2="goo"/>
+            </filter>
+          </defs>
+        </svg>
+        <canvas class="ca-os-goo-canvas" width="120" height="180"></canvas>
+      {{/if}}
+    </div>
+  </div>
+
+</div>

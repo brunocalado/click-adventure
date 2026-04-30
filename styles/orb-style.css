@@ -1,0 +1,119 @@
+/* @section: orb-style-app
+   @scope: OrbStyleApp configuration window
+*/
+
+.orb-style .ca-os-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  background: var(--ca-bg-panel);
+  color: var(--ca-text-primary);
+}
+
+.orb-style .ca-os-section {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--ca-border-divider);
+}
+
+.orb-style .ca-os-section:last-child {
+  border-bottom: none;
+}
+
+/* Type selector buttons */
+.orb-style .ca-os-type-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.orb-style .ca-os-type-btn {
+  flex: 1;
+  padding: 5px 10px;
+  background: var(--ca-bg-toolbar);
+  border: 1px solid var(--ca-border-toolbar);
+  border-radius: var(--ca-radius-md);
+  color: var(--ca-text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.orb-style .ca-os-type-btn:hover {
+  background: var(--ca-bg-toolbar-hover);
+  color: var(--ca-text-bright);
+}
+
+.orb-style .ca-os-type-btn--active {
+  background: rgba(60, 90, 180, 0.5);
+  border-color: rgba(140, 180, 255, 0.6);
+  color: var(--ca-text-bright);
+}
+
+/* Size / color rows */
+.orb-style .ca-os-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.orb-style .ca-os-size {
+  flex: 1;
+  accent-color: var(--ca-state-link-base);
+}
+
+.orb-style .ca-os-size-label {
+  min-width: 32px;
+  font-size: 11px;
+  color: var(--ca-text-muted);
+  text-align: right;
+}
+
+.orb-style .ca-os-color {
+  width: 40px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid var(--ca-border-soft);
+  border-radius: var(--ca-radius-sm);
+  background: none;
+  cursor: pointer;
+}
+
+/* Preview area */
+.orb-style .ca-os-preview {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100px;
+  margin-top: 6px;
+  background: var(--ca-bg-deep);
+  border-radius: var(--ca-radius-md);
+  overflow: hidden;
+}
+
+.orb-style .ca-os-preview-orb {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,255,255,0.25);
+  border: 2px solid #223366;
+}
+
+.orb-style .ca-os-preview-triangle {
+  width: 48px;
+  height: 48px;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
+/* The goo preview canvas gets the filter via inline CSS applied in JS */
+.orb-style .ca-os-goo-canvas {
+  filter: url('#ca-os-goo-filter') drop-shadow(0 0 6px rgba(30, 120, 15, 0.4));
+}
+
+.orb-style .ca-goo-filter-def {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}

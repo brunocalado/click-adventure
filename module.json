@@ -21,7 +21,8 @@
     "styles/instructions.css",
     "styles/requests.css",
     "styles/context-menu.css",
-    "styles/settings-panel.css"
+    "styles/settings-panel.css",
+    "styles/orb-style.css"
   ],
   "authors": [
     {
