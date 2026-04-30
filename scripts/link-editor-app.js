@@ -9,7 +9,7 @@
  * Lifecycle hook: renderLinkEditorApp
  */
 
-import { getEffectiveDirection, getGraphData, saveGraphData } from "./node-utils.js";
+import { getEffectiveDirection, getGraphData, saveGraphData, DIRECTION_CYCLE } from "./node-utils.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -116,9 +116,8 @@ export class LinkEditorApp extends HandlebarsApplicationMixin(ApplicationV2) {
     html.querySelectorAll(".ca-passage-direction").forEach(btn => {
       btn.addEventListener("click", () => {
         const i = parseInt(btn.closest("[data-index]").dataset.index, 10);
-        const cycle = { both: "forward", forward: "backward", backward: "blocked", blocked: "both" };
         const current = this._pendingPassages[i].direction ?? "both";
-        this._pendingPassages[i] = { ...this._pendingPassages[i], direction: cycle[current] };
+        this._pendingPassages[i] = { ...this._pendingPassages[i], direction: DIRECTION_CYCLE[current] ?? "both" };
         this.render({ force: true });
       });
     });

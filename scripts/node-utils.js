@@ -86,6 +86,31 @@ export async function syncNodeTile(node) {
 }
 
 /**
+ * Ordered direction cycle used when the GM clicks a link to change its traversal mode.
+ * Each key is the current state; the value is the next state in the cycle.
+ * All 5 states are persisted in the graph data — none is display-only.
+ *
+ * State reference:
+ *   "both"     — Bidirectional. Players on either side see the link and can traverse it.
+ *   "forward"  — One-way: source → target only. Players on the target side do not see it.
+ *   "backward" — One-way: target → source only. Players on the source side do not see it.
+ *   "blocked"  — Completely hidden. Does not appear in the HUD for anyone. Useful for
+ *                temporarily disabling a connection without deleting it.
+ *   "locked"   — Visible in the HUD (shown with a lock icon ⊘) but not navigable.
+ *                Players can see the destination but clicking it does nothing.
+ *                Useful for hinting at a passage that hasn't been unlocked yet.
+ *
+ * @type {Readonly<Record<string, string>>}
+ */
+export const DIRECTION_CYCLE = Object.freeze({
+  both:     "forward",   // free → one-way forward
+  forward:  "backward",  // one-way forward → one-way backward
+  backward: "blocked",   // one-way backward → completely hidden
+  blocked:  "locked",    // hidden → visible but not navigable
+  locked:   "both",      // locked → free (cycle restarts)
+});
+
+/**
  * Returns the current adventure graph as a plain object.
  * Converts DataModel instances to POJOs transparently so callers never need
  * to handle the toObject() unwrap pattern themselves.

@@ -7,7 +7,7 @@
  */
 
 import { LinkEditorApp } from "./link-editor-app.js";
-import { getGraphData, saveGraphData, isMultiPassage, getEffectiveDirection } from "./node-utils.js";
+import { getGraphData, saveGraphData, isMultiPassage, getEffectiveDirection, DIRECTION_CYCLE } from "./node-utils.js";
 
 /**
  * Fixed node dimensions — must match CSS --ca-node-size.
@@ -230,13 +230,12 @@ export function renderLinks(app) {
  */
 export async function onCycleLink(app, linkIndex) {
   const { sceneId, startNodeId, nodes, links } = getGraphData();
-  const cycle = { both: "forward", forward: "backward", backward: "blocked", blocked: "locked", locked: "both" };
   const updatedLinks = links.map((l, i) => {
     if (i !== linkIndex) return l;
     // Multi-passage links are edited via LinkEditorApp — cycling is a no-op here
     if (isMultiPassage(l)) return l;
     const currentDir = l.passages?.[0]?.direction ?? l.direction ?? "both";
-    const newDir = cycle[currentDir];
+    const newDir = DIRECTION_CYCLE[currentDir] ?? "both";
     const updatedPassages = l.passages
       ? [{ ...l.passages[0], direction: newDir }]
       : [{ label: "", direction: newDir }];
