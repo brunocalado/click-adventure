@@ -131,3 +131,21 @@
 .ca-hud-orb--dragging .ca-hud-orb-inner {
   transform: scale(0.92);
 }
+
+/* Origin indicator — the node this user navigated here from */
+.ca-hud-dest-btn--origin {
+  border-color: rgba(100, 220, 140, 0.7);
+  background: rgba(30, 80, 50, 0.75);
+}
+
+.ca-hud-dest-btn--origin:hover {
+  background: rgba(40, 110, 70, 0.9);
+  border-color: rgba(130, 255, 170, 0.85);
+  color: var(--ca-text-bright);
+}
+
+.ca-hud-origin-icon {
+  margin-right: 5px;
+  font-size: 11px;
+  opacity: 0.85;
+}

@@ -60,6 +60,49 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   /**
+   * Returns true if the current node has at least one traversable link to targetNodeId.
+   * Used to validate whether the "came from" indicator is still valid.
+   * Handles single-passage and multi-passage links, all direction states.
+   * @param {string} targetNodeId
+   * @returns {boolean}
+   */
+  _canNavigateBackTo(targetNodeId) {
+    const node = this._currentNode();
+    if (!node || !targetNodeId) return false;
+    const { links } = getGraphData();
+
+    for (const link of links) {
+      if (isMultiPassage(link)) {
+        for (const passage of link.passages) {
+          const passDir = passage.direction ?? "both";
+          if (passDir === "blocked") continue;
+          if (passDir === "both") {
+            if ((link.sourceId === node.id && link.targetId === targetNodeId) ||
+                (link.targetId === node.id && link.sourceId === targetNodeId)) return true;
+          } else if (passDir === "forward" && link.sourceId === node.id && link.targetId === targetNodeId) {
+            return true;
+          } else if (passDir === "backward" && link.targetId === node.id && link.sourceId === targetNodeId) {
+            return true;
+          }
+        }
+      } else {
+        const dir = getEffectiveDirection(link);
+        if (dir === "blocked") continue;
+        if (dir === "both") {
+          if ((link.sourceId === node.id && link.targetId === targetNodeId) ||
+              (link.targetId === node.id && link.sourceId === targetNodeId)) return true;
+        } else if (dir === "forward" && link.sourceId === node.id && link.targetId === targetNodeId) {
+          return true;
+        } else if (dir === "backward" && link.targetId === node.id && link.sourceId === targetNodeId) {
+          return true;
+        }
+        // "locked" direction: link is visible but not navigable — NOT a valid back route
+      }
+    }
+    return false;
+  }
+
+  /**
    * Builds a flat array of available destination nodes from the current node's outgoing links.
    * Replaces the previous direction-keyed object — direction metadata is no longer needed by the HUD.
    * Triggered during the ApplicationV2 _prepareContext lifecycle stage.
@@ -142,6 +185,17 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
         }
       }
     }
+
+    // ── Mark the destination the user came from ──────────────────────────
+    const previousNodeId = game.user.getFlag("click-adventure", "previousNodeId") ?? null;
+    for (const dest of availableDestinations) {
+      dest.isOrigin = (
+        previousNodeId !== null &&
+        dest.id === previousNodeId &&
+        this._canNavigateBackTo(previousNodeId)
+      );
+    }
+    // ─────────────────────────────────────────────────────────────────────
 
     context.availableDestinations = availableDestinations;
     context.hasAnyDirection = availableDestinations.length > 0;
@@ -320,6 +374,15 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
       ui.notifications.info("Navigation request sent. Waiting for GM approval.");
       return;
     }
+
+    // ── Capture where we are NOW as the previous location ─────────────
+    const currentNode = this._currentNode();
+    if (currentNode) {
+      await game.user.setFlag("click-adventure", "previousNodeId", currentNode.id);
+    } else {
+      await game.user.unsetFlag("click-adventure", "previousNodeId");
+    }
+    // ──────────────────────────────────────────────────────────────────
 
     if (targetNode.sceneId) {
       // Per-client scene view — does not affect other players' screens

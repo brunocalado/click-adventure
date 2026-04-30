@@ -92,7 +92,15 @@ export async function approveRequest(app, userId, toNodeId) {
   app._navRequests.delete(userId);
 
   const user = game.users.get(userId);
-  if (user) await user.setFlag("click-adventure", "currentNodeId", toNodeId);
+  if (user) {
+    // Preserve the "came from" context on approval
+    if (request.fromNodeId) {
+      await user.setFlag("click-adventure", "previousNodeId", request.fromNodeId);
+    } else {
+      await user.unsetFlag("click-adventure", "previousNodeId");
+    }
+    await user.setFlag("click-adventure", "currentNodeId", toNodeId);
+  }
 
   const { nodes } = getGraphData();
   const targetNode = nodes.find(n => n.id === toNodeId);
@@ -336,6 +344,8 @@ export function onNodeContextMenu(app, e, nodeId) {
  */
 export async function onSendAllToNode(app, targetNode, players) {
   for (const user of players) {
+    // Teleport clears the "came from" context
+    await user.unsetFlag("click-adventure", "previousNodeId");
     await user.setFlag("click-adventure", "currentNodeId", targetNode.id);
 
     if (targetNode.sceneId) {
@@ -361,6 +371,8 @@ export async function onTeleportPlayer(app, user, nodeId) {
   const targetNode = nodes.find(n => n.id === nodeId);
   if (!targetNode) return;
 
+  // Teleport clears the "came from" context
+  await user.unsetFlag("click-adventure", "previousNodeId");
   await user.setFlag("click-adventure", "currentNodeId", nodeId);
 
   if (targetNode.sceneId) {
@@ -399,6 +411,8 @@ export async function onSendToStart(app) {
   }
 
   for (const user of players) {
+    // Teleport clears the "came from" context
+    await user.unsetFlag("click-adventure", "previousNodeId");
     await user.setFlag("click-adventure", "currentNodeId", startNodeId);
 
     if (startNode.sceneId) {
