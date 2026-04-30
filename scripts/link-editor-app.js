@@ -9,7 +9,7 @@
  * Lifecycle hook: renderLinkEditorApp
  */
 
-import { getEffectiveDirection } from "./node-utils.js";
+import { getEffectiveDirection, getGraphData, saveGraphData } from "./node-utils.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -46,20 +46,7 @@ export class LinkEditorApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this._pendingPassages = null;
   }
 
-  /**
-   * Returns the graph as a plain POJO regardless of DataModel or raw object.
-   * @returns {{ sceneId: string, startNodeId: string, nodes: object[], links: object[] }}
-   */
-  _graphData() {
-    const graph = game.settings.get("click-adventure", "graph");
-    const raw = typeof graph?.toObject === "function" ? graph.toObject() : (graph ?? {});
-    return {
-      sceneId:     raw.sceneId     ?? "",
-      startNodeId: raw.startNodeId ?? "",
-      nodes:       raw.nodes       ?? [],
-      links:       raw.links       ?? []
-    };
-  }
+
 
   /**
    * Provides passage rows and endpoint labels to the editor template.
@@ -73,7 +60,7 @@ export class LinkEditorApp extends HandlebarsApplicationMixin(ApplicationV2) {
    */
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
-    const { nodes, links } = this._graphData();
+    const { nodes, links } = getGraphData();
     const link = links[this._linkIndex];
 
     if (!link) {
@@ -153,13 +140,13 @@ export class LinkEditorApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @returns {Promise<void>}
    */
   async _onSave() {
-    const { sceneId, startNodeId, nodes, links } = this._graphData();
+    const { nodes, links } = getGraphData();
     const updatedLinks = links.map((l, i) =>
       i === this._linkIndex
         ? { ...l, passages: structuredClone(this._pendingPassages) }
         : l
     );
-    await game.settings.set("click-adventure", "graph", { sceneId, startNodeId, nodes, links: updatedLinks });
+    await saveGraphData({ nodes, links: updatedLinks });
 
     const manager = foundry.applications.instances.get("manager-app");
     if (manager?.rendered) manager.render({ force: true });

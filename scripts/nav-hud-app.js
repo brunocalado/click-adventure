@@ -8,7 +8,7 @@
  * Lifecycle hook: renderNavHudApp
  */
 
-import { isMultiPassage, getEffectiveDirection } from "./node-utils.js";
+import { isMultiPassage, getEffectiveDirection, getGraphData } from "./node-utils.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -45,20 +45,7 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this._orbMouseDownActive = false;
   }
 
-  /**
-   * Returns the graph as a plain POJO regardless of DataModel or raw object.
-   * @returns {{ sceneId: string, startNodeId: string, nodes: object[], links: object[] }}
-   */
-  _graphData() {
-    const graph = game.settings.get("click-adventure", "graph");
-    const raw = typeof graph?.toObject === "function" ? graph.toObject() : (graph ?? {});
-    return {
-      sceneId: raw.sceneId ?? "",
-      startNodeId: raw.startNodeId ?? "",
-      nodes: raw.nodes ?? [],
-      links: raw.links ?? []
-    };
-  }
+
 
   /**
    * Resolves the node the current user occupies by reading their per-user flag.
@@ -68,7 +55,7 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
   _currentNode() {
     const currentNodeId = game.user.getFlag("click-adventure", "currentNodeId");
     if (!currentNodeId) return null;
-    const { nodes } = this._graphData();
+    const { nodes } = getGraphData();
     return nodes.find(n => n.id === currentNodeId) ?? null;
   }
 
@@ -88,7 +75,7 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     // This handles players who joined after the ready hook ran or mid-session additions.
     const existingNodeId = game.user.getFlag("click-adventure", "currentNodeId");
     if (!existingNodeId) {
-      const { startNodeId } = this._graphData();
+      const { startNodeId } = getGraphData();
       if (startNodeId) {
         await game.user.setFlag("click-adventure", "currentNodeId", startNodeId);
       }
@@ -98,7 +85,7 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const availableDestinations = [];
 
     if (node) {
-      const { nodes, links } = this._graphData();
+      const { nodes, links } = getGraphData();
       // seen deduplicates destinations that appear via multiple single-passage links
       const seen = new Set();
 
@@ -223,7 +210,7 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
           return;
         }
         const nodeId = btn.dataset.nodeId;
-        const { nodes } = this._graphData();
+        const { nodes } = getGraphData();
         const target = nodes.find(n => n.id === nodeId);
         if (target) {
           this._closePanelDOM();

@@ -12,6 +12,7 @@ import { AdventureDataModel } from "./adventure-data-model.js";
 import { ManagerApp } from "./manager-app.js";
 import { NavHudApp } from "./nav-hud-app.js";
 import { AdventureSocketManager } from "./socket-manager.js";
+import { getGraphData } from "./node-utils.js";
 
 /**
  * Returns true if the given sceneId belongs to any node in the current graph.
@@ -21,9 +22,7 @@ import { AdventureSocketManager } from "./socket-manager.js";
  */
 function _isGraphScene(sceneId) {
   if (!sceneId) return false;
-  const graph = game.settings.get("click-adventure", "graph");
-  const raw = typeof graph?.toObject === "function" ? graph.toObject() : (graph ?? {});
-  const nodes = raw.nodes ?? [];
+  const { nodes } = getGraphData();
   return nodes.some(n => n.sceneId === sceneId);
 }
 
@@ -57,9 +56,7 @@ Hooks.on("updateSetting", (setting) => {
   const scene = canvas?.scene;
   if (!scene) return;
 
-  const graph = game.settings.get("click-adventure", "graph");
-  const raw = typeof graph?.toObject === "function" ? graph.toObject() : (graph ?? {});
-  const nodes = raw.nodes ?? [];
+  const { nodes } = getGraphData();
   const belongs = nodes.some(n => n.sceneId === scene.id);
 
   if (belongs && !globalThis.ClickAdventure._hud?.rendered) {
@@ -73,11 +70,10 @@ Hooks.on("updateSetting", (setting) => {
  * Only writes when the user has no position yet and a startNodeId is defined.
  */
 Hooks.on("ready", async () => {
-  const graph = game.settings.get("click-adventure", "graph");
-  const raw = typeof graph?.toObject === "function" ? graph.toObject() : (graph ?? {});
+  const { startNodeId } = getGraphData();
   const existing = game.user.getFlag("click-adventure", "currentNodeId");
-  if (!existing && raw.startNodeId) {
-    await game.user.setFlag("click-adventure", "currentNodeId", raw.startNodeId);
+  if (!existing && startNodeId) {
+    await game.user.setFlag("click-adventure", "currentNodeId", startNodeId);
   }
 });
 

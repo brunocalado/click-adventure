@@ -15,7 +15,7 @@ import { NodeConfigApp } from "./node-config-app.js";
 import { LinkEditorApp } from "./link-editor-app.js";
 import { InstructionsApp } from "./instructions-app.js";
 import { SettingsApp } from "./settings-app.js";
-import { getNodeActiveImage, isMultiPassage, getEffectiveDirection } from "./node-utils.js";
+import { getNodeActiveImage, isMultiPassage, getEffectiveDirection, getGraphData, saveGraphData } from "./node-utils.js";
 import { buildSceneData } from "./scene-template.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -142,7 +142,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const user = game.users.get(userId);
     if (user) await user.setFlag("click-adventure", "currentNodeId", toNodeId);
 
-    const { nodes } = this._graphData();
+    const { nodes } = getGraphData();
     const targetNode = nodes.find(n => n.id === toNodeId);
 
     globalThis.ClickAdventure._socket.approveNavRequest(userId, toNodeId, targetNode?.sceneId ?? null);
@@ -209,7 +209,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       approveAllBtn.textContent = `Approve All (${count})`;
     }
 
-    const { nodes } = this._graphData();
+    const { nodes } = getGraphData();
     const getLabel = id => nodes.find(n => n.id === id)?.label || id;
     const requests = [...this._navRequests.values()].sort((a, b) => a.timestamp - b.timestamp);
 
@@ -282,21 +282,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     });
   }
 
-  /**
-   * Returns the graph as a plain POJO regardless of whether the setting returns
-   * a DataModel instance (normal v14 behaviour) or a raw object (first-run default).
-   * @returns {{ sceneId: string, startNodeId: string, nodes: object[], links: object[] }}
-   */
-  _graphData() {
-    const graph = game.settings.get("click-adventure", "graph");
-    const raw = typeof graph?.toObject === "function" ? graph.toObject() : (graph ?? {});
-    return {
-      sceneId: raw.sceneId ?? "",
-      startNodeId: raw.startNodeId ?? "",
-      nodes: raw.nodes ?? [],
-      links: raw.links ?? []
-    };
-  }
+
 
   // ---------------------------------------------------------------------------
   // Lifecycle
@@ -312,7 +298,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
    */
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
-    const { nodes, links, startNodeId } = this._graphData();
+    const { nodes, links, startNodeId } = getGraphData();
     const activeNodeId = game.user.getFlag("click-adventure", "currentNodeId") ?? "";
     const occupants = this._buildOccupants();
     context.nodes = nodes.map(n => ({
@@ -637,7 +623,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const players = game.users.filter(u => !u.isGM && u.active);
     if (players.length === 0) return;
 
-    const { nodes } = this._graphData();
+    const { nodes } = getGraphData();
     const node = nodes.find(n => n.id === nodeId);
     if (!node) return;
 
@@ -737,7 +723,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @returns {Promise<void>}
    */
   async _onTeleportPlayer(user, nodeId) {
-    const { nodes } = this._graphData();
+    const { nodes } = getGraphData();
     const targetNode = nodes.find(n => n.id === nodeId);
     if (!targetNode) return;
 
@@ -760,7 +746,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @returns {Promise<void>}
    */
   async _onSendToStart() {
-    const { startNodeId, nodes } = this._graphData();
+    const { startNodeId, nodes } = getGraphData();
     if (!startNodeId) {
       ui.notifications.warn("Click Adventure: No start node defined.");
       return;
@@ -890,7 +876,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @returns {Promise<void>}
    */
   async _onAddNode() {
-    const { sceneId, startNodeId, nodes, links } = this._graphData();
+    const { sceneId, startNodeId, nodes, links } = getGraphData();
     const workspace = this.element?.querySelector(".ca-workspace");
     const w = workspace?.clientWidth  ?? 600;
     const h = workspace?.clientHeight ?? 400;
@@ -907,9 +893,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     // First node added automatically becomes the start node
     const newStartNodeId = nodes.length === 0 ? newNode.id : startNodeId;
-    await game.settings.set("click-adventure", "graph", {
-      sceneId, startNodeId: newStartNodeId, nodes: [...nodes, newNode], links
-    });
+    await saveGraphData({ sceneId, startNodeId: newStartNodeId, nodes: [...nodes, newNode], links });
     this.render({ force: true });
   }
 
@@ -950,7 +934,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
           return;
         }
 
-        const { sceneId, startNodeId, nodes, links } = this._graphData();
+        const { sceneId, startNodeId, nodes, links } = getGraphData();
         const existingPaths = new Set(nodes.map(n => n.images?.[0]?.src).filter(Boolean));
 
         const workspace = this.element?.querySelector(".ca-workspace");
@@ -989,12 +973,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
         }
 
         const newStartNodeId = nodes.length === 0 ? newNodes[0].id : startNodeId;
-        await game.settings.set("click-adventure", "graph", {
-          sceneId,
-          startNodeId: newStartNodeId,
-          nodes: [...nodes, ...newNodes],
-          links
-        });
+        await saveGraphData({ sceneId, startNodeId: newStartNodeId, nodes: [...nodes, ...newNodes], links });
 
         this.render({ force: true });
         ui.notifications.info(`Click Adventure: Imported ${newNodes.length} node(s).`);
@@ -1037,9 +1016,9 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @returns {Promise<void>}
    */
   async _saveNodePosition(nodeId, x, y) {
-    const { sceneId, startNodeId, nodes: rawNodes, links } = this._graphData();
+    const { sceneId, startNodeId, nodes: rawNodes, links } = getGraphData();
     const nodes = rawNodes.map(n => n.id === nodeId ? { ...n, x, y } : n);
-    await game.settings.set("click-adventure", "graph", { sceneId, startNodeId, nodes, links });
+    await saveGraphData({ sceneId, startNodeId, nodes, links });
     this._renderLinks();
   }
 
@@ -1052,14 +1031,14 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @returns {Promise<void>}
    */
   async _saveLink(sourceId, sourceAnchor, targetId, targetAnchor) {
-    const { sceneId, startNodeId, nodes, links } = this._graphData();
+    const { sceneId, startNodeId, nodes, links } = getGraphData();
     const duplicate = links.some(l =>
       l.sourceId === sourceId && l.sourceAnchor === sourceAnchor &&
       l.targetId === targetId && l.targetAnchor === targetAnchor
     );
     if (duplicate) return;
 
-    await game.settings.set("click-adventure", "graph", {
+    await saveGraphData({
       sceneId, startNodeId, nodes,
       links: [...links, { sourceId, sourceAnchor, targetId, targetAnchor, passages: [{ label: "", direction: "both" }] }]
     });
@@ -1118,7 +1097,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const svg = workspace.querySelector(".ca-links-layer");
     if (!svg) return;
 
-    const { links } = this._graphData();
+    const { links } = getGraphData();
 
     // Remove only permanent links and direction indicators; leave the transient .ca-temp-link intact
     svg.querySelectorAll(".ca-link, .ca-link-hit, .ca-link-direction, .ca-link-direction-arrow").forEach(el => el.remove());
@@ -1288,7 +1267,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @returns {Promise<void>}
    */
   async _onCycleLink(linkIndex) {
-    const { sceneId, startNodeId, nodes, links } = this._graphData();
+    const { sceneId, startNodeId, nodes, links } = getGraphData();
     const cycle = { both: "forward", forward: "backward", backward: "blocked", blocked: "locked", locked: "both" };
     const updatedLinks = links.map((l, i) => {
       if (i !== linkIndex) return l;
@@ -1301,7 +1280,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
         : [{ label: "", direction: newDir }];
       return { ...l, passages: updatedPassages };
     });
-    await game.settings.set("click-adventure", "graph", { sceneId, startNodeId, nodes, links: updatedLinks });
+    await saveGraphData({ sceneId, startNodeId, nodes, links: updatedLinks });
     this._renderLinks();
 
     // Notify HUD immediately so destination list reflects the new link state
@@ -1318,7 +1297,6 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @returns {Promise<void>}
    */
   async _onDeleteLink(e, lineEl) {
-    console.log("[ClickAdventure] _onDeleteLink fired, index:", lineEl.dataset.linkIndex);
     const linkIndex = parseInt(lineEl.dataset.linkIndex, 10);
 
     const confirmed = await foundry.applications.api.DialogV2.confirm({
@@ -1329,14 +1307,9 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     if (!confirmed) return;
 
     // Re-fetch after dialog closes — user may have taken time to confirm
-    const freshGraph = this._graphData();
+    const freshGraph = getGraphData();
     const filtered = freshGraph.links.filter((_, idx) => idx !== linkIndex);
-    await game.settings.set("click-adventure", "graph", {
-      sceneId: freshGraph.sceneId,
-      startNodeId: freshGraph.startNodeId,
-      nodes: freshGraph.nodes,
-      links: filtered
-    });
+    await saveGraphData({ links: filtered });
     this.render({ force: true });
   }
 
@@ -1400,7 +1373,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @returns {Promise<void>}
    */
   async _onSyncScenes() {
-    const { sceneId, startNodeId, nodes, links } = this._graphData();
+    const { sceneId, startNodeId, nodes, links } = getGraphData();
     const folder = await this._getOrCreateFolder();
     let updated = 0;
 
@@ -1456,9 +1429,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       updated++;
     }
 
-    await game.settings.set("click-adventure", "graph", {
-      sceneId, startNodeId, nodes: updatedNodes, links
-    });
+    await saveGraphData({ sceneId, startNodeId, nodes: updatedNodes, links });
     this.render({ force: true });
     ui.notifications.info(`Click Adventure: ${updated} scene(s) synced.`);
   }
@@ -1494,12 +1465,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }));
     await User.updateDocuments(userUpdates);
 
-    await game.settings.set("click-adventure", "graph", {
-      sceneId: "",
-      startNodeId: "",
-      nodes: [],
-      links: []
-    });
+    await saveGraphData({ sceneId: "", startNodeId: "", nodes: [], links: [] });
 
     // Close HUD if open — it no longer has a valid state
     if (globalThis.ClickAdventure._hud?.rendered) {

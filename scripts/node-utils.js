@@ -84,3 +84,33 @@ export async function syncNodeTile(node) {
     await tile.delete();
   }
 }
+
+/**
+ * Returns the current adventure graph as a plain object.
+ * Converts DataModel instances to POJOs transparently so callers never need
+ * to handle the toObject() unwrap pattern themselves.
+ *
+ * @returns {{ sceneId: string, startNodeId: string, nodes: object[], links: object[] }}
+ */
+export function getGraphData() {
+  const graph = game.settings.get("click-adventure", "graph");
+  const raw = typeof graph?.toObject === "function" ? graph.toObject() : (graph ?? {});
+  return {
+    sceneId:     raw.sceneId     ?? "",
+    startNodeId: raw.startNodeId ?? "",
+    nodes:       raw.nodes       ?? [],
+    links:       raw.links       ?? []
+  };
+}
+
+/**
+ * Merges a partial patch into the stored graph and persists it.
+ * Reads the current stored value first so callers only need to supply changed fields.
+ *
+ * @param {Partial<{ sceneId: string, startNodeId: string, nodes: object[], links: object[] }>} patch
+ * @returns {Promise<void>}
+ */
+export async function saveGraphData(patch) {
+  const current = getGraphData();
+  await game.settings.set("click-adventure", "graph", { ...current, ...patch });
+}
