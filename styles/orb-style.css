@@ -92,28 +92,93 @@
   overflow: hidden;
 }
 
-.orb-style .ca-os-preview-orb {
+/* Image row */
+.orb-style .ca-os-image-path {
+  flex: 1;
+  font-size: 11px;
+  color: var(--ca-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+}
+
+.orb-style .ca-os-image-browse,
+.orb-style .ca-os-image-clear {
+  padding: 4px 8px;
+  background: var(--ca-bg-toolbar);
+  border: 1px solid var(--ca-border-toolbar);
+  border-radius: var(--ca-radius-md);
+  color: var(--ca-text-muted);
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+
+.orb-style .ca-os-image-browse:hover,
+.orb-style .ca-os-image-clear:hover {
+  background: var(--ca-bg-toolbar-hover);
+  color: var(--ca-text-bright);
+}
+
+.orb-style .ca-os-image-clear {
+  padding: 4px 6px;
+  color: var(--ca-state-danger);
+  border-color: rgba(200, 112, 112, 0.3);
+}
+
+.orb-style .ca-os-image-thumb-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.orb-style .ca-os-image-thumb {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,255,255,0.25);
-  border: 2px solid #223366;
+  object-fit: cover;
+  border: 2px solid var(--ca-border-soft);
 }
 
-.orb-style .ca-os-preview-triangle {
-  width: 48px;
-  height: 48px;
-  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+.orb-style .ca-os-image-thumb--square {
+  border-radius: 20%;
 }
 
-/* The goo preview canvas gets the filter via inline CSS applied in JS */
-.orb-style .ca-os-goo-canvas {
-  filter: url('#ca-os-goo-filter') drop-shadow(0 0 6px rgba(30, 120, 15, 0.4));
+.orb-style .ca-os-optional {
+  font-size: 10px;
+  color: var(--ca-text-subtle);
+  font-weight: normal;
+  margin-left: 4px;
 }
 
-.orb-style .ca-goo-filter-def {
-  position: absolute;
-  width: 0;
-  height: 0;
-  overflow: hidden;
+/* Preview shapes */
+.orb-style .ca-os-preview-shape {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.65),
+    0 1px 4px  rgba(0, 0, 0, 0.45),
+    inset 0 1px 3px  rgba(255, 255, 255, 0.35),
+    inset 0 -2px 5px rgba(0, 0, 0, 0.35);
+  border: 2px solid rgba(0, 0, 0, 0.3);
+}
+
+.orb-style .ca-os-preview-shape--square {
+  border-radius: 20%;
+}
+
+.orb-style .ca-os-preview-img {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--ca-border-soft);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.65);
+}
+
+.orb-style .ca-os-preview-img--square {
+  border-radius: 20%;
 }

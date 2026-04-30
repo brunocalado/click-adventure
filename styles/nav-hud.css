@@ -109,27 +109,78 @@
   cursor: grabbing;
 }
 
+/* Orb inner — gradient sphere. background set via inline style from _prepareContext. */
 .ca-hud-orb-inner {
   width: var(--ca-orb-inner);
   height: var(--ca-orb-inner);
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #aabbff, #3355aa);
+  /* 3D depth via layered box-shadows:
+     outer: drop shadow below; inner top: highlight edge; inner bottom: depth shadow */
   box-shadow:
-    0 2px 6px rgba(0, 0, 0, 0.6),
-    inset 0 1px 2px rgba(255, 255, 255, 0.3);
-  border: 2px solid #223366;
+    0 4px 14px rgba(0, 0, 0, 0.65),
+    0 1px 4px  rgba(0, 0, 0, 0.45),
+    inset 0 1px 3px  rgba(255, 255, 255, 0.35),
+    inset 0 -2px 5px rgba(0, 0, 0, 0.35);
+  border: 2px solid rgba(0, 0, 0, 0.3);
   transition: transform 0.15s, box-shadow 0.15s;
 }
 
 .ca-hud-orb:hover .ca-hud-orb-inner {
   transform: scale(1.12);
   box-shadow:
-    0 4px 12px rgba(60, 100, 255, 0.4),
-    inset 0 1px 2px rgba(255, 255, 255, 0.4);
+    0 6px 20px var(--ca-orb-glow, rgba(60, 100, 255, 0.5)),
+    0 2px 6px  rgba(0, 0, 0, 0.4),
+    inset 0 1px 3px  rgba(255, 255, 255, 0.45),
+    inset 0 -2px 5px rgba(0, 0, 0, 0.3);
 }
 
 .ca-hud-orb--dragging .ca-hud-orb-inner {
   transform: scale(0.92);
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.6),
+    inset 0 2px 5px rgba(0, 0, 0, 0.5),
+    inset 0 1px 2px rgba(255, 255, 255, 0.2);
+}
+
+/* Square variant — same inner styles, only border-radius changes */
+.ca-hud-orb-inner--square {
+  border-radius: 20%;
+}
+
+/* Square shape container */
+.ca-hud-orb--square {
+  /* No extra layout changes needed; shape is on the inner element */
+}
+
+/* Image inside orb — covers the inner area, shape-matches the orb type */
+.ca-hud-orb-img {
+  width: var(--ca-orb-inner);
+  height: var(--ca-orb-inner);
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(0, 0, 0, 0.3);
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.65),
+    0 1px 4px  rgba(0, 0, 0, 0.45),
+    inset 0 1px 3px rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+  display: block;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.ca-hud-orb:hover .ca-hud-orb-img {
+  transform: scale(1.12);
+  box-shadow:
+    0 6px 20px var(--ca-orb-glow, rgba(60, 100, 255, 0.5)),
+    0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.ca-hud-orb--dragging .ca-hud-orb-img {
+  transform: scale(0.92);
+}
+
+.ca-hud-orb-img--square {
+  border-radius: 20%;
 }
 
 /* Origin indicator — the node this user navigated here from */
@@ -148,51 +199,4 @@
   margin-right: 5px;
   font-size: 11px;
   opacity: 0.85;
-}
-
-/* Triangle orb type */
-.ca-hud-orb-inner--triangle {
-  width: var(--ca-orb-inner);
-  height: var(--ca-orb-inner);
-  border-radius: 0;
-  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-  box-shadow: none;
-  border: none;
-  transition: transform 0.15s;
-}
-
-.ca-hud-orb:hover .ca-hud-orb-inner--triangle {
-  transform: scale(1.12);
-}
-
-.ca-hud-orb--dragging .ca-hud-orb-inner--triangle {
-  transform: scale(0.92);
-}
-
-/* Goo orb type — canvas carries the filter; hitbox div is the event target */
-.ca-hud-orb--goo {
-  position: relative;
-  cursor: pointer;
-  flex-shrink: 0;
-  /* Override default circle sizing — width/height set via inline style from context */
-  width: auto;
-  height: auto;
-}
-
-.ca-goo-filter-def {
-  position: absolute;
-  width: 0;
-  height: 0;
-  overflow: hidden;
-}
-
-.ca-hud-goo-canvas {
-  display: block;
-  filter: url('#ca-hud-goo-filter') drop-shadow(0 0 8px rgba(30, 120, 15, 0.45));
-  pointer-events: none;
-  /* Canvas is the full size of the goo container — dimensions set via HTML attributes */
-}
-
-.ca-hud-orb--dragging .ca-hud-goo-canvas {
-  opacity: 0.75;
 }

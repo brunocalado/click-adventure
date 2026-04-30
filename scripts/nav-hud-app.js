@@ -9,7 +9,34 @@
  */
 
 import { isMultiPassage, getEffectiveDirection, getGraphData } from "./node-utils.js";
-import { _runGooAnimation } from "./orb-style-app.js";
+
+// ── 3D gradient helpers (private to this module) ─────────────────────────────
+function _hexToRgb(hex) {
+  const n = parseInt(hex.replace("#", ""), 16);
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+function _lighten(hex, factor) {
+  const { r, g, b } = _hexToRgb(hex);
+  return `rgb(${Math.min(255, Math.round(r + (255 - r) * factor))},${Math.min(255, Math.round(g + (255 - g) * factor))},${Math.min(255, Math.round(b + (255 - b) * factor))})`;
+}
+function _darken(hex, factor) {
+  const { r, g, b } = _hexToRgb(hex);
+  return `rgb(${Math.round(r * (1 - factor))},${Math.round(g * (1 - factor))},${Math.round(b * (1 - factor))})`;
+}
+function _hexToRgba(hex, alpha) {
+  const { r, g, b } = _hexToRgb(hex);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+function _buildOrbGradient(baseHex) {
+  const light = _lighten(baseHex, 0.55);
+  const dark  = _darken(baseHex,  0.45);
+  return [
+    `radial-gradient(circle at 32% 28%, rgba(255,255,255,0.88) 0%, rgba(255,255,255,0) 42%)`,
+    `radial-gradient(circle at 55% 118%, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 35%)`,
+    `radial-gradient(circle at 40% 42%, ${light} 0%, ${baseHex} 48%, ${dark} 100%)`
+  ].join(", ");
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -44,8 +71,6 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this._docMouseUp   = this._onDocMouseUp.bind(this);
     /** @type {boolean} — true only when the current mousedown originated on the orb */
     this._orbMouseDownActive = false;
-    /** @type {number|null} — rAF handle for the goo animation */
-    this._gooRaf = null;
   }
 
 
@@ -205,21 +230,23 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     // isOpen is managed via DOM class toggle — default false on each render
     context.isOpen = false;
 
-    // Orb style — per-client, used by the template to switch render mode
-    const orbStyle = game.settings.get("click-adventure", "orbStyle");
-    context.orbType  = orbStyle.type  ?? "orb";
-    context.orbColor = orbStyle.color ?? "#3355aa";
-
-    // Convert size multiplier to pixel values used by inline style
+    // Orb style — per-client
+    const orbStyle  = game.settings.get("click-adventure", "orbStyle");
+    const orbType   = orbStyle.type     ?? "orb";
+    const orbColor  = orbStyle.color    ?? "#3355aa";
+    const orbImage  = orbStyle.orbImage ?? "";
+    const scale     = orbStyle.size     ?? 1;
     const baseOrb   = 80;   // mirrors --ca-orb-size: 80px
     const baseInner = 28;   // mirrors --ca-orb-inner: 28px
-    const scale     = orbStyle.size ?? 1;
-    context.orbSizePx  = Math.round(baseOrb   * scale);
-    context.orbInnerPx = Math.round(baseInner * scale);
-    // For goo canvas, needs a taller container to accommodate drips
-    context.gooBallRadius = Math.round(baseInner * scale * 1.2);
-    context.gooCanvasW    = Math.round(baseOrb   * scale * 1.4);
-    context.gooCanvasH    = Math.round(baseOrb   * scale * 2.8);
+
+    context.orbType     = orbType;
+    context.orbColor    = orbColor;
+    context.orbImage    = orbImage;
+    context.orbSizePx   = Math.round(baseOrb   * scale);
+    context.orbInnerPx  = Math.round(baseInner * scale);
+    context.orbGradient = orbImage ? "" : _buildOrbGradient(orbColor);
+    // Passed as CSS custom property so hover glow in CSS matches the user's color
+    context.orbGlowRgba = _hexToRgba(orbColor, 0.5);
 
     return context;
   }
@@ -258,10 +285,6 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * @returns {Promise<void>}
    */
   async _onClose(options) {
-    if (this._gooRaf !== null) {
-      cancelAnimationFrame(this._gooRaf);
-      this._gooRaf = null;
-    }
     document.removeEventListener("mousemove", this._docMouseMove);
     document.removeEventListener("mouseup",   this._docMouseUp);
     await super._onClose(options);
@@ -321,25 +344,6 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
         orb.classList.add("ca-hud-orb--dragging");
       }, 200);
     });
-
-    // Goo animation — start if goo type is active, stop otherwise
-    const gooCanvas = html.querySelector(".ca-hud-goo-canvas");
-    if (gooCanvas) {
-      // Cancel any previous frame before starting a new one (re-render case)
-      if (this._gooRaf !== null) {
-        cancelAnimationFrame(this._gooRaf);
-        this._gooRaf = null;
-      }
-      const color = game.settings.get("click-adventure", "orbStyle").color ?? "#1a6010";
-      const radius = parseInt(gooCanvas.dataset.ballRadius, 10) || 22;
-      _runGooAnimation(gooCanvas, color, radius, this, "_gooRaf");
-    } else {
-      // Clean up if we switched away from goo type
-      if (this._gooRaf !== null) {
-        cancelAnimationFrame(this._gooRaf);
-        this._gooRaf = null;
-      }
-    }
   }
 
   /**

@@ -6,7 +6,6 @@
  * Lifecycle hook: renderSettingsApp
  */
 
-import { OrbStyleApp } from "./orb-style-app.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -122,17 +121,6 @@ export class SettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
         await game.settings.set("click-adventure", "transitionType", e.target.value);
       });
 
-    this.element.querySelector(".ca-settings-orb-btn")
-      ?.addEventListener("click", () => {
-        // Close the popover first so it doesn't sit under the new window
-        this.close();
-        this._onCloseCallback?.();
-
-        // Open or focus the orb style app
-        const existing = foundry.applications.instances.get("orb-style-app");
-        if (existing?.rendered) { existing.render(); return; }
-        new OrbStyleApp().render(true);
-      });
   }
 
   /**

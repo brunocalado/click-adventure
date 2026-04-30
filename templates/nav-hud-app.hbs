@@ -12,36 +12,17 @@
   </div>
   {{/if}}
 
-  {{!-- Orb type selector — rendered once, correct type shown based on setting --}}
-  {{#if (eq orbType "orb")}}
-  <div class="ca-hud-orb" title="Click to navigate · Hold to drag"
-       style="--ca-orb-size: {{orbSizePx}}px; --ca-orb-inner: {{orbInnerPx}}px;">
-    <div class="ca-hud-orb-inner" style="background: radial-gradient(circle at 35% 35%, {{orbColor}}cc, {{orbColor}});"></div>
+  {{!-- Orb — shape (orb vs square) and content (image vs gradient) are independent --}}
+  <div class="ca-hud-orb {{#if (eq orbType 'square')}}ca-hud-orb--square{{/if}}"
+       title="Click to navigate · Hold to drag"
+       style="--ca-orb-size: {{orbSizePx}}px; --ca-orb-inner: {{orbInnerPx}}px; --ca-orb-glow: {{orbGlowRgba}};">
+    {{#if orbImage}}
+      <img class="ca-hud-orb-img {{#if (eq orbType 'square')}}ca-hud-orb-img--square{{/if}}"
+           src="{{orbImage}}" draggable="false" />
+    {{else}}
+      <div class="ca-hud-orb-inner {{#if (eq orbType 'square')}}ca-hud-orb-inner--square{{/if}}"
+           style="background: {{orbGradient}};"></div>
+    {{/if}}
   </div>
-
-  {{else if (eq orbType "triangle")}}
-  <div class="ca-hud-orb ca-hud-orb--triangle" title="Click to navigate · Hold to drag"
-       style="--ca-orb-size: {{orbSizePx}}px; --ca-orb-inner: {{orbInnerPx}}px;">
-    <div class="ca-hud-orb-inner ca-hud-orb-inner--triangle" style="background: {{orbColor}};"></div>
-  </div>
-
-  {{else if (eq orbType "goo")}}
-  <div class="ca-hud-orb ca-hud-orb--goo" title="Click to navigate · Hold to drag"
-       style="--ca-orb-size: {{orbSizePx}}px; width: {{gooCanvasW}}px; height: {{gooCanvasH}}px;">
-    <svg class="ca-goo-filter-def" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <filter id="ca-hud-goo-filter">
-          <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur"/>
-          <feColorMatrix in="blur" mode="matrix"
-            values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -9" result="goo"/>
-          <feBlend in="SourceGraphic" in2="goo"/>
-        </filter>
-      </defs>
-    </svg>
-    <canvas class="ca-hud-goo-canvas"
-            width="{{gooCanvasW}}" height="{{gooCanvasH}}"
-            data-ball-radius="{{gooBallRadius}}"></canvas>
-  </div>
-  {{/if}}
 
 </div>

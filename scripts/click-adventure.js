@@ -13,6 +13,7 @@ import { ManagerApp } from "./manager-app.js";
 import { NavHudApp } from "./nav-hud-app.js";
 import { AdventureSocketManager } from "./socket-manager.js";
 import { getGraphData } from "./node-utils.js";
+import { OrbStyleApp } from "./orb-style-app.js";
 
 /**
  * Returns true if the given sceneId belongs to any node in the current graph.
@@ -133,7 +134,16 @@ Hooks.on("init", () => {
     scope: "client",       // per-user, not world — each player picks their own
     config: false,
     type: Object,
-    default: { type: "orb", size: 1, color: "#3355aa" }
+    default: { type: "orb", size: 1, color: "#3355aa", orbImage: "" }
+  });
+
+  game.settings.registerMenu("click-adventure", "orbStyleMenu", {
+    name: "HUD Orb Style",
+    label: "Customize Orb Style…",
+    hint: "Configure the visual appearance of the navigation HUD orb for this client.",
+    icon: "fa-regular fa-circle",
+    type: OrbStyleApp,
+    restricted: false
   });
 
   // Instantiate socket manager — must run during init so the listener

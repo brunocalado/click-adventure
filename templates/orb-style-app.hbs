@@ -1,8 +1,8 @@
 <div class="ca-os-panel">
 
-  {{!-- Type selector --}}
+  {{!-- Type --}}
   <div class="ca-os-section">
-    <div class="ca-settings-section-title">Orb Type</div>
+    <div class="ca-settings-section-title">Type</div>
     <div class="ca-os-type-row">
       {{#each typeOptions}}
       <button class="ca-os-type-btn {{#if (eq value ../orbType)}}ca-os-type-btn--active{{/if}}"
@@ -11,7 +11,7 @@
     </div>
   </div>
 
-  {{!-- Size (common to all types) --}}
+  {{!-- Size --}}
   <div class="ca-os-section">
     <div class="ca-settings-section-title">Size</div>
     <div class="ca-os-row">
@@ -21,39 +21,41 @@
     </div>
   </div>
 
-  {{!-- Color (common to all types) --}}
+  {{!-- Color --}}
   <div class="ca-os-section">
     <div class="ca-settings-section-title">Color</div>
     <div class="ca-os-row">
       <label class="ca-settings-label">Base Color</label>
       <input class="ca-os-color" type="color" value="{{orbColor}}">
     </div>
-    {{#if (eq orbType "goo")}}
-    <p class="ca-settings-hint">Color is applied to the goo fill.</p>
+    <p class="ca-settings-hint">Ignored when an image is set.</p>
+  </div>
+
+  {{!-- Image --}}
+  <div class="ca-os-section">
+    <div class="ca-settings-section-title">Image <span class="ca-os-optional">(optional)</span></div>
+    <div class="ca-os-row">
+      <span class="ca-os-image-path">{{#if orbImage}}{{orbImage}}{{else}}<em>None</em>{{/if}}</span>
+      <button class="ca-os-image-browse" type="button">Browse…</button>
+      {{#if orbImage}}<button class="ca-os-image-clear" type="button" title="Remove image">✕</button>{{/if}}
+    </div>
+    {{#if orbImage}}
+    <div class="ca-os-image-thumb-wrap">
+      <img class="ca-os-image-thumb {{#if (eq orbType 'square')}}ca-os-image-thumb--square{{/if}}" src="{{orbImage}}" alt="Orb image preview" />
+    </div>
     {{/if}}
   </div>
 
-  {{!-- Live preview --}}
+  {{!-- Preview --}}
   <div class="ca-os-section">
     <div class="ca-settings-section-title">Preview</div>
     <div class="ca-os-preview">
-      {{#if (eq orbType "orb")}}
-        <div class="ca-os-preview-orb" style="background: radial-gradient(circle at 35% 35%, {{orbColor}}cc, {{orbColor}});"></div>
-      {{else if (eq orbType "triangle")}}
-        <div class="ca-os-preview-triangle" style="background: {{orbColor}};"></div>
-      {{else if (eq orbType "goo")}}
-        {{!-- SVG filter defined inline; canvas uses it via CSS --}}
-        <svg class="ca-goo-filter-def" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <filter id="ca-os-goo-filter">
-              <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur"/>
-              <feColorMatrix in="blur" mode="matrix"
-                values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -9" result="goo"/>
-              <feBlend in="SourceGraphic" in2="goo"/>
-            </filter>
-          </defs>
-        </svg>
-        <canvas class="ca-os-goo-canvas" width="120" height="180"></canvas>
+      {{#if orbImage}}
+        <img class="ca-os-preview-img {{#if (eq orbType 'square')}}ca-os-preview-img--square{{/if}}"
+             src="{{orbImage}}" alt="preview" />
+      {{else}}
+        <div class="ca-os-preview-shape {{#if (eq orbType 'square')}}ca-os-preview-shape--square{{/if}}"
+             style="background: {{orbGradient}};"></div>
       {{/if}}
     </div>
   </div>

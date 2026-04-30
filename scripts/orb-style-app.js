@@ -1,10 +1,35 @@
 /**
  * OrbStyleApp — lets each player customise the visual style of their navigation HUD orb.
- * Opens from the gear settings popover. Saves to the per-client "orbStyle" setting.
+ * Accessible via Foundry's Module Settings page (registered via game.settings.registerMenu).
+ * Saves to the per-client "orbStyle" setting.
  * Changes are applied to the live HUD immediately via a forced re-render.
  *
  * Lifecycle hook: renderOrbStyleApp
  */
+
+// ── 3D gradient helpers (private to this module) ─────────────────────────────
+function _hexToRgb(hex) {
+  const n = parseInt(hex.replace("#", ""), 16);
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+function _lighten(hex, factor) {
+  const { r, g, b } = _hexToRgb(hex);
+  return `rgb(${Math.min(255, Math.round(r + (255 - r) * factor))},${Math.min(255, Math.round(g + (255 - g) * factor))},${Math.min(255, Math.round(b + (255 - b) * factor))})`;
+}
+function _darken(hex, factor) {
+  const { r, g, b } = _hexToRgb(hex);
+  return `rgb(${Math.round(r * (1 - factor))},${Math.round(g * (1 - factor))},${Math.round(b * (1 - factor))})`;
+}
+function _buildOrbGradient(baseHex) {
+  const light = _lighten(baseHex, 0.55);
+  const dark  = _darken(baseHex,  0.45);
+  return [
+    `radial-gradient(circle at 32% 28%, rgba(255,255,255,0.88) 0%, rgba(255,255,255,0) 42%)`,
+    `radial-gradient(circle at 55% 118%, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 35%)`,
+    `radial-gradient(circle at 40% 42%, ${light} 0%, ${baseHex} 48%, ${dark} 100%)`
+  ].join(", ");
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -25,59 +50,50 @@ export class OrbStyleApp extends HandlebarsApplicationMixin(ApplicationV2) {
     form: { template: "modules/click-adventure/templates/orb-style-app.hbs" }
   };
 
-  /** @type {number|null} — rAF handle for the live preview goo animation */
-  _previewRaf = null;
-
   /**
-   * Provides current orbStyle values and derived helpers to the template.
+   * Provides current orbStyle values and computed preview gradient to the template.
    * @override
    */
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
     const style = game.settings.get("click-adventure", "orbStyle");
-    context.orbType  = style.type  ?? "orb";
-    context.orbSize  = style.size  ?? 1;
-    context.orbColor = style.color ?? "#3355aa";
+    context.orbType     = style.type     ?? "orb";
+    context.orbSize     = style.size     ?? 1;
+    context.orbColor    = style.color    ?? "#3355aa";
+    context.orbImage    = style.orbImage ?? "";
+    context.orbGradient = _buildOrbGradient(context.orbColor);
 
     context.typeOptions = [
-      { value: "orb",      label: "Orb"      },
-      { value: "triangle", label: "Triangle" },
-      { value: "goo",      label: "Goo Ball" }
-    ];
-    // Size steps shown to the user (label → slider value mapping)
-    context.sizeOptions = [
-      { value: 0.75, label: "Small"  },
-      { value: 1,    label: "Normal" },
-      { value: 1.5,  label: "Large"  },
-      { value: 2,    label: "Huge"   },
-      { value: 2.5,  label: "Giant"  }
+      { value: "orb",    label: "Orb"    },
+      { value: "square", label: "Square" }
     ];
     return context;
   }
 
   /**
    * Wires all controls so changes persist immediately and refresh the live HUD.
-   * Also starts the goo preview animation when the goo type is active.
    * @override
    */
   _onRender(context, options) {
     super._onRender(context, options);
     const html = this.element;
 
-    // Type radio buttons
+    // Type buttons
     html.querySelectorAll(".ca-os-type-btn").forEach(btn => {
       btn.addEventListener("click", async () => {
         const style = game.settings.get("click-adventure", "orbStyle");
         await game.settings.set("click-adventure", "orbStyle", { ...style, type: btn.dataset.type });
-        this.render({ force: true });          // re-render form so conditional sections update
+        this.render({ force: true });
         this._refreshHud();
       });
     });
 
-    // Size slider
+    // Size slider — update label in real time, save on input
     const sizeInput = html.querySelector(".ca-os-size");
+    const sizeLabel = html.querySelector(".ca-os-size-label");
     if (sizeInput) {
       sizeInput.addEventListener("input", async (e) => {
+        if (sizeLabel) sizeLabel.textContent = `${parseFloat(e.target.value)}×`;
         const style = game.settings.get("click-adventure", "orbStyle");
         await game.settings.set("click-adventure", "orbStyle", { ...style, size: parseFloat(e.target.value) });
         this._refreshHud();
@@ -90,23 +106,37 @@ export class OrbStyleApp extends HandlebarsApplicationMixin(ApplicationV2) {
       colorInput.addEventListener("input", async (e) => {
         const style = game.settings.get("click-adventure", "orbStyle");
         await game.settings.set("click-adventure", "orbStyle", { ...style, color: e.target.value });
+        // Update preview gradient without full re-render
+        const previewShape = html.querySelector(".ca-os-preview-shape");
+        if (previewShape) previewShape.style.background = _buildOrbGradient(e.target.value);
         this._refreshHud();
       });
     }
 
-    // Start goo preview animation when goo type is selected
-    const previewCanvas = html.querySelector(".ca-os-goo-canvas");
-    if (previewCanvas) {
-      this._startGooPreview(previewCanvas, context.orbColor);
-    } else {
-      this._stopGooPreview();
-    }
-  }
+    // Image browse button
+    html.querySelector(".ca-os-image-browse")?.addEventListener("click", () => {
+      const FilePickerClass = foundry.applications.apps.FilePicker.implementation
+        ?? foundry.applications.apps.FilePicker;
+      const current = game.settings.get("click-adventure", "orbStyle").orbImage ?? "";
+      new FilePickerClass({
+        type: "image",
+        current,
+        callback: async (path) => {
+          const style = game.settings.get("click-adventure", "orbStyle");
+          await game.settings.set("click-adventure", "orbStyle", { ...style, orbImage: path });
+          this.render({ force: true });
+          this._refreshHud();
+        }
+      }).browse();
+    });
 
-  /** Stops the preview animation before closing. @override */
-  async _onClose(options) {
-    this._stopGooPreview();
-    await super._onClose(options);
+    // Image clear button
+    html.querySelector(".ca-os-image-clear")?.addEventListener("click", async () => {
+      const style = game.settings.get("click-adventure", "orbStyle");
+      await game.settings.set("click-adventure", "orbStyle", { ...style, orbImage: "" });
+      this.render({ force: true });
+      this._refreshHud();
+    });
   }
 
   /** Forces a HUD re-render if active. */
@@ -115,98 +145,4 @@ export class OrbStyleApp extends HandlebarsApplicationMixin(ApplicationV2) {
       globalThis.ClickAdventure._hud.render({ force: true });
     }
   }
-
-  /**
-   * Starts the goo ball canvas animation inside the preview area.
-   * Mirrors the logic in NavHudApp._startGooAnimation but smaller (120×180 canvas).
-   * @param {HTMLCanvasElement} canvas
-   * @param {string} color  — hex color string
-   */
-  _startGooPreview(canvas, color) {
-    this._stopGooPreview();
-    _runGooAnimation(canvas, color, 45, this, "_previewRaf");
-  }
-
-  _stopGooPreview() {
-    if (this._previewRaf !== null) {
-      cancelAnimationFrame(this._previewRaf);
-      this._previewRaf = null;
-    }
-  }
-}
-
-/**
- * Runs the goo ball canvas animation on a given canvas element.
- * Stores the rAF handle on `owner[rafKey]` so callers can cancel it.
- *
- * @param {HTMLCanvasElement} canvas
- * @param {string} color       — fill color (hex or rgba)
- * @param {number} ballRadius  — radius of the main ball in px
- * @param {object} owner       — object that owns the rAF handle property
- * @param {string} rafKey      — property name on `owner` where rAF handle is stored
- */
-export function _runGooAnimation(canvas, color, ballRadius, owner, rafKey) {
-  const ctx = canvas.getContext("2d");
-  const W = canvas.width;
-  const H = canvas.height;
-
-  const mainBall = { x: W / 2, y: ballRadius + 10, angle: 0 };
-
-  class Drip {
-    constructor(x, y, r) {
-      this.x = x; this.y = y; this.radius = r; this.maxR = r;
-      this.vy = 0;
-      this.gravity = Math.random() * 0.025 + 0.01;  // slower than original
-      this.active = true;
-    }
-    update() {
-      this.vy += this.gravity;
-      this.y  += this.vy;
-      if (this.vy > 1.5 && this.radius > this.maxR * 0.6) this.radius -= 0.04;
-      if (this.y - this.radius > H) this.active = false;
-    }
-    draw() {
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-      ctx.fillStyle = color;
-      ctx.fill();
-    }
-  }
-
-  let drips  = [];
-  let frames = 0;
-
-  function frame() {
-    owner[rafKey] = requestAnimationFrame(frame);
-    ctx.clearRect(0, 0, W, H);
-
-    mainBall.angle += 0.02;   // slower than original 0.05
-    const r = ballRadius + Math.sin(mainBall.angle) * 3;
-    const y = mainBall.y + Math.cos(mainBall.angle) * 2;
-
-    // Spawn drip every 80 frames (original was 40)
-    if (frames % 80 === 0 && Math.random() > 0.3) {
-      const ox     = (Math.random() - 0.5) * r * 1.2;
-      const startY = y + r * 0.8;
-      const dr     = Math.random() * (ballRadius * 0.25) + (ballRadius * 0.12);
-      drips.push(new Drip(mainBall.x + ox, startY, dr));
-    }
-
-    // Drips
-    for (let i = drips.length - 1; i >= 0; i--) {
-      drips[i].update();
-      drips[i].draw();
-      if (!drips[i].active) drips.splice(i, 1);
-    }
-
-    // Main ball
-    ctx.beginPath();
-    ctx.arc(mainBall.x, y, r, 0, Math.PI * 2);
-    ctx.fillStyle = color;
-    ctx.fill();
-
-    frames++;
-  }
-
-  owner[rafKey] = requestAnimationFrame(frame);
 }
