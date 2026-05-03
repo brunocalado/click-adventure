@@ -77,16 +77,38 @@ Hooks.on("updateSetting", (setting) => {
 });
 
 /**
- * Seeds this user's per-user currentNodeId flag from startNodeId on first load.
+ * Seeds this user's per-user currentNodeId flag from startNodeId on first load,
+ * then restores the correct scene view based on the saved node position.
  * Runs for every user (GM and players alike) — each gets their own independent flag.
- * Only writes when the user has no position yet and a startNodeId is defined.
+ * Only seeds when the user has no position yet and a startNodeId is defined.
+ * Only calls scene.view() when the currently viewed canvas scene differs from the
+ * node's scene, avoiding a redundant reload when the user is already in the right place.
  */
 Hooks.on("ready", async () => {
-  const { startNodeId } = getGraphData();
+  const { startNodeId, nodes } = getGraphData();
   const existing = game.user.getFlag("click-adventure", "currentNodeId");
+
+  // Seed position on first visit (no flag set yet)
   if (!existing && startNodeId) {
     await game.user.setFlag("click-adventure", "currentNodeId", startNodeId);
   }
+
+  // Resolve the node the user is currently at (after potential seed above)
+  const currentNodeId = game.user.getFlag("click-adventure", "currentNodeId");
+  if (!currentNodeId) return;
+
+  const node = nodes.find(n => n.id === currentNodeId);
+  if (!node?.sceneId) return;
+
+  // Only switch view if the canvas is not already showing the correct scene.
+  // This avoids a redundant scene.view() call when the user happens to reload
+  // while already on their node's scene.
+  if (canvas?.scene?.id === node.sceneId) return;
+
+  const scene = game.scenes.get(node.sceneId);
+  if (!scene) return;
+
+  await scene.view();
 });
 
 Hooks.on("init", () => {
