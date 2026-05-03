@@ -29,6 +29,10 @@ function _buildOrbGradient(baseHex) {
     `radial-gradient(circle at 40% 42%, ${light} 0%, ${baseHex} 48%, ${dark} 100%)`
   ].join(", ");
 }
+function _hexToRgba(hex, alpha) {
+  const { r, g, b } = _hexToRgb(hex);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
 // ─────────────────────────────────────────────────────────────────────────────
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -57,11 +61,20 @@ export class HudStyleApp extends HandlebarsApplicationMixin(ApplicationV2) {
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
     const style = game.settings.get("click-adventure", "orbStyle");
-    context.orbType     = style.type     ?? "orb";
-    context.orbSize     = style.size     ?? 1;
-    context.orbColor    = style.color    ?? "#3355aa";
-    context.orbImage    = style.orbImage ?? "";
-    context.orbGradient = _buildOrbGradient(context.orbColor); // still used by live HUD
+
+    const orbType  = style.type     ?? "orb";
+    const orbColor = style.color    ?? "#3355aa";
+    const orbImage = style.orbImage ?? "";
+    const scale    = style.size     ?? 1;
+    const baseOrb  = 80;   // mirrors --ca-orb-size: 80px from nav-hud-app
+
+    context.orbType     = orbType;
+    context.orbSize     = scale;
+    context.orbColor    = orbColor;
+    context.orbImage    = orbImage;
+    context.orbSizePx   = Math.round(baseOrb * scale);
+    context.orbGradient = orbImage ? "" : _buildOrbGradient(orbColor);
+    context.orbGlowRgba = _hexToRgba(orbColor, 0.5);
     context.isGM        = game.user.isGM;
 
     context.typeOptions = [
@@ -108,9 +121,9 @@ export class HudStyleApp extends HandlebarsApplicationMixin(ApplicationV2) {
       colorInput.addEventListener("input", async (e) => {
         const style = game.settings.get("click-adventure", "orbStyle");
         await game.settings.set("click-adventure", "orbStyle", { ...style, color: e.target.value });
-        // Update preview color without full re-render
+        // Update preview gradient without full re-render
         const previewShape = html.querySelector(".ca-os-preview-shape");
-        if (previewShape) previewShape.style.backgroundColor = e.target.value;
+        if (previewShape) previewShape.style.background = _buildOrbGradient(e.target.value);
         this._refreshHud();
       });
     }

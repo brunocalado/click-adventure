@@ -61,7 +61,11 @@ Hooks.on("updateSetting", (setting) => {
   const belongs = nodes.some(n => n.sceneId === scene.id);
 
   if (belongs && !globalThis.ClickAdventure._hud?.rendered) {
+    // HUD is not open yet but this scene is now part of the graph — open it.
     ClickAdventure.Hud();
+  } else if (globalThis.ClickAdventure._hud?.rendered) {
+    // HUD is already open — re-render so the destination list reflects the new graph.
+    globalThis.ClickAdventure._hud.render({ force: true });
   }
 });
 
