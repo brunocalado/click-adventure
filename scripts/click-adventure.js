@@ -13,7 +13,7 @@ import { ManagerApp } from "./manager-app.js";
 import { NavHudApp } from "./nav-hud-app.js";
 import { AdventureSocketManager } from "./socket-manager.js";
 import { getGraphData } from "./node-utils.js";
-import { OrbStyleApp } from "./orb-style-app.js";
+import { HudStyleApp } from "./hud-style-app.js";
 
 /**
  * Returns true if the given sceneId belongs to any node in the current graph.
@@ -142,7 +142,7 @@ Hooks.on("init", () => {
     label: "Customize HUD Button Style…",
     hint: "Configure the visual appearance of the navigation HUD button. Only the GM can change this; changes apply to all players.",
     icon: "fa-regular fa-circle",
-    type: OrbStyleApp,
+    type: HudStyleApp,
     restricted: true
   });
 

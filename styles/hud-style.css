@@ -1,8 +1,8 @@
-/* @section: orb-style-app
-   @scope: OrbStyleApp configuration window
+/* @section: hud-style-app
+   @scope: HudStyleApp configuration window
 */
 
-.orb-style .ca-os-panel {
+.hud-style .ca-os-panel {
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -11,23 +11,23 @@
   color: var(--ca-text-primary);
 }
 
-.orb-style .ca-os-section {
+.hud-style .ca-os-section {
   padding: 10px 14px;
   border-bottom: 1px solid var(--ca-border-divider);
 }
 
-.orb-style .ca-os-section:last-child {
+.hud-style .ca-os-section:last-child {
   border-bottom: none;
 }
 
 /* Type selector buttons */
-.orb-style .ca-os-type-row {
+.hud-style .ca-os-type-row {
   display: flex;
   gap: 6px;
   margin-top: 6px;
 }
 
-.orb-style .ca-os-type-btn {
+.hud-style .ca-os-type-btn {
   flex: 1;
   padding: 5px 10px;
   background: var(--ca-bg-toolbar);
@@ -39,38 +39,38 @@
   transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
-.orb-style .ca-os-type-btn:hover {
+.hud-style .ca-os-type-btn:hover {
   background: var(--ca-bg-toolbar-hover);
   color: var(--ca-text-bright);
 }
 
-.orb-style .ca-os-type-btn--active {
+.hud-style .ca-os-type-btn--active {
   background: rgba(60, 90, 180, 0.5);
   border-color: rgba(140, 180, 255, 0.6);
   color: var(--ca-text-bright);
 }
 
 /* Size / color rows */
-.orb-style .ca-os-row {
+.hud-style .ca-os-row {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-top: 6px;
 }
 
-.orb-style .ca-os-size {
+.hud-style .ca-os-size {
   flex: 1;
   accent-color: var(--ca-state-link-base);
 }
 
-.orb-style .ca-os-size-label {
+.hud-style .ca-os-size-label {
   min-width: 32px;
   font-size: 11px;
   color: var(--ca-text-muted);
   text-align: right;
 }
 
-.orb-style .ca-os-color {
+.hud-style .ca-os-color {
   width: 40px;
   height: 26px;
   padding: 0;
@@ -80,20 +80,19 @@
   cursor: pointer;
 }
 
-/* Preview area */
-.orb-style .ca-os-preview {
+/* Preview area — no background set; inherits panel color for a homogeneous surface */
+.hud-style .ca-os-preview {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100px;
   margin-top: 6px;
-  background: var(--ca-bg-deep);
   border-radius: var(--ca-radius-md);
   overflow: hidden;
 }
 
 /* Image row */
-.orb-style .ca-os-image-path {
+.hud-style .ca-os-image-path {
   flex: 1;
   font-size: 11px;
   color: var(--ca-text-muted);
@@ -103,8 +102,8 @@
   max-width: 160px;
 }
 
-.orb-style .ca-os-image-browse,
-.orb-style .ca-os-image-clear {
+.hud-style .ca-os-image-browse,
+.hud-style .ca-os-image-clear {
   padding: 4px 8px;
   background: var(--ca-bg-toolbar);
   border: 1px solid var(--ca-border-toolbar);
@@ -116,25 +115,25 @@
   transition: background 0.15s, color 0.15s;
 }
 
-.orb-style .ca-os-image-browse:hover,
-.orb-style .ca-os-image-clear:hover {
+.hud-style .ca-os-image-browse:hover,
+.hud-style .ca-os-image-clear:hover {
   background: var(--ca-bg-toolbar-hover);
   color: var(--ca-text-bright);
 }
 
-.orb-style .ca-os-image-clear {
+.hud-style .ca-os-image-clear {
   padding: 4px 6px;
   color: var(--ca-state-danger);
   border-color: rgba(200, 112, 112, 0.3);
 }
 
-.orb-style .ca-os-image-thumb-wrap {
+.hud-style .ca-os-image-thumb-wrap {
   display: flex;
   justify-content: center;
   margin-top: 8px;
 }
 
-.orb-style .ca-os-image-thumb {
+.hud-style .ca-os-image-thumb {
   width: 48px;
   height: 48px;
   border-radius: 50%;
@@ -142,11 +141,11 @@
   border: 2px solid var(--ca-border-soft);
 }
 
-.orb-style .ca-os-image-thumb--square {
+.hud-style .ca-os-image-thumb--square {
   border-radius: 20%;
 }
 
-.orb-style .ca-os-optional {
+.hud-style .ca-os-optional {
   font-size: 10px;
   color: var(--ca-text-subtle);
   font-weight: normal;
@@ -154,18 +153,18 @@
 }
 
 /* Preview shapes */
-.orb-style .ca-os-preview-shape {
+.hud-style .ca-os-preview-shape {
   width: 52px;
   height: 52px;
   border-radius: 50%;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
 }
 
-.orb-style .ca-os-preview-shape--square {
+.hud-style .ca-os-preview-shape--square {
   border-radius: 20%;
 }
 
-.orb-style .ca-os-preview-img {
+.hud-style .ca-os-preview-img {
   width: 52px;
   height: 52px;
   border-radius: 50%;
@@ -173,6 +172,6 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
 }
 
-.orb-style .ca-os-preview-img--square {
+.hud-style .ca-os-preview-img--square {
   border-radius: 20%;
 }

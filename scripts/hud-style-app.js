@@ -1,10 +1,10 @@
 /**
- * OrbStyleApp — lets each player customise the visual style of their navigation HUD orb.
+ * HudStyleApp — GM-only configuration window for the navigation HUD button's visual style.
  * Accessible via Foundry's Module Settings page (registered via game.settings.registerMenu).
- * Saves to the per-client "orbStyle" setting.
+ * Saves to the world-scoped "orbStyle" setting; changes apply to all connected clients.
  * Changes are applied to the live HUD immediately via a forced re-render.
  *
- * Lifecycle hook: renderOrbStyleApp
+ * Lifecycle hook: renderHudStyleApp
  */
 
 // ── 3D gradient helpers (private to this module) ─────────────────────────────
@@ -33,21 +33,21 @@ function _buildOrbGradient(baseHex) {
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
-export class OrbStyleApp extends HandlebarsApplicationMixin(ApplicationV2) {
+export class HudStyleApp extends HandlebarsApplicationMixin(ApplicationV2) {
   /** @override */
   static BASE_APPLICATION = ApplicationV2;
 
   /** @override */
   static DEFAULT_OPTIONS = {
-    id: "orb-style-app",
-    classes: ["click-adventure", "orb-style"],
+    id: "hud-style-app",
+    classes: ["click-adventure", "hud-style"],
     window: { frame: true, title: "HUD Button Style", resizable: false },
     position: { width: 340, height: "auto" }
   };
 
   /** @override */
   static PARTS = {
-    form: { template: "modules/click-adventure/templates/orb-style-app.hbs" }
+    form: { template: "modules/click-adventure/templates/hud-style-app.hbs" }
   };
 
   /**

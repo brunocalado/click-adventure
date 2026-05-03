@@ -11,7 +11,7 @@ export { NavHudApp }              from "./nav-hud-app.js";
 export { LinkEditorApp }          from "./link-editor-app.js";
 export { InstructionsApp }        from "./instructions-app.js";
 export { AdventureSocketManager } from "./socket-manager.js";
-export { OrbStyleApp }            from "./orb-style-app.js";
+export { HudStyleApp }            from "./hud-style-app.js";
 
 // Main init — must be last because it references all the above
 import "./click-adventure.js";
