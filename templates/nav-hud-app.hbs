@@ -15,6 +15,15 @@
   <div class="ca-hud-orb-column">
     {{#if isGM}}
     <button
+      class="ca-hud-manager-btn"
+      data-action="open-manager"
+      type="button"
+      title="Open Scene Graph Manager"
+    >
+      <i class="fa-solid fa-sitemap"></i> Manager
+    </button>
+
+    <button
       class="ca-hud-mode-btn {{#if isGuideMode}}ca-hud-mode-btn--guide{{/if}}"
       data-action="toggle-gm-mode"
       type="button"

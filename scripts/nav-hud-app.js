@@ -331,6 +331,11 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
       });
     });
 
+    html.querySelector(".ca-hud-manager-btn")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      globalThis.ClickAdventure.Manager();
+    });
+
     html.querySelector(".ca-hud-mode-btn")?.addEventListener("click", (e) => {
       e.stopPropagation();
       this._gmNavMode = this._gmNavMode === "solo" ? "guide" : "solo";
