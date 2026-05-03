@@ -12,17 +12,34 @@
   </div>
   {{/if}}
 
-  {{!-- Orb — shape (orb vs square) and content (image vs gradient) are independent --}}
-  <div class="ca-hud-orb {{#if (eq orbType 'square')}}ca-hud-orb--square{{/if}}"
-       title="Click to navigate · Hold to drag"
-       style="--ca-orb-size: {{orbSizePx}}px; --ca-orb-inner: {{orbInnerPx}}px; --ca-orb-glow: {{orbGlowRgba}};">
-    {{#if orbImage}}
-      <img class="ca-hud-orb-img {{#if (eq orbType 'square')}}ca-hud-orb-img--square{{/if}}"
-           src="{{orbImage}}" draggable="false" />
-    {{else}}
-      <div class="ca-hud-orb-inner {{#if (eq orbType 'square')}}ca-hud-orb-inner--square{{/if}}"
-           style="background: {{orbGradient}};"></div>
+  <div class="ca-hud-orb-column">
+    {{#if isGM}}
+    <button
+      class="ca-hud-mode-btn {{#if isGuideMode}}ca-hud-mode-btn--guide{{/if}}"
+      data-action="toggle-gm-mode"
+      type="button"
+      title="{{#if isGuideMode}}Guide Mode: all players follow you. Click to switch to Solo.{{else}}Solo Mode: only you move. Click to switch to Guide.{{/if}}"
+    >
+      {{#if isGuideMode}}
+        <i class="fa-solid fa-people-arrows"></i> Guide
+      {{else}}
+        <i class="fa-solid fa-user"></i> Solo
+      {{/if}}
+    </button>
     {{/if}}
+
+    {{!-- Orb — shape (orb vs square) and content (image vs gradient) are independent --}}
+    <div class="ca-hud-orb {{#if (eq orbType 'square')}}ca-hud-orb--square{{/if}}"
+         title="Click to navigate · Hold to drag"
+         style="--ca-orb-size: {{orbSizePx}}px; --ca-orb-inner: {{orbInnerPx}}px; --ca-orb-glow: {{orbGlowRgba}};">
+      {{#if orbImage}}
+        <img class="ca-hud-orb-img {{#if (eq orbType 'square')}}ca-hud-orb-img--square{{/if}}"
+             src="{{orbImage}}" draggable="false" />
+      {{else}}
+        <div class="ca-hud-orb-inner {{#if (eq orbType 'square')}}ca-hud-orb-inner--square{{/if}}"
+             style="background: {{orbGradient}};"></div>
+      {{/if}}
+    </div>
   </div>
 
 </div>

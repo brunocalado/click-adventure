@@ -71,6 +71,13 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this._docMouseUp   = this._onDocMouseUp.bind(this);
     /** @type {boolean} — true only when the current mousedown originated on the orb */
     this._orbMouseDownActive = false;
+    /**
+     * GM navigation mode.
+     * "solo"  — only the GM moves (default, resets on reload).
+     * "guide" — all active non-GM players are dragged along with the GM.
+     * @type {"solo"|"guide"}
+     */
+    this._gmNavMode = "solo";
   }
 
 
@@ -230,6 +237,10 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     // isOpen is managed via DOM class toggle — default false on each render
     context.isOpen = false;
 
+    context.isGM        = game.user.isGM;
+    context.gmNavMode   = this._gmNavMode;
+    context.isGuideMode = this._gmNavMode === "guide";
+
     // Orb style — per-client
     const orbStyle  = game.settings.get("click-adventure", "orbStyle");
     const orbType   = orbStyle.type     ?? "orb";
@@ -318,6 +329,12 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
           this._navigateTo(target);
         }
       });
+    });
+
+    html.querySelector(".ca-hud-mode-btn")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      this._gmNavMode = this._gmNavMode === "solo" ? "guide" : "solo";
+      this.render({ force: true });
     });
 
     const orb = html.querySelector(".ca-hud-orb");
@@ -441,6 +458,20 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     // Per-user position — does not affect other players' currentNodeId flags
     await game.user.setFlag("click-adventure", "currentNodeId", targetNode.id);
+
+    // Guide mode: drag all active non-GM players to the same node, bypassing gated mode.
+    if (game.user.isGM && this._gmNavMode === "guide") {
+      const players = game.users.filter(u => !u.isGM && u.active);
+      for (const user of players) {
+        await user.unsetFlag("click-adventure", "previousNodeId");
+        await user.setFlag("click-adventure", "currentNodeId", targetNode.id);
+        if (targetNode.sceneId) {
+          globalThis.ClickAdventure._socket.teleportUser(targetNode.sceneId, user.id);
+        } else {
+          globalThis.ClickAdventure._socket.notifyHudRefresh(user.id);
+        }
+      }
+    }
 
     // Notify GM's manager of position change (lightweight DOM patch, no full re-render)
     globalThis.ClickAdventure._socket.emitPlayerMoved(targetNode.id);

@@ -200,3 +200,47 @@
   font-size: 11px;
   opacity: 0.85;
 }
+
+/* Column wrapper: mode button stacked above the orb */
+.ca-hud-orb-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: all;
+}
+
+/* GM navigation mode toggle */
+.ca-hud-mode-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.55);
+  color: rgba(255, 255, 255, 0.65);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
+  margin-bottom: 6px;
+  align-self: center;
+  pointer-events: all;
+}
+
+.ca-hud-mode-btn:hover {
+  background: rgba(0, 0, 0, 0.75);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Amber in guide mode — immediately distinct, warns the GM that all players will follow */
+.ca-hud-mode-btn--guide {
+  background: rgba(180, 100, 0, 0.75);
+  border-color: rgba(255, 165, 0, 0.6);
+  color: #ffd580;
+}
+
+.ca-hud-mode-btn--guide:hover {
+  background: rgba(200, 115, 0, 0.9);
+}
