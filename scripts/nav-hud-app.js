@@ -492,7 +492,9 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
         if (targetNode.sceneId) {
           globalThis.ClickAdventure._socket.teleportUser(targetNode.sceneId, user.id);
-          globalThis.ClickAdventure._socket.emitMoveToken({
+          // GM is already the executor — call the handler directly instead of emitting
+          // to self (socket.io does not echo to the emitter).
+          await globalThis.ClickAdventure._socket._handleMoveToken({
             userId:     user.id,
             fromSceneId,
             toSceneId:  targetNode.sceneId
