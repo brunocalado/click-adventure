@@ -57,6 +57,9 @@ export class AdventureSocketManager {
         case "NAV_REJECTED":
           this._handleNavRejected(payload);
           break;
+        case "MOVE_TOKEN":
+          this._handleMoveToken(payload);
+          break;
         default:
           console.warn(`AdventureSocketManager | Unknown message type: ${type}`);
       }
@@ -176,6 +179,65 @@ export class AdventureSocketManager {
    */
   notifyHudRefresh(userId) {
     this._emit("HUD_REFRESH", { userId });
+  }
+
+  /**
+   * Asks the GM client to move a player's linked actor token from one scene to another.
+   * Only the GM client executes the actual token operations.
+   * @param {{ userId: string, fromSceneId: string|null, toSceneId: string }} param0
+   */
+  emitMoveToken({ userId, fromSceneId, toSceneId }) {
+    this._emit("MOVE_TOKEN", { userId, fromSceneId, toSceneId });
+  }
+
+  /**
+   * Received by all clients. Only the GM executes token operations.
+   *
+   * Logic:
+   *  1. Resolve the user's linked actor — bail if none.
+   *  2. In toScene: if a token for this actor already exists, do nothing.
+   *  3. In fromScene: find the actor's token and delete it.
+   *  4. In toScene: create a new token from actor.prototypeToken at center.
+   *
+   * Triggered by socket message type MOVE_TOKEN.
+   * @param {{ userId: string, fromSceneId: string|null, toSceneId: string }} payload
+   */
+  async _handleMoveToken({ userId, fromSceneId, toSceneId } = {}) {
+    if (!game.user.isGM) return;
+    if (!toSceneId) return;
+
+    const user = game.users.get(userId);
+    if (!user) return;
+
+    const actor = user.character;
+    if (!actor) return;
+
+    const toScene = game.scenes.get(toSceneId);
+    if (!toScene) return;
+
+    // Token already exists in destination — do nothing.
+    const alreadyThere = toScene.tokens.find(t => t.actorId === actor.id);
+    if (alreadyThere) return;
+
+    // Delete token from origin scene (if provided and token exists there).
+    if (fromSceneId && fromSceneId !== toSceneId) {
+      const fromScene = game.scenes.get(fromSceneId);
+      if (fromScene) {
+        const originToken = fromScene.tokens.find(t => t.actorId === actor.id);
+        if (originToken) await originToken.delete();
+      }
+    }
+
+    // Create a new token in the destination scene at the scene center.
+    const proto = actor.prototypeToken.toObject();
+    const tokenData = foundry.utils.mergeObject(proto, {
+      x: Math.round((toScene.width  / 2) - ((proto.width  ?? 1) * (toScene.grid?.size ?? 100) / 2)),
+      y: Math.round((toScene.height / 2) - ((proto.height ?? 1) * (toScene.grid?.size ?? 100) / 2)),
+      actorId: actor.id,
+      actorLink: true
+    });
+
+    await TokenDocument.create(tokenData, { parent: toScene });
   }
 
   /**

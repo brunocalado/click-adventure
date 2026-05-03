@@ -464,14 +464,39 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     // Per-user position — does not affect other players' currentNodeId flags
     await game.user.setFlag("click-adventure", "currentNodeId", targetNode.id);
 
+    // Request GM to move this player's token between scenes.
+    if (!game.user.isGM) {
+      const fromSceneId = currentNode?.sceneId ?? null;
+      const toSceneId   = targetNode.sceneId   ?? null;
+      if (toSceneId) {
+        globalThis.ClickAdventure._socket.emitMoveToken({
+          userId:      game.userId,
+          fromSceneId,
+          toSceneId
+        });
+      }
+    }
+
     // Guide mode: drag all active non-GM players to the same node, bypassing gated mode.
     if (game.user.isGM && this._gmNavMode === "guide") {
+      const { nodes } = getGraphData();
       const players = game.users.filter(u => !u.isGM && u.active);
       for (const user of players) {
+        // Capture origin BEFORE overwriting the flag.
+        const fromNodeId  = user.getFlag("click-adventure", "currentNodeId") ?? null;
+        const fromNode    = nodes.find(n => n.id === fromNodeId);
+        const fromSceneId = fromNode?.sceneId ?? null;
+
         await user.unsetFlag("click-adventure", "previousNodeId");
         await user.setFlag("click-adventure", "currentNodeId", targetNode.id);
+
         if (targetNode.sceneId) {
           globalThis.ClickAdventure._socket.teleportUser(targetNode.sceneId, user.id);
+          globalThis.ClickAdventure._socket.emitMoveToken({
+            userId:     user.id,
+            fromSceneId,
+            toSceneId:  targetNode.sceneId
+          });
         } else {
           globalThis.ClickAdventure._socket.notifyHudRefresh(user.id);
         }
