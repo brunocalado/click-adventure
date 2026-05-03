@@ -1,3 +1,12 @@
+/* Reset Foundry's default window-content padding for this window only.
+   .application .window-content adds padding: var(--spacer-16) globally.
+   ID specificity (#hud-style-app) wins over class specificity (.application)
+   so this override is safe and does not leak to any other window. */
+#hud-style-app .window-content {
+  padding: 0;
+  overflow: hidden;
+}
+
 /* @section: hud-style-app
    @scope: HudStyleApp configuration window
 */
