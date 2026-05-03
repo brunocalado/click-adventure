@@ -384,44 +384,4 @@ export async function onTeleportPlayer(app, user, nodeId) {
   patchOccupantAvatars(app);
 }
 
-/**
- * Moves all active non-GM players to the graph's start node.
- * Updates each player's currentNodeId flag and notifies their client via socket.
- * No-op if there is no startNodeId defined.
- * @param {ManagerApp} app
- * @returns {Promise<void>}
- */
-export async function onSendToStart(app) {
-  const { startNodeId, nodes } = getGraphData();
-  if (!startNodeId) {
-    ui.notifications.warn("Click Adventure: No start node defined.");
-    return;
-  }
 
-  const startNode = nodes.find(n => n.id === startNodeId);
-  if (!startNode) {
-    ui.notifications.warn("Click Adventure: Start node not found in graph.");
-    return;
-  }
-
-  const players = game.users.filter(u => !u.isGM && u.active);
-  if (players.length === 0) {
-    ui.notifications.info("Click Adventure: No active players to move.");
-    return;
-  }
-
-  for (const user of players) {
-    // Teleport clears the "came from" context
-    await user.unsetFlag("click-adventure", "previousNodeId");
-    await user.setFlag("click-adventure", "currentNodeId", startNodeId);
-
-    if (startNode.sceneId) {
-      globalThis.ClickAdventure._socket.teleportUser(startNode.sceneId, user.id);
-    } else {
-      globalThis.ClickAdventure._socket.notifyHudRefresh(user.id);
-    }
-  }
-
-  patchOccupantAvatars(app);
-  ui.notifications.info(`Click Adventure: ${players.length} player(s) sent to "${startNode.label || startNodeId}".`);
-}

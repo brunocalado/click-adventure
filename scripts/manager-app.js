@@ -26,7 +26,7 @@ import {
 import {
   buildOccupants, patchOccupantAvatars, patchRequestsDrawer,
   approveRequest, onApproveAll, rejectRequest,
-  onSetActiveNode, onViewScene, onNodeContextMenu, onSendToStart
+  onSetActiveNode, onViewScene, onNodeContextMenu
 } from "./manager-players.js";
 import {
   onAddNode, onImportFolder, onSyncScenes, onResetGraph
@@ -216,7 +216,6 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     html.querySelector(".ca-add-node")?.addEventListener("click", () => onAddNode(this));
     html.querySelector(".ca-import-folder")?.addEventListener("click", () => onImportFolder(this));
     html.querySelector(".ca-sync-scenes")?.addEventListener("click", () => onSyncScenes(this));
-    html.querySelector(".ca-send-to-start")?.addEventListener("click", () => onSendToStart(this));
     html.querySelector(".ca-reset-graph")?.addEventListener("click", () => onResetGraph(this));
 
     html.querySelectorAll(".ca-nav-mode-btn").forEach(btn => {
