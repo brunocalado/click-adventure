@@ -41,7 +41,7 @@ export class OrbStyleApp extends HandlebarsApplicationMixin(ApplicationV2) {
   static DEFAULT_OPTIONS = {
     id: "orb-style-app",
     classes: ["click-adventure", "orb-style"],
-    window: { frame: true, title: "HUD Orb Style", resizable: false },
+    window: { frame: true, title: "HUD Button Style", resizable: false },
     position: { width: 340, height: "auto" }
   };
 
@@ -61,7 +61,8 @@ export class OrbStyleApp extends HandlebarsApplicationMixin(ApplicationV2) {
     context.orbSize     = style.size     ?? 1;
     context.orbColor    = style.color    ?? "#3355aa";
     context.orbImage    = style.orbImage ?? "";
-    context.orbGradient = _buildOrbGradient(context.orbColor);
+    context.orbGradient = _buildOrbGradient(context.orbColor); // still used by live HUD
+    context.isGM        = game.user.isGM;
 
     context.typeOptions = [
       { value: "orb",    label: "Orb"    },
@@ -76,6 +77,7 @@ export class OrbStyleApp extends HandlebarsApplicationMixin(ApplicationV2) {
    */
   _onRender(context, options) {
     super._onRender(context, options);
+    if (!game.user.isGM) return;   // players see the form but cannot interact
     const html = this.element;
 
     // Type buttons
@@ -106,9 +108,9 @@ export class OrbStyleApp extends HandlebarsApplicationMixin(ApplicationV2) {
       colorInput.addEventListener("input", async (e) => {
         const style = game.settings.get("click-adventure", "orbStyle");
         await game.settings.set("click-adventure", "orbStyle", { ...style, color: e.target.value });
-        // Update preview gradient without full re-render
+        // Update preview color without full re-render
         const previewShape = html.querySelector(".ca-os-preview-shape");
-        if (previewShape) previewShape.style.background = _buildOrbGradient(e.target.value);
+        if (previewShape) previewShape.style.backgroundColor = e.target.value;
         this._refreshHud();
       });
     }

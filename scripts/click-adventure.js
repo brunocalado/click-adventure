@@ -129,21 +129,21 @@ Hooks.on("init", () => {
   });
 
   game.settings.register("click-adventure", "orbStyle", {
-    name: "HUD Orb Style",
-    hint: "Visual appearance of the navigation HUD orb.",
-    scope: "client",       // per-user, not world — each player picks their own
+    name: "HUD Button Style",
+    hint: "Visual appearance of the navigation HUD button. Configured by the GM; applies to all players.",
+    scope: "world",
     config: false,
     type: Object,
     default: { type: "orb", size: 1, color: "#3355aa", orbImage: "" }
   });
 
   game.settings.registerMenu("click-adventure", "orbStyleMenu", {
-    name: "HUD Orb Style",
-    label: "Customize Orb Style…",
-    hint: "Configure the visual appearance of the navigation HUD orb for this client.",
+    name: "HUD Button Style",
+    label: "Customize HUD Button Style…",
+    hint: "Configure the visual appearance of the navigation HUD button. Only the GM can change this; changes apply to all players.",
     icon: "fa-regular fa-circle",
     type: OrbStyleApp,
-    restricted: false
+    restricted: true
   });
 
   // Instantiate socket manager — must run during init so the listener

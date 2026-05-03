@@ -1,5 +1,7 @@
 <div class="ca-os-panel">
 
+  {{#if isGM}}
+
   {{!-- Type --}}
   <div class="ca-os-section">
     <div class="ca-settings-section-title">Type</div>
@@ -41,10 +43,18 @@
     </div>
     {{#if orbImage}}
     <div class="ca-os-image-thumb-wrap">
-      <img class="ca-os-image-thumb {{#if (eq orbType 'square')}}ca-os-image-thumb--square{{/if}}" src="{{orbImage}}" alt="Orb image preview" />
+      <img class="ca-os-image-thumb {{#if (eq orbType 'square')}}ca-os-image-thumb--square{{/if}}" src="{{orbImage}}" alt="HUD button image preview" />
     </div>
     {{/if}}
   </div>
+
+  {{else}}
+
+  <div class="ca-os-section">
+    <p class="ca-settings-hint">Only the GM can modify the HUD button style.</p>
+  </div>
+
+  {{/if}}
 
   {{!-- Preview --}}
   <div class="ca-os-section">
@@ -55,7 +65,7 @@
              src="{{orbImage}}" alt="preview" />
       {{else}}
         <div class="ca-os-preview-shape {{#if (eq orbType 'square')}}ca-os-preview-shape--square{{/if}}"
-             style="background: {{orbGradient}};"></div>
+             style="background-color: {{orbColor}};"></div>
       {{/if}}
     </div>
   </div>
