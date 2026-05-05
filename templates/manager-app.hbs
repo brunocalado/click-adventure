@@ -72,7 +72,31 @@
     {{/if}}
   </div>
 
-  <div class="ca-workspace">
+  <div class="ca-manager-layout">
+
+    {{!-- LEFT SIDEBAR: Player panel --}}
+    <aside class="ca-player-panel">
+      <div class="ca-player-panel-title">Players</div>
+      <ul class="ca-player-list">
+        {{#each players}}
+        <li class="ca-player-row {{#unless active}}ca-player-row--offline{{/unless}}"
+            data-user-id="{{userId}}"
+            {{#if nodeId}}data-node-id="{{nodeId}}"{{/if}}>
+          <span class="ca-player-dot" style="background:{{color}};"
+                title="{{#if active}}Online{{else}}Offline{{/if}}"></span>
+          <span class="ca-player-name">{{displayName}}</span>
+          {{#if nodeLabel}}
+            <span class="ca-player-location" title="{{nodeLabel}}">{{nodeLabel}}</span>
+          {{else}}
+            <span class="ca-player-location ca-player-location--none">—</span>
+          {{/if}}
+        </li>
+        {{/each}}
+      </ul>
+    </aside>
+
+    {{!-- WORKSPACE --}}
+    <div class="ca-workspace">
     <div class="ca-canvas">
     <svg class="ca-links-layer" xmlns="http://www.w3.org/2000/svg" width="8000" height="8000"></svg>
     {{#each nodes}}
@@ -124,14 +148,11 @@
       </span>
       {{/if}}
 
-      {{!-- Player occupant name labels — shown above each node --}}
+      {{!-- Player occupant count badge --}}
       {{#if occupants.length}}
-      <div class="ca-node-occupants">
-        {{#each occupants}}
-        <span class="ca-occupant-label" style="border-color: {{color}};" title="{{name}}">
-          {{name}}
-        </span>
-        {{/each}}
+      <div class="ca-node-occupant-badge">
+        <i class="fa-solid fa-people-group"></i>
+        <span>{{occupants.length}}</span>
       </div>
       {{/if}}
 
@@ -142,5 +163,6 @@
     </div>
     {{/each}}
     </div>
-  </div>
-</div>
+  </div>{{!-- /.ca-workspace --}}
+  </div>{{!-- /.ca-manager-layout --}}
+</div>{{!-- /.ca-manager --}}

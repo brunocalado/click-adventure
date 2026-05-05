@@ -24,7 +24,7 @@ import {
   onDocMouseMove, onDocMouseUp
 } from "./manager-interaction.js";
 import {
-  buildOccupants, patchOccupantAvatars, patchRequestsDrawer,
+  buildOccupants, buildPlayerPanelData, patchOccupantAvatars, patchRequestsDrawer,
   approveRequest, onApproveAll, rejectRequest,
   onSetActiveNode, onViewScene, onNodeContextMenu
 } from "./manager-players.js";
@@ -149,6 +149,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     context.requests       = [...this._navRequests.values()]
       .sort((a, b) => a.timestamp - b.timestamp)
       .map(r => ({ ...r, fromLabel: getLabel(r.fromNodeId), toLabel: getLabel(r.toNodeId) }));
+    context.players = buildPlayerPanelData();
 
     return context;
   }
@@ -289,6 +290,19 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     renderLinks(this);
+
+    // Bidirectional highlight: hovering a node highlights the panel row.
+    html.querySelectorAll(".ca-node").forEach(nodeEl => {
+      const nodeId = nodeEl.dataset.nodeId;
+      nodeEl.addEventListener("mouseenter", () => {
+        html.querySelectorAll(`.ca-player-row[data-node-id="${nodeId}"]`)
+          .forEach(row => row.classList.add("ca-player-row--highlighted"));
+      });
+      nodeEl.addEventListener("mouseleave", () => {
+        html.querySelectorAll(`.ca-player-row[data-node-id="${nodeId}"]`)
+          .forEach(row => row.classList.remove("ca-player-row--highlighted"));
+      });
+    });
 
     // Pan: mousedown on workspace background (not on a node or button)
     const workspace = html.querySelector(".ca-workspace");

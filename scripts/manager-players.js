@@ -33,6 +33,29 @@ export function buildOccupants() {
   return map;
 }
 
+/**
+ * Builds the data array used to render the player panel sidebar.
+ * Includes all non-GM users (active and inactive).
+ * @returns {Array<{ userId, displayName, color, active, nodeId, nodeLabel }>}
+ */
+export function buildPlayerPanelData() {
+  const { nodes } = getGraphData();
+  return game.users
+    .filter(u => !u.isGM)
+    .map(u => {
+      const nodeId    = u.getFlag("click-adventure", "currentNodeId") ?? null;
+      const node      = nodes.find(n => n.id === nodeId);
+      return {
+        userId:      u.id,
+        displayName: u.character?.name ?? u.name,
+        color:       u.color?.css ?? u.color ?? "#ffffff",
+        active:      u.active,
+        nodeId:      nodeId,
+        nodeLabel:   node?.label ?? null
+      };
+    });
+}
+
 // ---------------------------------------------------------------------------
 // Occupant DOM patching
 // ---------------------------------------------------------------------------
@@ -45,32 +68,114 @@ export function buildOccupants() {
  */
 export function patchOccupantAvatars(app) {
   if (!app.rendered) return;
-  const workspace = app.element?.querySelector(".ca-workspace");
-  if (!workspace) return;
+  const html = app.element;
 
-  const occupants = buildOccupants();
+  const occupants   = buildOccupants();       // nodeId → [{name, color}]
+  const panelData   = buildPlayerPanelData(); // array of player rows
 
-  workspace.querySelectorAll(".ca-node").forEach(nodeEl => {
+  // ── 1. Update node badges (count + icon, no text labels) ──────────────────
+  html.querySelectorAll(".ca-node").forEach(nodeEl => {
     const nodeId = nodeEl.dataset.nodeId;
-    const list = occupants.get(nodeId) ?? [];
+    const count  = (occupants.get(nodeId) ?? []).length;
 
+    // Remove old occupant labels strip
     nodeEl.querySelector(".ca-node-occupants")?.remove();
-    if (list.length === 0) return;
 
-    const strip = document.createElement("div");
-    strip.className = "ca-node-occupants";
+    // Update or remove the count badge
+    let badge = nodeEl.querySelector(".ca-node-occupant-badge");
+    if (count === 0) {
+      badge?.remove();
+      return;
+    }
+    if (!badge) {
+      badge = document.createElement("div");
+      badge.className = "ca-node-occupant-badge";
+      nodeEl.appendChild(badge);
+    }
+    badge.innerHTML = `<i class="fa-solid fa-people-group"></i><span>${count}</span>`;
+  });
 
-    for (const { name, color } of list) {
-      const label = document.createElement("span");
-      label.className = "ca-occupant-label";
-      label.textContent = name;
-      label.title = name;
-      label.style.borderColor = color;
-      strip.appendChild(label);
+  // ── 2. Rebuild player panel rows ──────────────────────────────────────────
+  const list = html.querySelector(".ca-player-list");
+  if (!list) return;
+  list.innerHTML = "";
+
+  for (const p of panelData) {
+    const li = document.createElement("li");
+    li.className = "ca-player-row" + (p.active ? "" : " ca-player-row--offline");
+    li.dataset.userId = p.userId;
+    if (p.nodeId) li.dataset.nodeId = p.nodeId;
+
+    li.innerHTML = `
+      <span class="ca-player-dot" style="background:${p.color};"
+            title="${p.active ? "Online" : "Offline"}"></span>
+      <span class="ca-player-name">${p.displayName}</span>
+      ${p.nodeLabel
+        ? `<span class="ca-player-location" title="${p.nodeLabel}">${p.nodeLabel}</span>`
+        : `<span class="ca-player-location ca-player-location--none">—</span>`
+      }
+    `;
+
+    // Click: center canvas on the player's node
+    if (p.nodeId) {
+      li.addEventListener("click", () => _focusNode(app, p.nodeId));
     }
 
-    nodeEl.appendChild(strip);
-  });
+    // Hover: highlight the corresponding node
+    li.addEventListener("mouseenter", () => _setNodeHighlight(app, p.nodeId, true));
+    li.addEventListener("mouseleave", () => _setNodeHighlight(app, p.nodeId, false));
+
+    list.appendChild(li);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Private helpers — panel interaction
+// ---------------------------------------------------------------------------
+
+/**
+ * Centers the canvas viewport on the given node by adjusting app._pan.
+ * @param {ManagerApp} app
+ * @param {string} nodeId
+ */
+function _focusNode(app, nodeId) {
+  if (!nodeId) return;
+  const nodeEl = app.element?.querySelector(`.ca-node[data-node-id="${nodeId}"]`);
+  if (!nodeEl) return;
+
+  const workspace = app.element.querySelector(".ca-workspace");
+  if (!workspace) return;
+
+  const nodeX = parseFloat(nodeEl.style.left) || 0;
+  const nodeY = parseFloat(nodeEl.style.top)  || 0;
+
+  const wRect  = workspace.getBoundingClientRect();
+  const centerX = wRect.width  / 2;
+  const centerY = wRect.height / 2;
+
+  app._pan = {
+    x: centerX - nodeX - (nodeEl.offsetWidth  / 2),
+    y: centerY - nodeY - (nodeEl.offsetHeight / 2)
+  };
+
+  const canvas = app.element.querySelector(".ca-canvas");
+  if (canvas) canvas.style.transform = `translate(${app._pan.x}px, ${app._pan.y}px)`;
+
+  // Briefly highlight the node after centering
+  _setNodeHighlight(app, nodeId, true);
+  setTimeout(() => _setNodeHighlight(app, nodeId, false), 1200);
+}
+
+/**
+ * Adds or removes the highlight class on a specific node element.
+ * @param {ManagerApp} app
+ * @param {string|null} nodeId
+ * @param {boolean} on
+ */
+function _setNodeHighlight(app, nodeId, on) {
+  if (!nodeId) return;
+  const nodeEl = app.element?.querySelector(`.ca-node[data-node-id="${nodeId}"]`);
+  nodeEl?.classList.toggle("ca-node--highlighted", on);
 }
 
 // ---------------------------------------------------------------------------
