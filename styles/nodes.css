@@ -111,19 +111,23 @@
   letter-spacing: 0.01em;
 }
 
-/* Start point star icon — top-left corner. */
-.ca-start-icon {
+/* Wrapper top-left: holds start star and occupant badge side by side. */
+.ca-node-top-left {
   position: absolute;
-  top: -6px;
-  left: -6px;
-  width: 20px;
-  height: 20px;
+  top: 4px;
+  left: 4px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  color: var(--ca-state-warning);
-  pointer-events: none;
+  gap: 3px;
   z-index: var(--ca-z-node-buttons);
+  pointer-events: none;
+}
+
+/* Start point star icon — inside the wrapper, no own absolute position. */
+.ca-start-icon {
+  display: flex;
+  align-items: center;
+  color: var(--ca-state-warning);
   filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.8));
 }
 
@@ -225,25 +229,20 @@
 .ca-anchor-bottom:hover { transform: translateX(-50%) scale(1.4); }
 .ca-anchor-left:hover   { transform: translateY(-50%) scale(1.4); }
 
-/* Node occupant count badge — compact icon + number below the card. */
+/* Node occupant count badge — compact icon + number inside the top-left wrapper. */
 .ca-node-occupant-badge {
-  position: absolute;
-  bottom: -10px;
-  left: 50%;
-  transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: 3px;
   background: rgba(0, 0, 0, 0.72);
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 10px;
-  padding: 1px 6px;
+  padding: 1px 5px;
   font-size: 10px;
   font-weight: 700;
   color: rgba(255, 255, 255, 0.85);
   pointer-events: none;
   white-space: nowrap;
-  z-index: var(--ca-z-node-buttons);
 }
 
 .ca-node-occupant-badge i {
@@ -251,9 +250,11 @@
   color: rgba(255, 255, 255, 0.55);
 }
 
-/* Node highlight — amber ring when hovered from the player panel or after focus. */
-.ca-node--highlighted {
-  outline: 2px solid rgba(255, 200, 60, 0.85);
+/* Node highlight — amber ring when hovered from the player panel or after focus.
+   Uses !important to override the active-node green border (higher specificity). */
+.ca-node--highlighted,
+.ca-node[data-active="true"].ca-node--highlighted {
+  outline: 2px solid rgba(255, 200, 60, 0.85) !important;
   outline-offset: 3px;
   border-radius: 6px;
 }

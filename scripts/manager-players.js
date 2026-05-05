@@ -81,7 +81,10 @@ export function patchOccupantAvatars(app) {
     // Remove old occupant labels strip
     nodeEl.querySelector(".ca-node-occupants")?.remove();
 
-    // Update or remove the count badge
+    // Get or create the top-left wrapper
+    let wrapper = nodeEl.querySelector(".ca-node-top-left");
+
+    // Update or remove the count badge inside the wrapper
     let badge = nodeEl.querySelector(".ca-node-occupant-badge");
     if (count === 0) {
       badge?.remove();
@@ -90,7 +93,8 @@ export function patchOccupantAvatars(app) {
     if (!badge) {
       badge = document.createElement("div");
       badge.className = "ca-node-occupant-badge";
-      nodeEl.appendChild(badge);
+      // If the wrapper exists, place badge inside it; otherwise fall back to node root
+      (wrapper ?? nodeEl).appendChild(badge);
     }
     badge.innerHTML = `<i class="fa-solid fa-people-group"></i><span>${count}</span>`;
   });
@@ -149,13 +153,23 @@ function _focusNode(app, nodeId) {
   const nodeX = parseFloat(nodeEl.style.left) || 0;
   const nodeY = parseFloat(nodeEl.style.top)  || 0;
 
-  const wRect  = workspace.getBoundingClientRect();
-  const centerX = wRect.width  / 2;
-  const centerY = wRect.height / 2;
+  const wRect   = workspace.getBoundingClientRect();
+  const wWidth  = wRect.width;
+  const wHeight = wRect.height;
+
+  // Desired pan: center the node in the workspace viewport
+  const desiredX = (wWidth  / 2) - nodeX - (nodeEl.offsetWidth  / 2);
+  const desiredY = (wHeight / 2) - nodeY - (nodeEl.offsetHeight / 2);
+
+  // Clamp: pan must not exceed 0 (would expose area before canvas origin)
+  // and must not go below -(CANVAS_SIZE - workspaceSize) (would expose area past canvas end)
+  const CANVAS_SIZE = 8000; // must match CANVAS_SIZE constant in manager-interaction.js
+  const minX = -(CANVAS_SIZE - wWidth);
+  const minY = -(CANVAS_SIZE - wHeight);
 
   app._pan = {
-    x: centerX - nodeX - (nodeEl.offsetWidth  / 2),
-    y: centerY - nodeY - (nodeEl.offsetHeight / 2)
+    x: Math.min(0, Math.max(minX, desiredX)),
+    y: Math.min(0, Math.max(minY, desiredY))
   };
 
   const canvas = app.element.querySelector(".ca-canvas");
