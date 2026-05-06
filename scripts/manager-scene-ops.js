@@ -186,7 +186,8 @@ export async function createSceneForNode(node, folderId) {
   const sceneData = buildSceneData(node.label || "Scene");
   sceneData.folder = folderId;
   sceneData.navigation = false;
-  sceneData.navName = node.label || "Scene";
+  const activeImgForNav = node.images?.[node.activeImageIndex ?? 0] ?? node.images?.[0] ?? null;
+  sceneData.navName = activeImgForNav?.label?.trim() || "";
 
   const rawTransition = game.settings.get("click-adventure", "transitionType");
   sceneData.transition.type = rawTransition === "null" ? null : rawTransition;
@@ -245,9 +246,11 @@ export async function onSyncScenes(app) {
 
     const rawTransitionSync = game.settings.get("click-adventure", "transitionType");
     const transitionTypeSync = rawTransitionSync === "null" ? null : rawTransitionSync;
+    const activeImgForNav = node.images?.[node.activeImageIndex ?? 0] ?? node.images?.[0] ?? null;
+    const navNameSync = activeImgForNav?.label?.trim() || "";
     const sceneUpdate = { "transition.type": transitionTypeSync };
     if (scene.name !== node.label) sceneUpdate.name = node.label;
-    if (scene.navName !== node.label) sceneUpdate.navName = node.label;
+    if (scene.navName !== navNameSync) sceneUpdate.navName = navNameSync;
     await scene.update(sceneUpdate);
 
     const activeImage = node.images?.[node.activeImageIndex ?? 0]?.src

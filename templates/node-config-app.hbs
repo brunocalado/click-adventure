@@ -1,7 +1,7 @@
 <div class="ca-node-config">
 
   <div class="ca-node-config-row">
-    <label>Label <span class="ca-char-limit">(max 100)</span></label>
+    <label>Scene Name <span class="ca-char-limit">(max 100)</span></label>
     <input type="text" class="ca-node-label-input" value="{{nodeLabel}}" maxlength="100"/>
   </div>
 
@@ -17,6 +17,7 @@
       <li class="ca-image-item {{#if isActive}}ca-image-item--active{{/if}}">
         <div class="ca-image-thumb" style="background-image: url('{{src}}');"></div>
         <div class="ca-image-info">
+          <span class="ca-image-nav-label">Navigation Name</span>
           <input type="text" class="ca-image-label-input" data-index="{{index}}" value="{{label}}"/>
           <div class="ca-image-actions">
             {{#unless isActive}}
