@@ -345,6 +345,10 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
         }
       });
     }
+
+    // Ensure player panel rows have click/hover listeners immediately after
+    // every render, including the initial Handlebars render.
+    patchOccupantAvatars(this);
   }
 
   /**
