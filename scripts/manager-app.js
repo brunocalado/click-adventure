@@ -88,6 +88,13 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this._drawerOpen = false;
 
     /**
+     * Foundry hook ID for the "updateUser" hook, registered while the app is open.
+     * Stored so the hook can be removed without stacking duplicates on re-renders.
+     * @type {number|undefined}
+     */
+    this._onUpdateUserHook = undefined;
+
+    /**
      * Current pan offset of the canvas.
      * @type {{ x: number, y: number }}
      */
@@ -291,6 +298,16 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     renderLinks(this);
 
+    // React to flag changes set by a player's own ready hook (e.g. first join).
+    // Guard against duplicate registrations on repeated renders.
+    if (this._onUpdateUserHook !== undefined) {
+      Hooks.off("updateUser", this._onUpdateUserHook);
+    }
+    this._onUpdateUserHook = Hooks.on("updateUser", (user, diff) => {
+      if (diff.flags?.["click-adventure"]?.currentNodeId === undefined) return;
+      patchOccupantAvatars(this);
+    });
+
     // Bidirectional highlight: hovering a node highlights the panel row.
     html.querySelectorAll(".ca-node").forEach(nodeEl => {
       const nodeId = nodeEl.dataset.nodeId;
@@ -348,6 +365,10 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this._settingsApp?.close();
     this._settingsApp = null;
     document.querySelector(".ca-context-menu")?.remove();
+    if (this._onUpdateUserHook !== undefined) {
+      Hooks.off("updateUser", this._onUpdateUserHook);
+      this._onUpdateUserHook = undefined;
+    }
     await super._onClose(options);
   }
 }
