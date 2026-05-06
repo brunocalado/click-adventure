@@ -312,6 +312,23 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const updatedNode = updatedNodes.find(n => n.id === this.nodeId);
     if (updatedNode) await syncNodeTile(updatedNode);
 
+    // Navigate GM and all players currently on this node to the node's scene
+    if (updatedNode?.sceneId) {
+      const nodeSceneId = updatedNode.sceneId;
+
+      // GM: switch view locally
+      const gmScene = game.scenes.get(nodeSceneId);
+      if (gmScene) await gmScene.view();
+
+      // Players on this node: send via socket
+      for (const user of game.users) {
+        if (user.isGM || !user.active) continue;
+        const userNodeId = user.getFlag("click-adventure", "currentNodeId");
+        if (userNodeId !== this.nodeId) continue;
+        await globalThis.ClickAdventure._socket.viewSceneForUser(nodeSceneId, user.id);
+      }
+    }
+
     const manager = foundry.applications.instances.get("manager-app");
     if (manager?.rendered) manager.render({ force: true });
   }
