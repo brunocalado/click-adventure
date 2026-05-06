@@ -226,7 +226,7 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
       });
     }
 
-    // Use — activate linked scene globally
+    // Use — view linked scene for GM and all active players on this node
     html.querySelectorAll("[data-action='use-linked-scene']").forEach(btn => {
       btn.addEventListener("click", async () => {
         const idx = parseInt(btn.dataset.index, 10);
@@ -239,7 +239,17 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
           ui.notifications.error("Click Adventure: Linked scene not found. It may have been deleted.");
           return;
         }
-        await scene.activate();
+
+        // GM: switch view locally
+        await scene.view();
+
+        // Players on this node: send via socket
+        for (const user of game.users) {
+          if (user.isGM || !user.active) continue;
+          const userNodeId = user.getFlag("click-adventure", "currentNodeId");
+          if (userNodeId !== this.nodeId) continue;
+          await globalThis.ClickAdventure._socket.viewSceneForUser(entry.sceneId, user.id);
+        }
       });
     });
 
