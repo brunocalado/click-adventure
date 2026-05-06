@@ -51,6 +51,8 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
      * @type {boolean|null}
      */
     this._pendingStartNode = null;
+    /** @type {Array<{id:string, sceneId:string, label:string}>|null} */
+    this._pendingLinkedScenes = null;
   }
 
 
@@ -87,6 +89,15 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
       isActive: i === activeIndex
     }));
     context.activeIndex = activeIndex;
+
+    const persistedLinkedScenes = Array.isArray(node.linkedScenes) ? node.linkedScenes : [];
+    const workingLinkedScenes = this._pendingLinkedScenes ?? persistedLinkedScenes;
+    context.linkedScenes = workingLinkedScenes.map((ls, i) => ({
+      ...ls,
+      index: i,
+      sceneName: game.scenes.get(ls.sceneId)?.name ?? "(Scene not found)"
+    }));
+
     return context;
   }
 
@@ -174,6 +185,84 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     html.querySelector("[data-action='delete-node']")?.addEventListener("click", async () => {
       await this._deleteNode();
     });
+
+    // Drop zone — accepts Scene drag from the Scene Directory
+    const dropzone = html.querySelector(".ca-linked-scenes-dropzone");
+    if (dropzone) {
+      dropzone.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        dropzone.classList.add("ca-linked-scenes-dropzone--over");
+      });
+      dropzone.addEventListener("dragleave", () => {
+        dropzone.classList.remove("ca-linked-scenes-dropzone--over");
+      });
+      dropzone.addEventListener("drop", (event) => {
+        event.preventDefault();
+        dropzone.classList.remove("ca-linked-scenes-dropzone--over");
+
+        let data;
+        try { data = JSON.parse(event.dataTransfer.getData("text/plain")); }
+        catch { return; }
+
+        if (data?.type !== "Scene" || !data?.uuid) return;
+
+        const scene = fromUuidSync(data.uuid);
+        if (!scene) return;
+
+        // Prevent duplicates
+        const linked = this._getWorkingLinkedScenes();
+        if (linked.some(ls => ls.sceneId === scene.id)) {
+          ui.notifications.warn("Click Adventure: This scene is already linked to this node.");
+          return;
+        }
+
+        linked.push({
+          id: foundry.utils.randomID(),
+          sceneId: scene.id,
+          label: scene.name
+        });
+        this._pendingLinkedScenes = linked;
+        this.render({ force: true });
+      });
+    }
+
+    // Use — activate linked scene globally
+    html.querySelectorAll("[data-action='use-linked-scene']").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const idx = parseInt(btn.dataset.index, 10);
+        const linked = this._getWorkingLinkedScenes();
+        const entry = linked[idx];
+        if (!entry) return;
+
+        const scene = game.scenes.get(entry.sceneId);
+        if (!scene) {
+          ui.notifications.error("Click Adventure: Linked scene not found. It may have been deleted.");
+          return;
+        }
+        await scene.activate();
+      });
+    });
+
+    // Remove linked scene
+    html.querySelectorAll("[data-action='remove-linked-scene']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const idx = parseInt(btn.dataset.index, 10);
+        const linked = this._getWorkingLinkedScenes();
+        linked.splice(idx, 1);
+        this._pendingLinkedScenes = linked;
+        this.render({ force: true });
+      });
+    });
+
+    // Edit linked scene label
+    html.querySelectorAll(".ca-linked-scene-label-input").forEach(input => {
+      input.addEventListener("change", () => {
+        const idx = parseInt(input.dataset.index, 10);
+        const linked = this._getWorkingLinkedScenes();
+        if (linked[idx]) linked[idx].label = input.value.trim() || "Scene";
+        this._pendingLinkedScenes = linked;
+      });
+    });
   }
 
   /**
@@ -190,6 +279,17 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
       images = [{ id: foundry.utils.randomID(), src: node.imageSrc, label: "Default" }];
     }
     return [...images];
+  }
+
+  /**
+   * Returns a mutable copy of the working linked scenes array.
+   * @returns {Array<{id:string, sceneId:string, label:string}>}
+   */
+  _getWorkingLinkedScenes() {
+    if (this._pendingLinkedScenes !== null) return [...this._pendingLinkedScenes];
+    const { nodes } = getGraphData();
+    const node = nodes.find(n => n.id === this.nodeId);
+    return Array.isArray(node?.linkedScenes) ? [...node.linkedScenes] : [];
   }
 
   /**
@@ -229,9 +329,10 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const startNodeId = this._pendingStartNode ? this.nodeId : persistedStartNodeId;
     const images = this._getWorkingImages();
     const activeIndex = this._pendingActiveIndex ?? 0;
+    const linkedScenes = this._getWorkingLinkedScenes();
     const updatedNodes = nodes.map(n => {
       if (n.id !== this.nodeId) return n;
-      return { ...n, label, images, activeImageIndex: activeIndex, imageSrc: undefined };
+      return { ...n, label, images, activeImageIndex: activeIndex, linkedScenes, imageSrc: undefined };
     });
     await saveGraphData({ sceneId, startNodeId, nodes: updatedNodes, links });
 
@@ -262,6 +363,7 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this._pendingActiveIndex = null;
     this._pendingLabel = null;
     this._pendingStartNode = null;
+    this._pendingLinkedScenes = null;
 
     const manager = foundry.applications.instances.get("manager-app");
     if (manager?.rendered) manager.render({ force: true });

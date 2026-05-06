@@ -8,7 +8,7 @@
   <div class="ca-images-section">
     <div class="ca-images-header">
       <span>Images</span>
-      <button type="button" data-action="add-image" title="Add image">+ Add</button>
+      <button type="button" data-action="add-image" title="Add image">+ Add Image</button>
     </div>
 
     {{#if images.length}}
@@ -32,7 +32,34 @@
       {{/each}}
     </ul>
     {{else}}
-    <div class="ca-images-empty">No images yet. Click "+ Add" to browse.</div>
+    <div class="ca-images-empty">No images yet. Click "+ Add Image" to browse.</div>
+    {{/if}}
+  </div>
+
+  <div class="ca-linked-scenes-section">
+    <div class="ca-images-header">
+      <span>Linked Scenes</span>
+    </div>
+
+    <div class="ca-linked-scenes-dropzone" data-action="drop-scene">
+      <span>Drag a scene here</span>
+    </div>
+
+    {{#if linkedScenes.length}}
+    <ul class="ca-linked-scenes-list">
+      {{#each linkedScenes}}
+      <li class="ca-linked-scene-item">
+        <div class="ca-linked-scene-info">
+          <input type="text" class="ca-linked-scene-label-input" data-index="{{index}}" value="{{label}}"/>
+          <span class="ca-linked-scene-name">{{sceneName}}</span>
+        </div>
+        <div class="ca-linked-scene-actions">
+          <button type="button" data-action="use-linked-scene" data-index="{{index}}" title="Activate this scene">&#9654; Use</button>
+          <button type="button" data-action="remove-linked-scene" data-index="{{index}}" title="Remove" class="ca-btn-remove">&#10005;</button>
+        </div>
+      </li>
+      {{/each}}
+    </ul>
     {{/if}}
   </div>
 

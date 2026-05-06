@@ -244,3 +244,88 @@
 .ca-btn-delete:hover {
   background: #7a2a2a;
 }
+
+/* Linked Scenes section */
+.ca-linked-scenes-section {
+  margin-top: 2px;
+}
+
+.ca-linked-scenes-dropzone {
+  border: 2px dashed var(--ca-border-mid, #555);
+  border-radius: var(--ca-radius-md);
+  padding: 10px;
+  text-align: center;
+  color: var(--ca-text-mute-row, #888);
+  font-size: 0.85em;
+  cursor: default;
+  transition: border-color 0.15s, background 0.15s;
+  margin-bottom: 6px;
+}
+
+.ca-linked-scenes-dropzone--over {
+  border-color: var(--ca-state-open, #22c55e);
+  background: rgba(34, 197, 94, 0.08);
+}
+
+.ca-linked-scenes-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ca-linked-scene-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--ca-radius-md);
+  padding: 4px 6px;
+}
+
+.ca-linked-scene-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.ca-linked-scene-info input {
+  font-size: 0.85em;
+  font-weight: bold;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--ca-border-mid, #555);
+  color: inherit;
+  padding: 1px 2px;
+  width: 100%;
+}
+
+.ca-linked-scene-name {
+  font-size: 0.75em;
+  color: var(--ca-text-mute-row, #888);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ca-linked-scene-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.ca-linked-scene-actions button:not(.ca-btn-remove) {
+  padding: 1px 6px;
+  font-size: 11px;
+  cursor: pointer;
+  background: rgba(40, 60, 120, 0.5);
+  border: 1px solid rgba(100, 140, 220, 0.3);
+  border-radius: var(--ca-radius-sm);
+  color: var(--ca-text-primary);
+}
