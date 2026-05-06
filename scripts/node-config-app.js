@@ -247,7 +247,12 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const updatedNode = updatedNodes.find(n => n.id === this.nodeId);
     if (updatedNode?.sceneId) {
       const scene = game.scenes.get(updatedNode.sceneId);
-      if (scene && scene.name !== label) await scene.update({ name: label });
+      if (scene) {
+        const sceneUpdate = {};
+        if (scene.name !== label) sceneUpdate.name = label;
+        if (scene.navName !== label) sceneUpdate.navName = label;
+        if (Object.keys(sceneUpdate).length) await scene.update(sceneUpdate);
+      }
       await syncNodeTile(updatedNode);
     }
 
