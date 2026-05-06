@@ -54,7 +54,11 @@
           <span class="ca-linked-scene-name">{{sceneName}}</span>
         </div>
         <div class="ca-linked-scene-actions">
+          {{#unless isActive}}
           <button type="button" data-action="use-linked-scene" data-index="{{index}}" title="Activate this scene">&#9654; Use</button>
+          {{else}}
+          <span class="ca-image-active-badge">&#9679; Active</span>
+          {{/unless}}
           <button type="button" data-action="remove-linked-scene" data-index="{{index}}" title="Remove" class="ca-btn-remove">&#10005;</button>
         </div>
       </li>

@@ -53,6 +53,8 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this._pendingStartNode = null;
     /** @type {Array<{id:string, sceneId:string, label:string}>|null} */
     this._pendingLinkedScenes = null;
+    /** @type {string|null} ID da linked scene entry atualmente "em uso" (substitui o badge Active das imagens) */
+    this._activeLinkedSceneId = null;
   }
 
 
@@ -83,10 +85,11 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     context.node = node;
     context.nodeLabel = this._pendingLabel ?? node.label ?? "Scene";
     context.isStartNode = this._pendingStartNode ?? (startNodeId === this.nodeId);
+    const linkedSceneInUse = this._activeLinkedSceneId !== null;
     context.images = workingImages.map((img, i) => ({
       ...img,
       index: i,
-      isActive: i === activeIndex
+      isActive: !linkedSceneInUse && i === activeIndex
     }));
     context.activeIndex = activeIndex;
 
@@ -95,7 +98,8 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     context.linkedScenes = workingLinkedScenes.map((ls, i) => ({
       ...ls,
       index: i,
-      sceneName: game.scenes.get(ls.sceneId)?.name ?? "(Scene not found)"
+      sceneName: game.scenes.get(ls.sceneId)?.name ?? "(Scene not found)",
+      isActive: ls.id === this._activeLinkedSceneId
     }));
 
     return context;
@@ -148,6 +152,7 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
       btn.addEventListener("click", async () => {
         const idx = parseInt(btn.dataset.index, 10);
         this._pendingActiveIndex = idx;
+        this._activeLinkedSceneId = null;   // limpa o estado de linked scene ativa
         await this._saveActiveIndex(idx);
         this.render({ force: true });
       });
@@ -239,6 +244,10 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
           ui.notifications.error("Click Adventure: Linked scene not found. It may have been deleted.");
           return;
         }
+
+        // Mark this linked scene as active, clearing image active badge
+        this._activeLinkedSceneId = entry.id;
+        this.render({ force: true });
 
         // GM: switch view locally
         await scene.view();
