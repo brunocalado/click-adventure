@@ -4,7 +4,7 @@
   "description": "Point-and-click adventure game module.",
   "version": "0.0.1",
   "compatibility": {
-    "minimum": "13",
+    "minimum": "14",
     "verified": "14"
   },
   "esmodules": ["scripts/index.js"],
@@ -33,6 +33,6 @@
   "socket": true,
 
   "url": "https://github.com/brunocalado/click-adventure",
-  "manifest": "https://raw.githubusercontent.com/brunocalado/click-adventure/main/module.json"
-
+  "manifest": "https://raw.githubusercontent.com/brunocalado/click-adventure/main/module.json",
+  "download": "https://codeload.github.com/brunocalado/custom-login/zip/main"
 }
