@@ -2,9 +2,14 @@
 
   {{!-- Top field: always visible above tabs --}}
   <div class="ca-nc-field-group">
-    <label class="ca-nc-label" for="ca-node-label-input">Default Scene Name</label>
+    <div class="ca-nc-field-row">
+      <label class="ca-nc-label" for="ca-node-label-input">Default Scene Name</label>
+      <input type="text" id="ca-node-label-input"
+             class="ca-node-label-input"
+             value="{{nodeLabel}}"
+             maxlength="100"/>
+    </div>
     <span class="ca-nc-hint">max 100 characters</span>
-    <input type="text" id="ca-node-label-input" class="ca-node-label-input" value="{{nodeLabel}}" maxlength="100"/>
   </div>
 
   {{!-- Tab bar --}}
@@ -24,8 +29,13 @@
       {{#each images}}
       <li class="ca-image-item {{#if isActive}}ca-image-item--active{{/if}}">
         <div class="ca-image-left">
-          <div class="ca-image-thumb" style="background-image: url('{{src}}');"
-               title="{{label}}" role="img" aria-label="{{label}}"></div>
+          <div class="ca-image-thumb"
+               style="background-image: url('{{src}}');"
+               data-src="{{src}}"
+               data-index="{{index}}"
+               role="button"
+               aria-label="Preview or replace: {{label}}"
+               title="Click to replace image"></div>
           <div class="ca-image-info">
             <span class="ca-image-nav-label">Navigation Name</span>
             <input type="text" class="ca-image-label-input" data-index="{{index}}"
@@ -39,7 +49,7 @@
               {{/unless}}
               <button type="button" data-action="remove-image" data-index="{{index}}"
                       class="ca-btn-remove ca-btn-remove--labeled"
-                      title="Remove this image from the node">&#128465; Image</button>
+                      title="Remove this image from the node">Remove Entry</button>
             </div>
           </div>
         </div>
@@ -53,7 +63,7 @@
                         title="Execute macro now">&#9654;</button>
                 <button type="button" data-action="remove-image-macro" data-index="{{index}}"
                         class="ca-btn-remove ca-btn-remove--labeled"
-                        title="Remove macro from this image">&#128465; Macro</button>
+                        title="Remove macro from this image">Remove Macro</button>
               </div>
               <select class="ca-image-macro-trigger" data-index="{{index}}">
                 {{#each triggerOptions}}
@@ -99,7 +109,7 @@
             {{/unless}}
             <button type="button" data-action="remove-linked-scene" data-index="{{index}}"
                     class="ca-btn-remove ca-btn-remove--labeled"
-                    title="Remove this linked scene">&#128465; Scene</button>
+                    title="Remove this linked scene">Remove Entry</button>
           </div>
         </div>
         {{!-- Macro column --}}
@@ -112,7 +122,7 @@
                         title="Execute macro now">&#9654;</button>
                 <button type="button" data-action="remove-linked-scene-macro" data-index="{{index}}"
                         class="ca-btn-remove ca-btn-remove--labeled"
-                        title="Remove macro from this scene">&#128465; Macro</button>
+                        title="Remove macro from this scene">Remove Macro</button>
               </div>
               <select class="ca-linked-scene-macro-trigger" data-index="{{index}}">
                 {{#each triggerOptions}}

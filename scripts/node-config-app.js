@@ -71,7 +71,7 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     id: "node-config-app",
     classes: ["click-adventure", "node-config"],
     window: { title: "Node Configuration" },
-    position: { width: 560, height: "auto" }
+    position: { width: 600, height: "auto" }
   };
 
   /** @override */
@@ -105,6 +105,8 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this._pendingLinkedScenes = null;
     /** @type {string|null} ID da linked scene entry atualmente "em uso" (substitui o badge Active das imagens) */
     this._activeLinkedSceneId = null;
+    /** @type {string} Persists the active tab across force-renders */
+    this._activeTab = "images";
   }
 
 
@@ -445,16 +447,85 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const tabs   = html.querySelectorAll(".ca-nc-tab");
     const panels = html.querySelectorAll(".ca-nc-panel");
 
+    const _activateTab = (tabName) => {
+      tabs.forEach(t => {
+        t.classList.toggle("ca-nc-tab--active", t.dataset.tab === tabName);
+      });
+      panels.forEach(p => {
+        p.classList.toggle("ca-nc-panel--hidden", p.dataset.panel !== tabName);
+      });
+    };
+
+    // Restore the active tab on every render
+    _activateTab(this._activeTab);
+
     tabs.forEach(tab => {
       tab.addEventListener("click", () => {
-        tabs.forEach(t => t.classList.remove("ca-nc-tab--active"));
-        panels.forEach(p => p.classList.add("ca-nc-panel--hidden"));
-        tab.classList.add("ca-nc-tab--active");
-        const target = html.querySelector(`[data-panel="${tab.dataset.tab}"]`);
-        target?.classList.remove("ca-nc-panel--hidden");
+        this._activeTab = tab.dataset.tab;
+        _activateTab(this._activeTab);
       });
     });
     // ────────────────────────────────────────────────────────────────────
+
+    // ── Image thumb: preview tooltip + click-to-replace ──────────────────
+    let _previewTooltip = document.getElementById("ca-image-preview-tooltip");
+    if (!_previewTooltip) {
+      _previewTooltip = document.createElement("div");
+      _previewTooltip.id = "ca-image-preview-tooltip";
+      _previewTooltip.className = "ca-image-preview-tooltip";
+      document.body.appendChild(_previewTooltip);
+    }
+
+    if (!html._tooltipCleanupBound) {
+      html._tooltipCleanupBound = true;
+      html.addEventListener("mouseleave", () => {
+        _previewTooltip.classList.remove("ca-tooltip--visible");
+      });
+    }
+
+    html.querySelectorAll(".ca-image-thumb").forEach(thumb => {
+      const src = thumb.dataset.src;
+
+      thumb.addEventListener("mouseenter", () => {
+        if (!src) return;
+        _previewTooltip.style.backgroundImage = `url("${src}")`;
+        _previewTooltip.classList.add("ca-tooltip--visible");
+      });
+      thumb.addEventListener("mousemove", (e) => {
+        const offset = 16;
+        let top = e.clientY - 160 - offset;
+        if (top < 8) top = e.clientY + offset;
+        _previewTooltip.style.top  = top + "px";
+        _previewTooltip.style.left = (e.clientX - 110) + "px";
+      });
+      thumb.addEventListener("mouseleave", () => {
+        _previewTooltip.classList.remove("ca-tooltip--visible");
+      });
+
+      thumb.addEventListener("click", () => {
+        const idx = parseInt(thumb.dataset.index, 10);
+        const FilePickerClass = foundry.applications.apps.FilePicker.implementation
+          ?? foundry.applications.apps.FilePicker;
+        new FilePickerClass({
+          type: "image",
+          current: src,
+          callback: (path) => {
+            const images = this._getWorkingImages();
+            if (images[idx]) images[idx].src = path;
+            this._pendingImages = images;
+            this.render({ force: true });
+          }
+        }).browse();
+      });
+    });
+    // ────────────────────────────────────────────────────────────────────
+  }
+
+  /** @override */
+  async close(options = {}) {
+    const tooltip = document.getElementById("ca-image-preview-tooltip");
+    tooltip?.remove();
+    return super.close(options);
   }
 
   /**
