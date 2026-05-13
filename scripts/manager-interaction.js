@@ -32,12 +32,39 @@ export function onNodeMouseDown(app, e, nodeEl) {
   e.preventDefault();
   e.stopPropagation();
 
+  const nodeId = nodeEl.dataset.nodeId;
+
+  // Shift+click: toggle selection, do NOT start a drag
+  if (e.shiftKey) {
+    if (app._selectedNodes.has(nodeId)) {
+      app._selectedNodes.delete(nodeId);
+      nodeEl.classList.remove("ca-node--selected");
+    } else {
+      app._selectedNodes.add(nodeId);
+      nodeEl.classList.add("ca-node--selected");
+    }
+    return; // early exit — no drag initiated
+  }
+
+  // Normal click on an unselected node: clear selection
+  if (!app._selectedNodes.has(nodeId)) {
+    clearSelection(app);
+  }
+
+  // Start drag — if the node is selected (either was before or just became
+  // the only selected node), all selected nodes will move together.
+  // If the node was not selected, it drags alone (selection is empty).
   const nodeRect = nodeEl.getBoundingClientRect();
   app._dragState = {
-    nodeId: nodeEl.dataset.nodeId,
+    nodeId,
     nodeEl,
     offsetX: e.clientX - nodeRect.left,
-    offsetY: e.clientY - nodeRect.top
+    offsetY: e.clientY - nodeRect.top,
+    // Snapshot the starting canvas position of every selected node so we can
+    // compute deltas during mousemove without touching the DOM for each.
+    groupStartPositions: app._selectedNodes.size > 0
+      ? _snapshotGroupPositions(app)
+      : null
   };
 }
 
@@ -131,11 +158,33 @@ export function onDocMouseMove(app, e) {
   const wsRect = workspace.getBoundingClientRect();
 
   if (app._dragState) {
-    const { nodeEl, offsetX, offsetY } = app._dragState;
+    const { nodeEl, offsetX, offsetY, groupStartPositions } = app._dragState;
+
+    // Position of the primary dragged node
     const rawX = e.clientX - wsRect.left - app._pan.x - offsetX;
     const rawY = e.clientY - wsRect.top  - app._pan.y - offsetY;
-    nodeEl.style.left = `${Math.max(0, Math.min(CANVAS_SIZE - NODE_W, Math.round(rawX)))}px`;
-    nodeEl.style.top  = `${Math.max(0, Math.min(CANVAS_SIZE - NODE_H, Math.round(rawY)))}px`;
+    const clampedX = Math.max(0, Math.min(CANVAS_SIZE - NODE_W, Math.round(rawX)));
+    const clampedY = Math.max(0, Math.min(CANVAS_SIZE - NODE_H, Math.round(rawY)));
+    nodeEl.style.left = `${clampedX}px`;
+    nodeEl.style.top  = `${clampedY}px`;
+
+    // If there are other selected nodes, move them by the same delta
+    if (groupStartPositions && groupStartPositions.size > 1) {
+      const primaryId = app._dragState.nodeId;
+      const primaryStart = groupStartPositions.get(primaryId);
+      if (primaryStart) {
+        const dx = clampedX - primaryStart.x;
+        const dy = clampedY - primaryStart.y;
+        groupStartPositions.forEach(({ x: sx, y: sy }, id) => {
+          if (id === primaryId) return;
+          const el = app.element?.querySelector(`.ca-node[data-node-id="${id}"]`);
+          if (!el) return;
+          el.style.left = `${Math.max(0, Math.min(CANVAS_SIZE - NODE_W, sx + dx))}px`;
+          el.style.top  = `${Math.max(0, Math.min(CANVAS_SIZE - NODE_H, sy + dy))}px`;
+        });
+      }
+    }
+
     renderLinks(app);
   }
 
@@ -165,15 +214,32 @@ export async function onDocMouseUp(app, e) {
   }
 
   if (app._dragState) {
-    const { nodeId, nodeEl, offsetX, offsetY } = app._dragState;
+    const { nodeId, offsetX, offsetY, groupStartPositions } = app._dragState;
     app._dragState = null;
 
     const workspace = app.element?.querySelector(".ca-workspace");
     const wsRect = workspace?.getBoundingClientRect();
-    if (wsRect) {
-      const x = Math.max(0, Math.min(CANVAS_SIZE - NODE_W, Math.round(e.clientX - wsRect.left - app._pan.x - offsetX)));
-      const y = Math.max(0, Math.min(CANVAS_SIZE - NODE_H, Math.round(e.clientY - wsRect.top  - app._pan.y - offsetY)));
-      await saveNodePosition(app, nodeId, x, y);
+    if (!wsRect) return;
+
+    const primaryX = Math.max(0, Math.min(CANVAS_SIZE - NODE_W, Math.round(e.clientX - wsRect.left - app._pan.x - offsetX)));
+    const primaryY = Math.max(0, Math.min(CANVAS_SIZE - NODE_H, Math.round(e.clientY - wsRect.top  - app._pan.y - offsetY)));
+
+    if (groupStartPositions && groupStartPositions.size > 1) {
+      // Batch save all nodes in the group
+      const primaryStart = groupStartPositions.get(nodeId);
+      const dx = primaryStart ? primaryX - primaryStart.x : 0;
+      const dy = primaryStart ? primaryY - primaryStart.y : 0;
+      const updates = [];
+      groupStartPositions.forEach(({ x: sx, y: sy }, id) => {
+        updates.push({
+          nodeId: id,
+          x: id === nodeId ? primaryX : Math.max(0, Math.min(CANVAS_SIZE - NODE_W, sx + dx)),
+          y: id === nodeId ? primaryY : Math.max(0, Math.min(CANVAS_SIZE - NODE_H, sy + dy))
+        });
+      });
+      await saveNodePositions(app, updates);
+    } else {
+      await saveNodePosition(app, nodeId, primaryX, primaryY);
     }
   }
 
@@ -207,6 +273,20 @@ export async function onDocMouseUp(app, e) {
 export async function saveNodePosition(app, nodeId, x, y) {
   const { sceneId, startNodeId, nodes: rawNodes, links } = getGraphData();
   const nodes = rawNodes.map(n => n.id === nodeId ? { ...n, x, y } : n);
+  await saveGraphData({ sceneId, startNodeId, nodes, links });
+  renderLinks(app);
+}
+
+/**
+ * Persists new x/y positions for multiple nodes in a single saveGraphData call.
+ * @param {ManagerApp} app
+ * @param {Array<{nodeId: string, x: number, y: number}>} updates
+ * @returns {Promise<void>}
+ */
+export async function saveNodePositions(app, updates) {
+  const { sceneId, startNodeId, nodes: rawNodes, links } = getGraphData();
+  const updateMap = new Map(updates.map(u => [u.nodeId, u]));
+  const nodes = rawNodes.map(n => updateMap.has(n.id) ? { ...n, x: updateMap.get(n.id).x, y: updateMap.get(n.id).y } : n);
   await saveGraphData({ sceneId, startNodeId, nodes, links });
   renderLinks(app);
 }
@@ -251,4 +331,41 @@ export function nearestAnchor(e, nodeEl) {
   return Math.abs(dx) > Math.abs(dy)
     ? (dx > 0 ? "right" : "left")
     : (dy > 0 ? "bottom" : "top");
+}
+
+// ---------------------------------------------------------------------------
+// Selection helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Removes the selected class from all nodes and clears the selection set.
+ * @param {ManagerApp} app
+ */
+export function clearSelection(app) {
+  app._selectedNodes.forEach(id => {
+    const el = app.element?.querySelector(`.ca-node[data-node-id="${id}"]`);
+    el?.classList.remove("ca-node--selected");
+  });
+  app._selectedNodes.clear();
+}
+
+/**
+ * Snapshots the current left/top pixel position of every selected node element.
+ * Returns a Map<nodeId, {x, y}> read directly from inline styles set by drag.
+ * Falls back to the data-model position if the inline style is not yet set.
+ * @param {ManagerApp} app
+ * @returns {Map<string, {x: number, y: number}>}
+ */
+function _snapshotGroupPositions(app) {
+  const snapshot = new Map();
+  const { nodes } = getGraphData();
+  const modelMap = new Map(nodes.map(n => [n.id, n]));
+  app._selectedNodes.forEach(id => {
+    const el = app.element?.querySelector(`.ca-node[data-node-id="${id}"]`);
+    if (!el) return;
+    const x = el.style.left ? parseInt(el.style.left, 10) : (modelMap.get(id)?.x ?? 0);
+    const y = el.style.top  ? parseInt(el.style.top,  10) : (modelMap.get(id)?.y ?? 0);
+    snapshot.set(id, { x, y });
+  });
+  return snapshot;
 }

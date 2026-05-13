@@ -21,7 +21,8 @@ import { renderLinks } from "./manager-graph.js";
 import {
   CANVAS_SIZE,
   onNodeMouseDown, onAnchorMouseDown, onNodeDblClick,
-  onDocMouseMove, onDocMouseUp
+  onDocMouseMove, onDocMouseUp,
+  clearSelection
 } from "./manager-interaction.js";
 import {
   buildOccupants, buildPlayerPanelData, patchOccupantAvatars, patchRequestsDrawer,
@@ -107,6 +108,12 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
      * @type {{ startX: number, startY: number, originX: number, originY: number }|null}
      */
     this._panState = null;
+
+    /**
+     * Set of node IDs currently selected for group move.
+     * @type {Set<string>}
+     */
+    this._selectedNodes = new Set();
   }
 
   // ---------------------------------------------------------------------------
@@ -174,6 +181,23 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     super._onFirstRender(context, options);
     document.addEventListener("mousemove", this._docMouseMove);
     document.addEventListener("mouseup", this._docMouseUp);
+
+    this._docKeyDown = (e) => {
+      if (!this.rendered) return;
+      if (e.key === "a" && (e.ctrlKey || e.metaKey)) {
+        // Only intercept if focus is inside the manager window or on body
+        if (!this.element?.contains(document.activeElement) && document.activeElement !== document.body) return;
+        e.preventDefault();
+        e.stopPropagation();
+        // Select all nodes
+        this._selectedNodes.clear();
+        this.element?.querySelectorAll(".ca-node").forEach(el => {
+          this._selectedNodes.add(el.dataset.nodeId);
+          el.classList.add("ca-node--selected");
+        });
+      }
+    };
+    document.addEventListener("keydown", this._docKeyDown);
   }
 
   /**
@@ -298,6 +322,12 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     renderLinks(this);
 
+    // Re-apply selection classes — Handlebars destroys and recreates DOM on each render.
+    this._selectedNodes.forEach(id => {
+      const el = this.element?.querySelector(`.ca-node[data-node-id="${id}"]`);
+      el?.classList.add("ca-node--selected");
+    });
+
     // React to flag changes set by a player's own ready hook (e.g. first join).
     // Guard against duplicate registrations on repeated renders.
     if (this._onUpdateUserHook !== undefined) {
@@ -344,6 +374,13 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
           e.preventDefault();
         }
       });
+
+      // Left-click on the canvas background (no drag) clears node selection.
+      workspace.addEventListener("click", e => {
+        if (e.target !== workspace && !e.target.classList.contains("ca-canvas")) return;
+        if (e.button !== 0) return;
+        clearSelection(this);
+      });
     }
 
     // Ensure player panel rows have click/hover listeners immediately after
@@ -362,6 +399,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
   async _onClose(options) {
     document.removeEventListener("mousemove", this._docMouseMove);
     document.removeEventListener("mouseup", this._docMouseUp);
+    document.removeEventListener("keydown", this._docKeyDown);
     this._dragState = null;
     this._linkState = null;
     this._instructionsApp?.close();

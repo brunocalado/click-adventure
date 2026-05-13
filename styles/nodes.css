@@ -258,3 +258,35 @@
   outline-offset: 3px;
   border-radius: 6px;
 }
+
+/* Selected node — purple outline + subtle wobble.
+   Uses outline (not border/box-shadow) so it does not conflict with:
+     - .ca-node:hover          (box-shadow blue ring)
+     - .ca-node[data-active]   (border + box-shadow green)
+     - .ca-node--highlighted   (outline amber)
+   When a node is simultaneously selected AND highlighted, both outlines
+   stack visually because this rule uses outline-offset: 7px vs highlighted's 3px. */
+.ca-node--selected {
+  outline: 2px solid rgba(160, 100, 255, 0.9);
+  outline-offset: 7px;
+  animation: ca-node-wobble 0.7s ease-in-out infinite alternate;
+}
+
+/* Selected AND highlighted simultaneously — increase offset further so
+   the purple outline clears the amber one. */
+.ca-node--selected.ca-node--highlighted,
+.ca-node[data-active="true"].ca-node--selected.ca-node--highlighted {
+  outline: 2px solid rgba(160, 100, 255, 0.9);
+  outline-offset: 10px;
+}
+
+@keyframes ca-node-wobble {
+  0%   { transform: rotate(-1deg); }
+  100% { transform: rotate( 1deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ca-node--selected {
+    animation: none;
+  }
+}
