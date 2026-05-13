@@ -6,7 +6,7 @@
  * access `app.element`, `app._pan`, and trigger renders.
  */
 
-import { getNodeActiveImage, getGraphData, saveGraphData, fireActiveItemMacro } from "./node-utils.js";
+import { getNodeActiveImage, getGraphData, saveGraphData, fireActiveItemMacro, fireNodeMacros } from "./node-utils.js";
 import { onSetActiveNode } from "./manager-players.js";
 import { buildSceneData } from "./scene-template.js";
 import { NODE_W, NODE_H } from "./manager-graph.js";
@@ -352,7 +352,10 @@ export async function onViewScene(app, sceneId, nodeId) {
     await onSetActiveNode(app, nodeId);
     const { nodes } = getGraphData();
     const node = nodes.find(n => n.id === nodeId);
-    if (node) await fireActiveItemMacro(node, "gm-view", sceneId);
+    if (node) {
+      await fireActiveItemMacro(node, "gm-view", sceneId);
+      await fireNodeMacros(node, "gm-view");
+    }
   }
 }
 
@@ -378,6 +381,9 @@ export async function onActivateScene(app, sceneId, nodeId) {
     await onSetActiveNode(app, nodeId);
     const { nodes } = getGraphData();
     const node = nodes.find(n => n.id === nodeId);
-    if (node) await fireActiveItemMacro(node, "gm-activate", sceneId);
+    if (node) {
+      await fireActiveItemMacro(node, "gm-activate", sceneId);
+      await fireNodeMacros(node, "gm-activate");
+    }
   }
 }

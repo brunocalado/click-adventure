@@ -16,6 +16,7 @@
   <div class="ca-nc-tabs" role="tablist">
     <button class="ca-nc-tab ca-nc-tab--active" data-tab="images"        role="tab">Images</button>
     <button class="ca-nc-tab"                   data-tab="linked-scenes" role="tab">Linked Scenes</button>
+    <button class="ca-nc-tab"                   data-tab="macros"        role="tab">Macros</button>
     <button class="ca-nc-tab"                   data-tab="settings"      role="tab">Settings</button>
   </div>
 
@@ -144,6 +145,42 @@
       {{/each}}
     </ul>
     {{/if}}
+  </div>
+
+  {{!-- TAB: Macros --}}
+  <div class="ca-nc-panel ca-nc-panel--hidden" data-panel="macros">
+    <div class="ca-node-macro-drop" data-action="drop-node-macro">
+      <span>Drop a macro here</span>
+    </div>
+    {{#each nodeMacros}}
+    <div class="ca-node-macro-item">
+      <div class="ca-node-macro-header">
+        <span class="ca-node-macro-name" title="{{macroName}}">{{macroName}}</span>
+        {{#if showExecutedBadge}}
+        <span class="ca-node-macro-executed-badge">Executed</span>
+        <button type="button" data-action="reset-node-macro" data-macro-id="{{id}}">Reset</button>
+        {{/if}}
+      </div>
+      <div class="ca-node-macro-controls">
+        <select data-action="set-node-macro-trigger" data-macro-id="{{id}}">
+          {{#each triggerOptions}}
+          <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+          {{/each}}
+        </select>
+        <select data-action="set-node-macro-mode" data-macro-id="{{id}}">
+          {{#each modeOptions}}
+          <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+          {{/each}}
+        </select>
+      </div>
+      <div class="ca-item-macro-row">
+        <button type="button" data-action="run-node-macro"    data-macro-id="{{id}}">&#9654; Run</button>
+        <button type="button" data-action="open-node-macro"   data-macro-id="{{id}}">&#9741; Open</button>
+        <button type="button" data-action="remove-node-macro" data-macro-id="{{id}}"
+                class="ca-btn-remove ca-btn-remove--labeled">Remove</button>
+      </div>
+    </div>
+    {{/each}}
   </div>
 
   {{!-- TAB: Settings --}}

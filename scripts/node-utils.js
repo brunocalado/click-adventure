@@ -182,3 +182,51 @@ async function _tryFireMacro(macroEntry, trigger) {
     console.error(`Click Adventure | Macro "${macro.name}" failed:`, err);
   }
 }
+
+/**
+ * Fires all node-level macros whose trigger matches the provided trigger string.
+ * Respects executeMode: "once" macros are skipped if already executed.
+ * Marks executed "once" macros and persists the updated node state.
+ *
+ * Called after fireActiveItemMacro in both onViewScene and onActivateScene.
+ * Triggered during navigation events (renderManagerApp lifecycle).
+ *
+ * @param {object} node    - graph node object
+ * @param {string} trigger - "gm-activate" | "gm-view" | "gm-any"
+ * @returns {Promise<void>}
+ */
+export async function fireNodeMacros(node, trigger) {
+  if (!Array.isArray(node?.nodeMacros) || node.nodeMacros.length === 0) return;
+
+  const { sceneId, startNodeId, nodes, links } = getGraphData();
+  let dirty = false;
+
+  for (const entry of node.nodeMacros) {
+    const triggerMatches = entry.trigger === trigger || entry.trigger === "gm-any";
+    if (!triggerMatches) continue;
+    if (entry.executeMode === "once" && entry.executedOnce === true) continue;
+
+    const macro = game.macros.get(entry.macroId);
+    if (!macro) {
+      console.warn(`Click Adventure | Node macro ${entry.macroId} not found.`);
+      continue;
+    }
+    try {
+      await macro.execute();
+    } catch (err) {
+      console.error(`Click Adventure | Node macro "${macro.name}" failed:`, err);
+    }
+
+    if (entry.executeMode === "once") {
+      entry.executedOnce = true;
+      dirty = true;
+    }
+  }
+
+  if (dirty) {
+    const updatedNodes = nodes.map(n =>
+      n.id === node.id ? { ...n, nodeMacros: node.nodeMacros } : n
+    );
+    await saveGraphData({ sceneId, startNodeId, nodes: updatedNodes, links });
+  }
+}

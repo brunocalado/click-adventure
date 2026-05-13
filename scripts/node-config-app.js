@@ -8,7 +8,7 @@
  * Lifecycle hook: renderNodeConfigApp
  */
 
-import { syncNodeTile, getGraphData, saveGraphData } from "./node-utils.js";
+import { syncNodeTile, getGraphData, saveGraphData, fireNodeMacros } from "./node-utils.js";
 
 /**
  * Resolves a Foundry Macro from a drag-drop event.
@@ -60,6 +60,33 @@ function buildTriggerOptions(selected) {
   return TRIGGER_OPTIONS.map(o => ({ ...o, selected: o.value === selected }));
 }
 
+const NODE_MACRO_TRIGGER_OPTIONS = [
+  { value: "gm-view",     label: "GM View"             },
+  { value: "gm-activate", label: "GM Activate"         },
+  { value: "gm-any",      label: "GM View or Activate" }
+];
+
+const NODE_MACRO_MODE_OPTIONS = [
+  { value: "always", label: "Always" },
+  { value: "once",   label: "Once"   }
+];
+
+/**
+ * @param {string} selected
+ * @returns {Array<{value:string, label:string, selected:boolean}>}
+ */
+function buildNodeMacroTriggerOptions(selected) {
+  return NODE_MACRO_TRIGGER_OPTIONS.map(o => ({ ...o, selected: o.value === selected }));
+}
+
+/**
+ * @param {string} selected
+ * @returns {Array<{value:string, label:string, selected:boolean}>}
+ */
+function buildNodeMacroModeOptions(selected) {
+  return NODE_MACRO_MODE_OPTIONS.map(o => ({ ...o, selected: o.value === selected }));
+}
+
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
@@ -107,6 +134,8 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this._activeLinkedSceneId = null;
     /** @type {string} Persists the active tab across force-renders */
     this._activeTab = "images";
+    /** @type {Array<{id:string, macroId:string, trigger:string, executeMode:string, executedOnce:boolean}>|null} */
+    this._pendingNodeMacros = null;
   }
 
 
@@ -158,6 +187,16 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
       hasMacro:       !!ls.macro,
       macroName:      ls.macro ? (game.macros.get(ls.macro.macroId)?.name ?? "(not found)") : null,
       triggerOptions: ls.macro ? buildTriggerOptions(ls.macro.trigger) : []
+    }));
+
+    const persistedNodeMacros = Array.isArray(node.nodeMacros) ? node.nodeMacros : [];
+    const workingNodeMacros = this._pendingNodeMacros ?? persistedNodeMacros;
+    context.nodeMacros = workingNodeMacros.map(entry => ({
+      ...entry,
+      macroName:        game.macros.get(entry.macroId)?.name ?? `Unknown (${entry.macroId})`,
+      triggerOptions:   buildNodeMacroTriggerOptions(entry.trigger),
+      modeOptions:      buildNodeMacroModeOptions(entry.executeMode),
+      showExecutedBadge: entry.executeMode === "once" && entry.executedOnce === true
     }));
 
     return context;
@@ -467,6 +506,109 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
       });
     });
 
+    // ── Node macro drop zone ─────────────────────────────────────────────
+    const nodeMacroDropzone = html.querySelector(".ca-node-macro-drop");
+    if (nodeMacroDropzone) {
+      nodeMacroDropzone.addEventListener("dragover", e => {
+        e.preventDefault();
+        nodeMacroDropzone.classList.add("ca-node-macro-drop--over");
+      });
+      nodeMacroDropzone.addEventListener("dragleave", () => {
+        nodeMacroDropzone.classList.remove("ca-node-macro-drop--over");
+      });
+      nodeMacroDropzone.addEventListener("drop", async e => {
+        e.preventDefault();
+        nodeMacroDropzone.classList.remove("ca-node-macro-drop--over");
+        const macro = await _resolveMacroFromDrop(e);
+        if (!macro) return;
+        const macros = this._getWorkingNodeMacros();
+        macros.push({
+          id:          foundry.utils.randomID(),
+          macroId:     macro.id,
+          trigger:     "gm-view",
+          executeMode: "always",
+          executedOnce: false
+        });
+        this._pendingNodeMacros = macros;
+        this.render({ force: true });
+      });
+    }
+
+    html.querySelectorAll("[data-action='set-node-macro-trigger']").forEach(select => {
+      select.addEventListener("change", () => {
+        const entryId = select.dataset.macroId;
+        const macros = this._getWorkingNodeMacros();
+        const entry = macros.find(e => e.id === entryId);
+        if (entry) entry.trigger = select.value;
+        this._pendingNodeMacros = macros;
+      });
+    });
+
+    html.querySelectorAll("[data-action='set-node-macro-mode']").forEach(select => {
+      select.addEventListener("change", () => {
+        const entryId = select.dataset.macroId;
+        const macros = this._getWorkingNodeMacros();
+        const entry = macros.find(e => e.id === entryId);
+        if (!entry) return;
+        entry.executeMode = select.value;
+        // Switching back to "always" clears the fired flag
+        if (select.value === "always") entry.executedOnce = false;
+        this._pendingNodeMacros = macros;
+        this.render({ force: true });
+      });
+    });
+
+    html.querySelectorAll("[data-action='reset-node-macro']").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const entryId = btn.dataset.macroId;
+        const macros = this._getWorkingNodeMacros();
+        const entry = macros.find(e => e.id === entryId);
+        if (!entry) return;
+        entry.executedOnce = false;
+        this._pendingNodeMacros = macros;
+        // Persist immediately so the badge disappears without requiring Save
+        const { sceneId, startNodeId, nodes, links } = getGraphData();
+        const updatedNodes = nodes.map(n =>
+          n.id === this.nodeId ? { ...n, nodeMacros: macros } : n
+        );
+        await saveGraphData({ sceneId, startNodeId, nodes: updatedNodes, links });
+        this.render({ force: true });
+      });
+    });
+
+    html.querySelectorAll("[data-action='run-node-macro']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const entryId = btn.dataset.macroId;
+        const macros = this._getWorkingNodeMacros();
+        const entry = macros.find(e => e.id === entryId);
+        if (!entry) return;
+        const macro = game.macros.get(entry.macroId);
+        if (!macro) { ui.notifications.warn("Click Adventure: Macro not found."); return; }
+        macro.execute();
+      });
+    });
+
+    html.querySelectorAll("[data-action='open-node-macro']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const entryId = btn.dataset.macroId;
+        const macros = this._getWorkingNodeMacros();
+        const entry = macros.find(e => e.id === entryId);
+        if (!entry) return;
+        const macro = game.macros.get(entry.macroId);
+        if (!macro) { ui.notifications.warn("Click Adventure: Macro not found."); return; }
+        macro.sheet.render(true);
+      });
+    });
+
+    html.querySelectorAll("[data-action='remove-node-macro']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const entryId = btn.dataset.macroId;
+        const macros = this._getWorkingNodeMacros().filter(e => e.id !== entryId);
+        this._pendingNodeMacros = macros;
+        this.render({ force: true });
+      });
+    });
+
     // ── Tab switching ────────────────────────────────────────────────────
     const tabs   = html.querySelectorAll(".ca-nc-tab");
     const panels = html.querySelectorAll(".ca-nc-panel");
@@ -580,6 +722,17 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   /**
+   * Returns a mutable copy of the working node macros array.
+   * @returns {Array<{id:string, macroId:string, trigger:string, executeMode:string, executedOnce:boolean}>}
+   */
+  _getWorkingNodeMacros() {
+    if (this._pendingNodeMacros !== null) return [...this._pendingNodeMacros];
+    const { nodes } = getGraphData();
+    const node = nodes.find(n => n.id === this.nodeId);
+    return Array.isArray(node?.nodeMacros) ? [...node.nodeMacros] : [];
+  }
+
+  /**
    * Persists the active image index immediately and syncs the node's managed background
    * tile via syncNodeTile. Called without waiting for the Save button.
    *
@@ -634,9 +787,10 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const images = this._getWorkingImages();
     const activeIndex = this._pendingActiveIndex ?? 0;
     const linkedScenes = this._getWorkingLinkedScenes();
+    const nodeMacros = this._getWorkingNodeMacros();
     const updatedNodes = nodes.map(n => {
       if (n.id !== this.nodeId) return n;
-      return { ...n, label, images, activeImageIndex: activeIndex, linkedScenes, imageSrc: undefined };
+      return { ...n, label, images, activeImageIndex: activeIndex, linkedScenes, nodeMacros, imageSrc: undefined };
     });
     await saveGraphData({ sceneId, startNodeId, nodes: updatedNodes, links });
 
@@ -668,6 +822,7 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this._pendingLabel = null;
     this._pendingStartNode = null;
     this._pendingLinkedScenes = null;
+    this._pendingNodeMacros = null;
 
     const manager = foundry.applications.instances.get("manager-app");
     if (manager?.rendered) manager.render({ force: true });

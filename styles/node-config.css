@@ -597,3 +597,101 @@
 }
 
 .ca-btn-delete:hover { background: rgba(122, 42, 42, 0.9); }
+
+/* ── Macros tab ───────────────────────────────────────────────────── */
+.ca-node-macro-drop {
+  border: 2px dashed var(--ca-border-mid);
+  border-radius: var(--ca-radius-md);
+  padding: 10px;
+  text-align: center;
+  color: var(--ca-text-muted);
+  font-size: 12px;
+  cursor: copy;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.ca-node-macro-drop--over {
+  border-color: var(--ca-state-open);
+  background: var(--ca-state-open-tint);
+}
+
+.ca-node-macro-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 7px 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--ca-radius-md);
+}
+
+.ca-node-macro-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ca-node-macro-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ca-text-bright);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ca-node-macro-executed-badge {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ca-state-open);
+  background: var(--ca-state-open-tint);
+  border: 1px solid var(--ca-state-open-border);
+  border-radius: var(--ca-radius-sm);
+  padding: 1px 6px;
+  white-space: nowrap;
+}
+
+.ca-node-macro-header button[data-action="reset-node-macro"] {
+  flex-shrink: 0;
+  padding: 2px 7px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  background: rgba(40, 60, 120, 0.5);
+  border: 1px solid rgba(100, 140, 220, 0.35);
+  border-radius: var(--ca-radius-sm);
+  color: var(--ca-text-primary);
+  transition: background 0.15s;
+}
+
+.ca-node-macro-header button[data-action="reset-node-macro"]:hover {
+  background: rgba(60, 90, 180, 0.75);
+}
+
+.ca-node-macro-controls {
+  display: flex;
+  gap: 6px;
+}
+
+.ca-node-macro-controls select {
+  flex: 1;
+  min-width: 0;
+  height: 22px;
+  padding: 0 4px;
+  font-size: 10px;
+  font-family: inherit;
+  background: var(--ca-bg-toolbar) !important;
+  border: 1px solid var(--ca-border-toolbar) !important;
+  border-radius: var(--ca-radius-sm) !important;
+  color: var(--ca-text-primary) !important;
+  cursor: pointer;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.ca-node-macro-controls select:focus {
+  border-color: var(--ca-border-toolbar-hv) !important;
+}
