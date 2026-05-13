@@ -13,7 +13,6 @@
      .ca-node .ca-set-active-btn:focus              Suppress Foundry's orange focus ring
      .ca-toolbar button:focus                       Suppress Foundry's orange focus ring on toolbar
      .click-adventure.nav-hud                       Free-floating ApplicationV2 (no chrome)
-     .click-adventure.instructions                  Free-floating popover (no chrome)
      .click-adventure.settings                      Free-floating settings panel (no chrome)
 */
 
@@ -43,9 +42,10 @@
 }
 
 /* Foundry's ApplicationV2 ships a window frame (chrome, header, border).
-   The Nav HUD, instructions popover, and settings panel are free-floating
-   overlays — strip the frame so only the inner pointer-event-enabled root
-   is visible. */
+   The Nav HUD and settings panel are free-floating overlays — strip the frame
+   so only the inner pointer-event-enabled root is visible.
+   NOTE: .click-adventure.instructions previously had frame:false overrides here;
+   they were removed when InstructionsApp was converted to a standard framed window. */
 .click-adventure.nav-hud {
   position: fixed !important;
   z-index: var(--ca-z-hud) !important;
@@ -55,15 +55,6 @@
   pointer-events: none;
   width: fit-content !important;
   height: fit-content !important;
-}
-
-.click-adventure.instructions {
-  position: fixed !important;
-  z-index: var(--ca-z-popover) !important;
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  pointer-events: none;
 }
 
 .click-adventure.settings {

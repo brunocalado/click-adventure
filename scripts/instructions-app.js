@@ -1,7 +1,7 @@
 /**
- * Read-only popover listing keyboard shortcuts and link types for the Manager toolbar.
- * Opens on mouseenter of the Instructions button; closes on mouseleave.
- * No persistent state — purely informational overlay.
+ * Tabbed help window for the Click Adventure Manager.
+ * Opens on click of the Instructions button; closes via the standard Foundry window X.
+ * Replaces the previous frameless mouseenter/mouseleave popover.
  *
  * Lifecycle hook: renderInstructionsApp
  */
@@ -16,54 +16,45 @@ export class InstructionsApp extends HandlebarsApplicationMixin(ApplicationV2) {
   static DEFAULT_OPTIONS = {
     id: "instructions-app",
     classes: ["click-adventure", "instructions"],
-    window: { frame: false, positioned: true },
-    position: { width: 320, height: "auto" }
+    window: { title: "Click Adventure — Help", resizable: false },
+    position: { width: 480, height: 420 }
   };
 
   /** @override */
   static PARTS = {
-    popover: { template: "modules/click-adventure/templates/instructions-app.hbs" }
+    content: { template: "modules/click-adventure/templates/instructions-app.hbs" }
   };
 
-  /**
-   * @param {DOMRect} buttonRect — bounding rect of the Instructions button used to anchor the popover
-   * @param {Function|null} [onClose] — callback fired when the popover closes itself on mouseleave
-   * @param {object} [options]
-   */
-  constructor(buttonRect, onClose, options = {}) {
+  constructor(options = {}) {
     super(options);
-    /** @type {DOMRect} */
-    this._buttonRect = buttonRect;
-    /** @type {Function|null} */
-    this._onCloseCallback = onClose ?? null;
+    /** @type {string} — ID of the currently active tab */
+    this._activeTab = "controls";
   }
 
-  /**
-   * Positions the popover directly below the Instructions button after first paint.
-   * Re-parented to document.body (same technique as NavHudApp) so position:fixed works
-   * against the true viewport origin and is not clipped by the Manager window.
-   * Wires mouseleave so the popover closes immediately when the pointer leaves it.
-   * Triggered during the ApplicationV2 _onFirstRender lifecycle stage.
-   *
-   * @override
-   * @param {object} context
-   * @param {object} options
-   */
-  _onFirstRender(context, options) {
-    super._onFirstRender(context, options);
+  /** @override */
+  async _prepareContext(options) {
+    const context = await super._prepareContext(options);
+    context.activeTab = this._activeTab;
+    return context;
+  }
 
-    if (this.element.parentElement !== document.body) {
-      document.body.appendChild(this.element);
-    }
+  /** @override */
+  _onRender(context, options) {
+    super._onRender(context, options);
 
-    this.setPosition({
-      left: Math.round(this._buttonRect.left),
-      top:  Math.round(this._buttonRect.bottom + 6)
-    });
+    this.element.querySelectorAll(".ca-instr-tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const tab = btn.dataset.tab;
+        if (tab === this._activeTab) return;
+        this._activeTab = tab;
 
-    this.element.addEventListener("mouseleave", () => {
-      this.close();
-      this._onCloseCallback?.();
+        this.element.querySelectorAll(".ca-instr-tab-btn").forEach(b =>
+          b.classList.toggle("ca-instr-tab-btn--active", b.dataset.tab === tab)
+        );
+        this.element.querySelectorAll(".ca-instr-panel").forEach(p =>
+          p.classList.toggle("ca-instr-panel--active", p.dataset.panel === tab)
+        );
+      });
     });
   }
 }

@@ -1,35 +1,116 @@
-<div class="ca-instructions">
-  <section class="ca-instructions-section">
-    <h3>Keyboard Shortcuts</h3>
+<div class="ca-instr-wrap">
+
+  {{!-- Tab bar --}}
+  <nav class="ca-instr-tabs" role="tablist">
+    <button class="ca-instr-tab-btn {{#if (eq activeTab 'controls')}}ca-instr-tab-btn--active{{/if}}"
+            data-tab="controls" role="tab" aria-selected="{{eq activeTab 'controls'}}">Controls</button>
+    <button class="ca-instr-tab-btn {{#if (eq activeTab 'nodes')}}ca-instr-tab-btn--active{{/if}}"
+            data-tab="nodes" role="tab" aria-selected="{{eq activeTab 'nodes'}}">Nodes</button>
+    <button class="ca-instr-tab-btn {{#if (eq activeTab 'links')}}ca-instr-tab-btn--active{{/if}}"
+            data-tab="links" role="tab" aria-selected="{{eq activeTab 'links'}}">Links</button>
+    <button class="ca-instr-tab-btn {{#if (eq activeTab 'players')}}ca-instr-tab-btn--active{{/if}}"
+            data-tab="players" role="tab" aria-selected="{{eq activeTab 'players'}}">Players</button>
+  </nav>
+
+  {{!-- Tab: Controls --}}
+  <section class="ca-instr-panel {{#if (eq activeTab 'controls')}}ca-instr-panel--active{{/if}}" data-panel="controls" role="tabpanel">
+    <h3>Canvas</h3>
     <ul>
-      <li><kbd>Shift</kbd> + click on a link — open passage editor</li>
-      <li>Click on a link — cycle direction (single-passage only)</li>
-      <li>Right-click on a link — delete</li>
-      <li>Right-click on a node — teleport a player to that node</li>
+      <li><kbd>Right-click</kbd> + drag on background — pan the canvas</li>
+      <li><kbd>Left-click</kbd> on background — clear node selection</li>
+    </ul>
+
+    <h3>Node Selection</h3>
+    <ul>
+      <li><kbd>Shift</kbd> + click a node — add to / remove from selection</li>
+      <li><kbd>Ctrl</kbd> + <kbd>A</kbd> — select all nodes</li>
+      <li>Drag any selected node — moves all selected nodes together</li>
+      <li>Click background or unselected node — clears selection</li>
+    </ul>
+
+    <h3>Single Node</h3>
+    <ul>
       <li>Drag a node — reposition</li>
-      <li>Drag from an anchor dot — create new link</li>
       <li>Double-click a node — open node settings</li>
-      <li>Right-click on background — pan the canvas</li>
+      <li>Right-click a node — context menu (teleport, set start, delete…)</li>
     </ul>
   </section>
-  <section class="ca-instructions-section">
-    <h3>Navigation Modes</h3>
+
+  {{!-- Tab: Nodes --}}
+  <section class="ca-instr-panel {{#if (eq activeTab 'nodes')}}ca-instr-panel--active{{/if}}" data-panel="nodes" role="tabpanel">
+    <h3>Creating Nodes</h3>
     <ul>
-      <li><strong>Free Move On</strong> — players navigate freely without GM approval</li>
-      <li><strong>Free Move Off</strong> — each move sends a request; GM approves or rejects</li>
+      <li>Use <strong>Add Node</strong> in the toolbar to create a blank node</li>
+      <li>Use <strong>Import Folder</strong> to bulk-create nodes from a scene folder</li>
+      <li>Use <strong>Sync Scenes</strong> to add missing scenes as nodes</li>
+    </ul>
+
+    <h3>Node Settings</h3>
+    <ul>
+      <li>Double-click any node to open its config window</li>
+      <li>Assign a scene, label, and image to the node</li>
+      <li>The <strong>★ Start Node</strong> is where new players begin</li>
+      <li>The <strong>Active Node</strong> (green border) is the GM's current scene</li>
+    </ul>
+
+    <h3>Visual Indicators</h3>
+    <ul>
+      <li><strong>Green border + glow</strong> — this node's scene is currently active</li>
+      <li><strong>★ Star icon</strong> — this is the start node for new players</li>
+      <li><strong>Purple outline + wobble</strong> — node is selected for group move</li>
+      <li><strong>Amber outline</strong> — highlighted from the player panel</li>
+      <li><strong>Player avatars above node</strong> — players currently in that scene</li>
     </ul>
   </section>
-  <section class="ca-instructions-section">
-    <h3>Link Types</h3>
+
+  {{!-- Tab: Links --}}
+  <section class="ca-instr-panel {{#if (eq activeTab 'links')}}ca-instr-panel--active{{/if}}" data-panel="links" role="tabpanel">
+    <h3>Creating Links</h3>
+    <ul>
+      <li>Drag from an anchor dot (edge of a node) to another node — creates a link</li>
+      <li>Drop on the node body or on a specific anchor dot</li>
+    </ul>
+
+    <h3>Interacting with Links</h3>
+    <ul>
+      <li>Click a link — cycle direction (single-passage links only)</li>
+      <li><kbd>Shift</kbd> + click a link — open the passage editor</li>
+      <li>Right-click a link — delete</li>
+    </ul>
+
+    <h3>Direction Types</h3>
     <ul>
       <li><strong>⟷ Both ways</strong> — players can travel in either direction</li>
       <li><strong>→ Forward only</strong> — one-way from source to target</li>
       <li><strong>← Backward only</strong> — one-way from target to source</li>
       <li><strong>✕ Blocked</strong> — link exists but cannot be traversed</li>
     </ul>
-  </section>
-  <section class="ca-instructions-section">
+
     <h3>Multi-Passage Links</h3>
-    <p>Shift+click any link to add multiple named passages between two nodes. Each passage has its own direction rule. Reducing to one passage restores simple link behavior.</p>
+    <p><kbd>Shift</kbd> + click any link to add multiple named passages between two nodes. Each passage has its own direction rule. Reducing to one passage restores simple link behaviour.</p>
   </section>
+
+  {{!-- Tab: Players --}}
+  <section class="ca-instr-panel {{#if (eq activeTab 'players')}}ca-instr-panel--active{{/if}}" data-panel="players" role="tabpanel">
+    <h3>Navigation Modes</h3>
+    <ul>
+      <li><strong>Free Move On</strong> — players move freely without GM approval</li>
+      <li><strong>Free Move Off</strong> — each move sends a request the GM approves or rejects</li>
+    </ul>
+
+    <h3>Player Panel</h3>
+    <ul>
+      <li>Hover over a player row — highlights their current node on the canvas</li>
+      <li>Hover over a node — highlights the player row for occupants of that node</li>
+      <li>Click a player row — teleport that player to a chosen node (context menu)</li>
+    </ul>
+
+    <h3>Navigation Requests (Free Move Off)</h3>
+    <ul>
+      <li>Pending requests appear in the drawer (bell icon in toolbar)</li>
+      <li>Approve or reject individual requests, or approve all at once</li>
+      <li>A new request from the same player overwrites their previous one</li>
+    </ul>
+  </section>
+
 </div>

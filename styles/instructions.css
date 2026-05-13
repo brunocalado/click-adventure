@@ -1,39 +1,84 @@
 /* @section: instructions
-   @scope: Free-floating instructions popover (toolbar help)
-   @depends: --ca-bg-popover, --ca-border-soft, --ca-text-*, --ca-radius-xl
-
-   Note: window-frame !important rules for .click-adventure.instructions live
-   in _foundry-overrides.css.
+   @scope: InstructionsApp tabbed help window
+   @depends: --ca-bg-popover, --ca-border-soft, --ca-text-*, --ca-text-section,
+             --ca-radius-sm, --ca-radius-xl
 
    @manifest:
-     .click-adventure.instructions .ca-instructions   Pointer-events re-enabled on the visible card
-     .ca-instructions                                  Card body (column layout, sections)
-     .ca-instructions-section h3                       Section title (uppercase, blue)
-     .ca-instructions-section ul                       Bullet list of tips
-     .ca-instructions-section li                       Single tip line
-     .ca-instructions-section p                        Free-text paragraph variant
-     .ca-instructions kbd                              Inline keyboard key glyph
+     .ca-instr-wrap               Full-height flex column: tab bar + panel
+     .ca-instr-tabs               Horizontal tab button row
+     .ca-instr-tab-btn            Individual tab button (inactive state)
+     .ca-instr-tab-btn--active    Active tab button
+     .ca-instr-panel              Tab content panel (hidden by default)
+     .ca-instr-panel--active      Visible panel
+     .ca-instr-panel h3           Section heading inside a panel
+     .ca-instr-panel ul           Tip list
+     .ca-instr-panel li           Single tip
+     .ca-instr-panel p            Free-text paragraph
+     .ca-instr-panel kbd          Inline keyboard key glyph
 */
 
-.click-adventure.instructions .ca-instructions {
-  pointer-events: all;
-}
-
-.ca-instructions {
-  background: var(--ca-bg-popover);
-  border: 1px solid var(--ca-border-soft);
-  border-radius: var(--ca-radius-xl);
-  padding: 14px 16px;
-  color: var(--ca-text-primary);
-  font-size: 12px;
-  backdrop-filter: blur(6px);
+/* Layout wrapper — fills the ApplicationV2 content area */
+.ca-instr-wrap {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  height: 100%;
+  color: var(--ca-text-primary);
+  font-size: 12px;
 }
 
-.ca-instructions-section h3 {
-  margin: 0 0 6px;
+/* ── Tab bar ─────────────────────────────────────────── */
+
+.ca-instr-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 8px 12px 0;
+  border-bottom: 1px solid rgba(100, 130, 200, 0.25);
+  flex-shrink: 0;
+}
+
+.ca-instr-tab-btn {
+  padding: 5px 14px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: var(--ca-radius-sm) var(--ca-radius-sm) 0 0;
+  color: var(--ca-text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.ca-instr-tab-btn:hover {
+  color: var(--ca-text-primary);
+  background: rgba(100, 130, 200, 0.1);
+}
+
+.ca-instr-tab-btn--active {
+  color: var(--ca-text-link, #7eb8f7);
+  background: rgba(80, 110, 180, 0.15);
+  border-color: rgba(100, 130, 200, 0.35);
+  cursor: default;
+}
+
+/* ── Panels ──────────────────────────────────────────── */
+
+.ca-instr-panel {
+  display: none;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px 16px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.ca-instr-panel--active {
+  display: flex;
+}
+
+.ca-instr-panel h3 {
+  margin: 0 0 5px;
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -43,26 +88,29 @@
   padding-bottom: 4px;
 }
 
-.ca-instructions-section ul {
+.ca-instr-panel ul {
   list-style: none;
   padding: 0;
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
 }
 
-.ca-instructions-section li {
+.ca-instr-panel li {
   line-height: 1.5;
+  color: var(--ca-text-primary);
 }
 
-.ca-instructions-section p {
+.ca-instr-panel p {
   margin: 0;
   line-height: 1.5;
   color: #a8b8d8;
 }
 
-.ca-instructions kbd {
+/* ── Keyboard key glyph ──────────────────────────────── */
+
+.ca-instr-panel kbd {
   display: inline-block;
   padding: 1px 5px;
   background: rgba(80, 100, 160, 0.4);
