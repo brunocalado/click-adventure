@@ -154,6 +154,16 @@ Hooks.on("init", () => {
     default: "null"
   });
 
+  game.settings.register("click-adventure", "guideModeAction", {
+    name: "Guide Mode Action",
+    hint: "View: sends each player to the scene individually. Activate: activates the scene globally (Foundry handles view for all connected users).",
+    scope: "world",
+    config: false,
+    type: String,
+    default: "view",
+    choices: { view: "View (per-player)", activate: "Activate (global)" }
+  });
+
   game.settings.register("click-adventure", "orbStyle", {
     name: "HUD Button Style",
     hint: "Visual appearance of the navigation HUD button. Configured by the GM; applies to all players.",

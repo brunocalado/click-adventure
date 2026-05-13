@@ -479,28 +479,47 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     // Guide mode: drag all active non-GM players to the same node, bypassing gated mode.
     if (game.user.isGM && this._gmNavMode === "guide") {
-      const { nodes } = getGraphData();
-      const players = game.users.filter(u => !u.isGM && u.active);
-      for (const user of players) {
-        // Capture origin BEFORE overwriting the flag.
-        const fromNodeId  = user.getFlag("click-adventure", "currentNodeId") ?? null;
-        const fromNode    = nodes.find(n => n.id === fromNodeId);
-        const fromSceneId = fromNode?.sceneId ?? null;
+      const guideModeAction = game.settings.get("click-adventure", "guideModeAction");
 
-        await user.unsetFlag("click-adventure", "previousNodeId");
-        await user.setFlag("click-adventure", "currentNodeId", targetNode.id);
+      if (guideModeAction === "activate" && targetNode.sceneId) {
+        // Activate the scene globally — Foundry handles view for all connected users.
+        // No per-player socket messages needed; scene.activate() is GM-only and
+        // triggers canvasReady on all clients automatically.
+        const scene = game.scenes.get(targetNode.sceneId);
+        if (scene) await scene.activate();
 
-        if (targetNode.sceneId) {
-          globalThis.ClickAdventure._socket.teleportUser(targetNode.sceneId, user.id);
-          // GM is already the executor — call the handler directly instead of emitting
-          // to self (socket.io does not echo to the emitter).
-          await globalThis.ClickAdventure._socket._handleMoveToken({
-            userId:     user.id,
-            fromSceneId,
-            toSceneId:  targetNode.sceneId
-          });
-        } else {
-          globalThis.ClickAdventure._socket.notifyHudRefresh(user.id);
+        // Still update all players' position flags so the HUD and manager stay consistent.
+        const players = game.users.filter(u => !u.isGM && u.active);
+        for (const user of players) {
+          await user.unsetFlag("click-adventure", "previousNodeId");
+          await user.setFlag("click-adventure", "currentNodeId", targetNode.id);
+        }
+
+      } else {
+        // Default "view" behaviour: per-player socket teleport (existing code unchanged).
+        const { nodes } = getGraphData();
+        const players = game.users.filter(u => !u.isGM && u.active);
+        for (const user of players) {
+          // Capture origin BEFORE overwriting the flag.
+          const fromNodeId  = user.getFlag("click-adventure", "currentNodeId") ?? null;
+          const fromNode    = nodes.find(n => n.id === fromNodeId);
+          const fromSceneId = fromNode?.sceneId ?? null;
+
+          await user.unsetFlag("click-adventure", "previousNodeId");
+          await user.setFlag("click-adventure", "currentNodeId", targetNode.id);
+
+          if (targetNode.sceneId) {
+            globalThis.ClickAdventure._socket.teleportUser(targetNode.sceneId, user.id);
+            // GM is already the executor — call the handler directly instead of emitting
+            // to self (socket.io does not echo to the emitter).
+            await globalThis.ClickAdventure._socket._handleMoveToken({
+              userId:     user.id,
+              fromSceneId,
+              toSceneId:  targetNode.sceneId
+            });
+          } else {
+            globalThis.ClickAdventure._socket.notifyHudRefresh(user.id);
+          }
         }
       }
     }

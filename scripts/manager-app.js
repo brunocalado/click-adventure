@@ -295,15 +295,9 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
         if (this._settingsApp?.rendered) {
           this._settingsApp.close();
           this._settingsApp = null;
-          gearBtn.classList.remove("ca-settings-btn--active");
           return;
         }
-        const rect = gearBtn.getBoundingClientRect();
-        this._settingsApp = new SettingsApp(rect, () => {
-          this._settingsApp = null;
-          gearBtn.classList.remove("ca-settings-btn--active");
-        });
-        gearBtn.classList.add("ca-settings-btn--active");
+        this._settingsApp = new SettingsApp();
         this._settingsApp.render(true);
       });
     }

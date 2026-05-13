@@ -1,4 +1,5 @@
 <div class="ca-settings-panel">
+
   <div class="ca-settings-section">
     <div class="ca-settings-section-title">Scene Transition</div>
     <div class="ca-settings-row">
@@ -11,4 +12,20 @@
     </div>
     <p class="ca-settings-hint">Applied to all scenes on Create / Update Scenes.</p>
   </div>
+
+  <div class="ca-settings-section">
+    <div class="ca-settings-section-title">Guide Mode</div>
+    <div class="ca-settings-row">
+      <label class="ca-settings-label" for="ca-guide-action">Action</label>
+      <select class="ca-settings-guide-action" id="ca-guide-action">
+        <option value="view"     {{#if (eq guideModeAction "view")}}selected{{/if}}>View (per-player)</option>
+        <option value="activate" {{#if (eq guideModeAction "activate")}}selected{{/if}}>Activate (global)</option>
+      </select>
+    </div>
+    <p class="ca-settings-hint">
+      <strong>View:</strong> sends each player to the scene individually via socket.<br>
+      <strong>Activate:</strong> activates the scene globally — Foundry pulls all connected users in automatically. Simpler, but affects everyone on the server.
+    </p>
+  </div>
+
 </div>

@@ -1,24 +1,17 @@
 /* @section: settings-panel
-   @scope: Free-floating Settings popover (transition speed, etc.)
+   @scope: Settings window (framed ApplicationV2)
    @depends: --ca-bg-popover, --ca-bg-toolbar, --ca-border-soft, --ca-border-toolbar,
              --ca-text-*, --ca-radius-*, --ca-text-mute-row
 
-   Note: window-frame !important rules for .click-adventure.settings live in
-   _foundry-overrides.css.
-
    @manifest:
-     .click-adventure.settings .ca-settings-panel   Pointer-events re-enabled on the visible card
      .ca-settings-panel                              Card body (column layout)
      .ca-settings-section-title                      Section title (uppercase, blue)
      .ca-settings-row                                One settings row (label + control)
      .ca-settings-label                              Setting label
      .ca-settings-transition                         <select> dropdown for transition mode
+     .ca-settings-guide-action                       <select> dropdown for guide mode action
      .ca-settings-hint                               Small helper text under a setting
 */
-
-.click-adventure.settings .ca-settings-panel {
-  pointer-events: all;
-}
 
 .ca-settings-panel {
   background: var(--ca-bg-popover);
@@ -56,7 +49,8 @@
   min-width: 110px;
 }
 
-.ca-settings-transition {
+.ca-settings-transition,
+.ca-settings-guide-action {
   flex: 1;
   height: 28px;
   padding: 0 6px;
@@ -68,7 +62,8 @@
   cursor: pointer;
 }
 
-.ca-settings-transition:focus {
+.ca-settings-transition:focus,
+.ca-settings-guide-action:focus {
   outline: none;
   border-color: var(--ca-border-toolbar-hv);
 }
