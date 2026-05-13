@@ -392,6 +392,18 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
       });
     });
 
+    html.querySelectorAll("[data-action='open-image-macro']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const idx = parseInt(btn.dataset.index, 10);
+        const images = this._getWorkingImages();
+        const macroId = images[idx]?.macro?.macroId;
+        if (!macroId) return;
+        const macro = game.macros.get(macroId);
+        if (!macro) { ui.notifications.warn("Click Adventure: Macro not found."); return; }
+        macro.sheet.render(true);
+      });
+    });
+
     // ── Linked scene macro drop zones ─────────────────────────────────────
     html.querySelectorAll(".ca-linked-scene-macro-dropzone").forEach(zone => {
       zone.addEventListener("dragover", e => {
@@ -440,6 +452,18 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const macro = game.macros.get(macroId);
         if (!macro) { ui.notifications.warn("Click Adventure: Macro not found."); return; }
         macro.execute();
+      });
+    });
+
+    html.querySelectorAll("[data-action='open-linked-scene-macro']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const idx = parseInt(btn.dataset.index, 10);
+        const linked = this._getWorkingLinkedScenes();
+        const macroId = linked[idx]?.macro?.macroId;
+        if (!macroId) return;
+        const macro = game.macros.get(macroId);
+        if (!macro) { ui.notifications.warn("Click Adventure: Macro not found."); return; }
+        macro.sheet.render(true);
       });
     });
 

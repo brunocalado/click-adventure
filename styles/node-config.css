@@ -16,38 +16,37 @@
 .ca-nc-field-group {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 5px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--ca-border-mid);
+  border-radius: var(--ca-radius-lg);
 }
 
-.ca-nc-field-row {
+.ca-nc-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ca-text-muted);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.ca-nc-field-input-row {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.ca-nc-label {
-  font-weight: 700;
-  font-size: 13px;
-  color: var(--ca-text-bright);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.ca-nc-hint {
-  font-size: 10px;
-  color: var(--ca-text-muted);
-  padding-left: 2px;
-}
-
 .ca-node-label-input {
   flex: 1;
   min-width: 0;
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 600;
   background: var(--ca-bg-toolbar);
   border: 1px solid var(--ca-border-toolbar);
   border-radius: var(--ca-radius-md);
   color: var(--ca-text-bright);
-  padding: 4px 8px;
+  padding: 5px 8px;
   box-sizing: border-box;
   transition: border-color 0.15s;
 }
@@ -55,6 +54,13 @@
 .ca-node-label-input:focus {
   border-color: var(--ca-border-toolbar-hv);
   outline: none;
+}
+
+.ca-nc-hint {
+  font-size: 10px;
+  color: var(--ca-text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* ── Tab bar ──────────────────────────────────────────────────────── */
@@ -432,30 +438,32 @@
   border-color: rgba(100, 140, 220, 0.35);
 }
 
-.ca-item-macro-row {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  min-width: 0;
-}
-
 .ca-item-macro-name {
-  flex: 1;
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--ca-text-primary);
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ca-text-bright);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  min-width: 0;
+  width: 100%;
+  margin-bottom: 3px;
+}
+
+.ca-item-macro-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
 }
 
 .ca-item-macro-row button:not(.ca-btn-remove) {
-  padding: 1px 5px;
+  padding: 2px 7px;
   font-size: 10px;
+  font-weight: 600;
   cursor: pointer;
-  background: rgba(40, 60, 120, 0.5);
-  border: 1px solid rgba(100, 140, 220, 0.3);
+  background: rgba(40, 60, 120, 0.55);
+  border: 1px solid rgba(100, 140, 220, 0.35);
   border-radius: var(--ca-radius-sm);
   color: var(--ca-text-primary);
   flex-shrink: 0;
@@ -463,7 +471,7 @@
 }
 
 .ca-item-macro-row button:not(.ca-btn-remove):hover {
-  background: rgba(60, 90, 180, 0.7);
+  background: rgba(60, 90, 180, 0.75);
 }
 
 .ca-image-macro-trigger,

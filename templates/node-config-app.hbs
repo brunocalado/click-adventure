@@ -2,14 +2,14 @@
 
   {{!-- Top field: always visible above tabs --}}
   <div class="ca-nc-field-group">
-    <div class="ca-nc-field-row">
-      <label class="ca-nc-label" for="ca-node-label-input">Default Scene Name</label>
+    <label class="ca-nc-label" for="ca-node-label-input">Default Scene Name</label>
+    <div class="ca-nc-field-input-row">
       <input type="text" id="ca-node-label-input"
              class="ca-node-label-input"
              value="{{nodeLabel}}"
              maxlength="100"/>
+      <span class="ca-nc-hint">max 100</span>
     </div>
-    <span class="ca-nc-hint">max 100 characters</span>
   </div>
 
   {{!-- Tab bar --}}
@@ -57,10 +57,12 @@
         <div class="ca-item-macro-col">
           {{#if hasMacro}}
             <div class="ca-item-macro-zone ca-item-macro-zone--filled">
+              <span class="ca-item-macro-name" title="{{macroName}}">{{macroName}}</span>
               <div class="ca-item-macro-row">
-                <span class="ca-item-macro-name" title="{{macroName}}">{{macroName}}</span>
                 <button type="button" data-action="execute-image-macro" data-index="{{index}}"
-                        title="Execute macro now">&#9654;</button>
+                        title="Execute macro now">&#9654; Run</button>
+                <button type="button" data-action="open-image-macro" data-index="{{index}}"
+                        title="Open macro to edit">&#9741; Open</button>
                 <button type="button" data-action="remove-image-macro" data-index="{{index}}"
                         class="ca-btn-remove ca-btn-remove--labeled"
                         title="Remove macro from this image">Remove Macro</button>
@@ -116,10 +118,12 @@
         <div class="ca-item-macro-col">
           {{#if hasMacro}}
             <div class="ca-item-macro-zone ca-item-macro-zone--filled">
+              <span class="ca-item-macro-name" title="{{macroName}}">{{macroName}}</span>
               <div class="ca-item-macro-row">
-                <span class="ca-item-macro-name" title="{{macroName}}">{{macroName}}</span>
                 <button type="button" data-action="execute-linked-scene-macro" data-index="{{index}}"
-                        title="Execute macro now">&#9654;</button>
+                        title="Execute macro now">&#9654; Run</button>
+                <button type="button" data-action="open-linked-scene-macro" data-index="{{index}}"
+                        title="Open macro to edit">&#9741; Open</button>
                 <button type="button" data-action="remove-linked-scene-macro" data-index="{{index}}"
                         class="ca-btn-remove ca-btn-remove--labeled"
                         title="Remove macro from this scene">Remove Macro</button>
