@@ -128,6 +128,14 @@
             <circle cx="12" cy="12" r="3"/>
           </svg>
         </button>
+        <button class="ca-activate-scene-btn" data-node-id="{{id}}" data-scene-id="{{sceneId}}"
+                type="button" title="Activate Scene for All"
+                {{#unless sceneId}}disabled{{/unless}}>
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
+               fill="currentColor" aria-hidden="true">
+            <polygon points="5,3 19,12 5,21"/>
+          </svg>
+        </button>
         <button class="ca-set-active-btn {{#if (eq id ../activeNodeId)}}ca-set-active-btn--active{{/if}}"
                 data-node-id="{{id}}" type="button"
                 title="{{#if (eq id ../activeNodeId)}}Current location{{else}}Set as current location{{/if}}">

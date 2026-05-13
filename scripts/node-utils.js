@@ -169,7 +169,8 @@ export async function fireActiveItemMacro(node, trigger, sceneId = null) {
  * @returns {Promise<void>}
  */
 async function _tryFireMacro(macroEntry, trigger) {
-  if (!macroEntry || macroEntry.trigger !== trigger) return;
+  if (!macroEntry) return;
+  if (macroEntry.trigger !== trigger && macroEntry.trigger !== "gm-any") return;
   const macro = game.macros.get(macroEntry.macroId);
   if (!macro) {
     console.warn(`Click Adventure | Macro ${macroEntry.macroId} not found — was it deleted?`);

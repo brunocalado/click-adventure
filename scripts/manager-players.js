@@ -346,26 +346,6 @@ export async function onSetActiveNode(app, nodeId) {
   app.render({ force: true });
 }
 
-/**
- * Switches the GM's canvas view to the scene associated with the clicked node
- * AND sets that node as the active position.
- * Uses scene.view() — only the GM's perspective changes, players are unaffected.
- * @param {ManagerApp} app
- * @param {string} sceneId
- * @param {string} nodeId
- * @returns {Promise<void>}
- */
-export async function onViewScene(app, sceneId, nodeId) {
-  if (!sceneId) return;
-  const scene = game.scenes.get(sceneId);
-  if (!scene) {
-    ui.notifications.warn("Click Adventure: Scene not found. Try running Update Scenes.");
-    return;
-  }
-  await scene.view();
-  if (nodeId) await onSetActiveNode(app, nodeId);
-}
-
 // ---------------------------------------------------------------------------
 // Context menu & teleport
 // ---------------------------------------------------------------------------

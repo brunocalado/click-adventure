@@ -6,7 +6,8 @@
  * access `app.element`, `app._pan`, and trigger renders.
  */
 
-import { getNodeActiveImage, getGraphData, saveGraphData } from "./node-utils.js";
+import { getNodeActiveImage, getGraphData, saveGraphData, fireActiveItemMacro } from "./node-utils.js";
+import { onSetActiveNode } from "./manager-players.js";
 import { buildSceneData } from "./scene-template.js";
 import { NODE_W, NODE_H } from "./manager-graph.js";
 
@@ -324,4 +325,59 @@ export async function onResetGraph(app) {
 
   app.render({ force: true });
   ui.notifications.info("Click Adventure: graph reset.");
+}
+
+// ---------------------------------------------------------------------------
+// Scene view / activate
+// ---------------------------------------------------------------------------
+
+/**
+ * Switches the GM's canvas view to the scene associated with the clicked node
+ * and fires any macros configured with trigger "gm-view" or "gm-any".
+ * Uses scene.view() — only the GM's perspective changes, players are unaffected.
+ * @param {ManagerApp} app
+ * @param {string} sceneId
+ * @param {string} nodeId
+ * @returns {Promise<void>}
+ */
+export async function onViewScene(app, sceneId, nodeId) {
+  if (!sceneId) return;
+  const scene = game.scenes.get(sceneId);
+  if (!scene) {
+    ui.notifications.warn("Click Adventure: Scene not found. Try running Update Scenes.");
+    return;
+  }
+  await scene.view();
+  if (nodeId) {
+    await onSetActiveNode(app, nodeId);
+    const { nodes } = getGraphData();
+    const node = nodes.find(n => n.id === nodeId);
+    if (node) await fireActiveItemMacro(node, "gm-view", sceneId);
+  }
+}
+
+/**
+ * Globally activates the scene associated with the clicked node for all clients,
+ * sets the GM's active node, and fires any macros configured with trigger
+ * "gm-activate" or "gm-any".
+ * Uses scene.activate() — changes the active scene for everyone.
+ * @param {ManagerApp} app
+ * @param {string} sceneId
+ * @param {string} nodeId
+ * @returns {Promise<void>}
+ */
+export async function onActivateScene(app, sceneId, nodeId) {
+  if (!sceneId) return;
+  const scene = game.scenes.get(sceneId);
+  if (!scene) {
+    ui.notifications.warn("Click Adventure: Scene not found. Try running Update Scenes.");
+    return;
+  }
+  await scene.activate();
+  if (nodeId) {
+    await onSetActiveNode(app, nodeId);
+    const { nodes } = getGraphData();
+    const node = nodes.find(n => n.id === nodeId);
+    if (node) await fireActiveItemMacro(node, "gm-activate", sceneId);
+  }
 }

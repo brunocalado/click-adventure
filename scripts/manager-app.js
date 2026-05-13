@@ -27,10 +27,11 @@ import {
 import {
   buildOccupants, buildPlayerPanelData, patchOccupantAvatars, patchRequestsDrawer,
   approveRequest, onApproveAll, rejectRequest,
-  onSetActiveNode, onViewScene, onNodeContextMenu
+  onSetActiveNode, onNodeContextMenu
 } from "./manager-players.js";
 import {
-  onAddNode, onImportFolder, onSyncScenes, onResetGraph
+  onAddNode, onImportFolder, onSyncScenes, onResetGraph,
+  onViewScene, onActivateScene
 } from "./manager-scene-ops.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -234,6 +235,14 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       btn.addEventListener("click", e => {
         e.stopPropagation();
         onViewScene(this, btn.dataset.sceneId, btn.dataset.nodeId);
+      });
+    });
+
+    html.querySelectorAll(".ca-activate-scene-btn").forEach(btn => {
+      btn.addEventListener("mousedown", e => e.stopPropagation());
+      btn.addEventListener("click", e => {
+        e.stopPropagation();
+        onActivateScene(this, btn.dataset.sceneId, btn.dataset.nodeId);
       });
     });
 
