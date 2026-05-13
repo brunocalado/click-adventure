@@ -1,7 +1,6 @@
 /* @section: settings-panel
    @scope: Settings window (framed ApplicationV2)
-   @depends: --ca-bg-popover, --ca-bg-toolbar, --ca-border-soft, --ca-border-toolbar,
-             --ca-text-*, --ca-radius-*, --ca-text-mute-row
+   @depends: --ca-bg-toolbar, --ca-border-toolbar, --ca-text-*, --ca-radius-*
 
    @manifest:
      .ca-settings-panel                              Card body (column layout)
@@ -9,17 +8,14 @@
      .ca-settings-row                                One settings row (label + control)
      .ca-settings-label                              Setting label
      .ca-settings-transition                         <select> dropdown for transition mode
+     .ca-settings-hud-visibility                     <select> dropdown for HUD visibility
      .ca-settings-guide-action                       <select> dropdown for guide mode action
      .ca-settings-hint                               Small helper text under a setting
 */
 
 .ca-settings-panel {
-  background: var(--ca-bg-popover);
-  border: 1px solid var(--ca-border-soft);
-  border-radius: var(--ca-radius-xl);
   padding: 12px 14px;
   color: var(--ca-text-primary);
-  backdrop-filter: blur(6px);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -50,6 +46,7 @@
 }
 
 .ca-settings-transition,
+.ca-settings-hud-visibility,
 .ca-settings-guide-action {
   flex: 1;
   height: 28px;
@@ -63,6 +60,7 @@
 }
 
 .ca-settings-transition:focus,
+.ca-settings-hud-visibility:focus,
 .ca-settings-guide-action:focus {
   outline: none;
   border-color: var(--ca-border-toolbar-hv);
@@ -70,7 +68,7 @@
 
 .ca-settings-hint {
   font-size: 11px;
-  color: var(--ca-text-mute-row);
+  color: var(--ca-text-muted);
   margin: 4px 0 0;
   line-height: 1.4;
 }
