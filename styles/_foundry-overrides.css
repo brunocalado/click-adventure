@@ -12,6 +12,7 @@
      .ca-node .ca-view-scene-btn:focus              Suppress Foundry's orange focus ring
      .ca-node .ca-set-active-btn:focus              Suppress Foundry's orange focus ring
      .ca-toolbar button:focus                       Suppress Foundry's orange focus ring on toolbar
+     .click-adventure.instructions .ca-instr-tab-btn:focus   Suppress Foundry's focus ring on tab buttons
      .click-adventure.nav-hud                       Free-floating ApplicationV2 (no chrome)
      .click-adventure.settings                      Free-floating settings panel (no chrome)
 */
@@ -37,6 +38,14 @@
 
 /* Suppress Foundry's global orange focus ring on toolbar buttons. */
 .ca-toolbar button:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Suppress Foundry's global button focus ring (outline + box-shadow) on
+   Instructions tab buttons. Source: foundry2.css:4004
+   a.button:focus, button:focus { outline: 1px solid ...; box-shadow: 0 0 4px ...; } */
+.click-adventure.instructions .ca-instr-tab-btn:focus {
   outline: none !important;
   box-shadow: none !important;
 }

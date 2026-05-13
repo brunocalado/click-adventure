@@ -17,7 +17,7 @@ export class InstructionsApp extends HandlebarsApplicationMixin(ApplicationV2) {
     id: "instructions-app",
     classes: ["click-adventure", "instructions"],
     window: { title: "Click Adventure — Help", resizable: false },
-    position: { width: 480, height: 420 }
+    position: { width: 480, height: 560 }
   };
 
   /** @override */
