@@ -10,6 +10,56 @@
 
 import { syncNodeTile, getGraphData, saveGraphData } from "./node-utils.js";
 
+/**
+ * Resolves a Foundry Macro from a drag-drop event.
+ * Accepts both world macros and compendium macros.
+ * Compendium macros are imported to the world before being returned,
+ * since macro.execute() requires a world document.
+ * Reuses an existing world macro of the same name to avoid duplicates.
+ *
+ * @param {DragEvent} event
+ * @returns {Promise<Macro|null>}
+ */
+async function _resolveMacroFromDrop(event) {
+  let data;
+  try { data = JSON.parse(event.dataTransfer.getData("text/plain")); }
+  catch { return null; }
+
+  if (data?.type !== "Macro" || !data?.uuid) return null;
+
+  let macro = await fromUuid(data.uuid);
+  if (!macro) return null;
+
+  if (macro.pack) {
+    const pack = game.packs.get(macro.pack);
+    if (!pack) return null;
+    const existing = game.macros.find(m => m.name === macro.name && !m.pack);
+    if (existing) {
+      macro = existing;
+    } else {
+      macro = await game.macros.importFromCompendium(pack, macro.id);
+      ui.notifications.info(`Click Adventure: Macro "${macro.name}" imported from compendium.`);
+    }
+  }
+
+  return macro;
+}
+
+const TRIGGER_OPTIONS = [
+  { value: "gm-activate", label: "GM Activate → GM only"         },
+  { value: "player-view", label: "Player View → Player only"     },
+  { value: "gm-view",     label: "GM View → GM only"             },
+  { value: "gm-any",      label: "GM View or Activate → GM only" }
+];
+
+/**
+ * @param {string} selected
+ * @returns {Array<{value:string, label:string, selected:boolean}>}
+ */
+function buildTriggerOptions(selected) {
+  return TRIGGER_OPTIONS.map(o => ({ ...o, selected: o.value === selected }));
+}
+
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
@@ -21,7 +71,7 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     id: "node-config-app",
     classes: ["click-adventure", "node-config"],
     window: { title: "Node Configuration" },
-    position: { width: 360, height: "auto" }
+    position: { width: 560, height: "auto" }
   };
 
   /** @override */
@@ -88,8 +138,11 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const linkedSceneInUse = this._activeLinkedSceneId !== null;
     context.images = workingImages.map((img, i) => ({
       ...img,
-      index: i,
-      isActive: !linkedSceneInUse && i === activeIndex
+      index:          i,
+      isActive:       !linkedSceneInUse && i === activeIndex,
+      hasMacro:       !!img.macro,
+      macroName:      img.macro ? (game.macros.get(img.macro.macroId)?.name ?? "(not found)") : null,
+      triggerOptions: img.macro ? buildTriggerOptions(img.macro.trigger) : []
     }));
     context.activeIndex = activeIndex;
 
@@ -97,9 +150,12 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const workingLinkedScenes = this._pendingLinkedScenes ?? persistedLinkedScenes;
     context.linkedScenes = workingLinkedScenes.map((ls, i) => ({
       ...ls,
-      index: i,
-      sceneName: game.scenes.get(ls.sceneId)?.name ?? "(Scene not found)",
-      isActive: ls.id === this._activeLinkedSceneId
+      index:          i,
+      sceneName:      game.scenes.get(ls.sceneId)?.name ?? "(Scene not found)",
+      isActive:       ls.id === this._activeLinkedSceneId,
+      hasMacro:       !!ls.macro,
+      macroName:      ls.macro ? (game.macros.get(ls.macro.macroId)?.name ?? "(not found)") : null,
+      triggerOptions: ls.macro ? buildTriggerOptions(ls.macro.trigger) : []
     }));
 
     return context;
@@ -280,6 +336,108 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const linked = this._getWorkingLinkedScenes();
         if (linked[idx]) linked[idx].label = input.value.trim() || "Scene";
         this._pendingLinkedScenes = linked;
+      });
+    });
+
+    // ── Image macro drop zones ────────────────────────────────────────────
+    html.querySelectorAll(".ca-image-macro-dropzone").forEach(zone => {
+      zone.addEventListener("dragover", e => {
+        e.preventDefault();
+        zone.classList.add("ca-macro-dropzone--over");
+      });
+      zone.addEventListener("dragleave", () => zone.classList.remove("ca-macro-dropzone--over"));
+      zone.addEventListener("drop", async e => {
+        e.preventDefault();
+        zone.classList.remove("ca-macro-dropzone--over");
+        const macro = await _resolveMacroFromDrop(e);
+        if (!macro) return;
+        const idx = parseInt(zone.dataset.index, 10);
+        const images = this._getWorkingImages();
+        images[idx].macro = { macroId: macro.id, label: macro.name, trigger: "gm-activate" };
+        this._pendingImages = images;
+        this.render({ force: true });
+      });
+    });
+
+    html.querySelectorAll("[data-action='remove-image-macro']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const idx = parseInt(btn.dataset.index, 10);
+        const images = this._getWorkingImages();
+        if (images[idx]) images[idx].macro = null;
+        this._pendingImages = images;
+        this.render({ force: true });
+      });
+    });
+
+    html.querySelectorAll(".ca-image-macro-trigger").forEach(select => {
+      select.addEventListener("change", () => {
+        const idx = parseInt(select.dataset.index, 10);
+        const images = this._getWorkingImages();
+        if (images[idx]?.macro) images[idx].macro.trigger = select.value;
+        this._pendingImages = images;
+      });
+    });
+
+    html.querySelectorAll("[data-action='execute-image-macro']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const idx = parseInt(btn.dataset.index, 10);
+        const images = this._getWorkingImages();
+        const macroId = images[idx]?.macro?.macroId;
+        if (!macroId) return;
+        const macro = game.macros.get(macroId);
+        if (!macro) { ui.notifications.warn("Click Adventure: Macro not found."); return; }
+        macro.execute();
+      });
+    });
+
+    // ── Linked scene macro drop zones ─────────────────────────────────────
+    html.querySelectorAll(".ca-linked-scene-macro-dropzone").forEach(zone => {
+      zone.addEventListener("dragover", e => {
+        e.preventDefault();
+        zone.classList.add("ca-macro-dropzone--over");
+      });
+      zone.addEventListener("dragleave", () => zone.classList.remove("ca-macro-dropzone--over"));
+      zone.addEventListener("drop", async e => {
+        e.preventDefault();
+        zone.classList.remove("ca-macro-dropzone--over");
+        const macro = await _resolveMacroFromDrop(e);
+        if (!macro) return;
+        const idx = parseInt(zone.dataset.index, 10);
+        const linked = this._getWorkingLinkedScenes();
+        linked[idx].macro = { macroId: macro.id, label: macro.name, trigger: "gm-activate" };
+        this._pendingLinkedScenes = linked;
+        this.render({ force: true });
+      });
+    });
+
+    html.querySelectorAll("[data-action='remove-linked-scene-macro']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const idx = parseInt(btn.dataset.index, 10);
+        const linked = this._getWorkingLinkedScenes();
+        if (linked[idx]) linked[idx].macro = null;
+        this._pendingLinkedScenes = linked;
+        this.render({ force: true });
+      });
+    });
+
+    html.querySelectorAll(".ca-linked-scene-macro-trigger").forEach(select => {
+      select.addEventListener("change", () => {
+        const idx = parseInt(select.dataset.index, 10);
+        const linked = this._getWorkingLinkedScenes();
+        if (linked[idx]?.macro) linked[idx].macro.trigger = select.value;
+        this._pendingLinkedScenes = linked;
+      });
+    });
+
+    html.querySelectorAll("[data-action='execute-linked-scene-macro']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const idx = parseInt(btn.dataset.index, 10);
+        const linked = this._getWorkingLinkedScenes();
+        const macroId = linked[idx]?.macro?.macroId;
+        if (!macroId) return;
+        const macro = game.macros.get(macroId);
+        if (!macro) { ui.notifications.warn("Click Adventure: Macro not found."); return; }
+        macro.execute();
       });
     });
   }

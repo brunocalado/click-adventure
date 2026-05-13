@@ -15,19 +15,44 @@
     <ul class="ca-images-list">
       {{#each images}}
       <li class="ca-image-item {{#if isActive}}ca-image-item--active{{/if}}">
-        <div class="ca-image-thumb" style="background-image: url('{{src}}');"></div>
-        <div class="ca-image-info">
-          <span class="ca-image-nav-label">Navigation Name</span>
-          <input type="text" class="ca-image-label-input" data-index="{{index}}" value="{{label}}"/>
-          <div class="ca-image-actions">
-            {{#unless isActive}}
-            <button type="button" data-action="set-active" data-index="{{index}}" title="Set as active">&#9654; Use</button>
-            {{else}}
-            <span class="ca-image-active-badge">&#9679; Active</span>
-            {{/unless}}
-            <button type="button" data-action="remove-image" data-index="{{index}}" title="Remove image" class="ca-btn-remove">&#10005;</button>
+
+        {{!-- Left: existing content --}}
+        <div class="ca-image-left">
+          <div class="ca-image-thumb" style="background-image: url('{{src}}');"></div>
+          <div class="ca-image-info">
+            <span class="ca-image-nav-label">Navigation Name</span>
+            <input type="text" class="ca-image-label-input" data-index="{{index}}" value="{{label}}"/>
+            <div class="ca-image-actions">
+              {{#unless isActive}}
+              <button type="button" data-action="set-active" data-index="{{index}}" title="Set as active">&#9654; Use</button>
+              {{else}}
+              <span class="ca-image-active-badge">&#9679; Active</span>
+              {{/unless}}
+              <button type="button" data-action="remove-image" data-index="{{index}}" title="Remove image" class="ca-btn-remove">&#10005;</button>
+            </div>
           </div>
         </div>
+
+        {{!-- Right: macro column --}}
+        <div class="ca-item-macro-col">
+          {{#if hasMacro}}
+            <div class="ca-item-macro-row">
+              <span class="ca-item-macro-name" title="{{macroName}}">{{macroName}}</span>
+              <button type="button" data-action="execute-image-macro" data-index="{{index}}" title="Execute macro">&#9654;</button>
+              <button type="button" data-action="remove-image-macro"  data-index="{{index}}" title="Remove macro" class="ca-btn-remove">&#10005;</button>
+            </div>
+            <select class="ca-image-macro-trigger" data-index="{{index}}">
+              {{#each triggerOptions}}
+              <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+              {{/each}}
+            </select>
+          {{else}}
+            <div class="ca-image-macro-dropzone" data-index="{{index}}">
+              <span>Drop macro</span>
+            </div>
+          {{/if}}
+        </div>
+
       </li>
       {{/each}}
     </ul>
@@ -49,18 +74,43 @@
     <ul class="ca-linked-scenes-list">
       {{#each linkedScenes}}
       <li class="ca-linked-scene-item">
-        <div class="ca-linked-scene-info">
-          <input type="text" class="ca-linked-scene-label-input" data-index="{{index}}" value="{{label}}"/>
-          <span class="ca-linked-scene-name">{{sceneName}}</span>
+
+        {{!-- Left: existing content --}}
+        <div class="ca-linked-scene-left">
+          <div class="ca-linked-scene-info">
+            <input type="text" class="ca-linked-scene-label-input" data-index="{{index}}" value="{{label}}"/>
+            <span class="ca-linked-scene-name">{{sceneName}}</span>
+          </div>
+          <div class="ca-linked-scene-actions">
+            {{#unless isActive}}
+            <button type="button" data-action="use-linked-scene" data-index="{{index}}" title="Activate this scene">&#9654; Use</button>
+            {{else}}
+            <span class="ca-image-active-badge">&#9679; Active</span>
+            {{/unless}}
+            <button type="button" data-action="remove-linked-scene" data-index="{{index}}" title="Remove" class="ca-btn-remove">&#10005;</button>
+          </div>
         </div>
-        <div class="ca-linked-scene-actions">
-          {{#unless isActive}}
-          <button type="button" data-action="use-linked-scene" data-index="{{index}}" title="Activate this scene">&#9654; Use</button>
+
+        {{!-- Right: macro column --}}
+        <div class="ca-item-macro-col">
+          {{#if hasMacro}}
+            <div class="ca-item-macro-row">
+              <span class="ca-item-macro-name" title="{{macroName}}">{{macroName}}</span>
+              <button type="button" data-action="execute-linked-scene-macro" data-index="{{index}}" title="Execute macro">&#9654;</button>
+              <button type="button" data-action="remove-linked-scene-macro"  data-index="{{index}}" title="Remove macro" class="ca-btn-remove">&#10005;</button>
+            </div>
+            <select class="ca-linked-scene-macro-trigger" data-index="{{index}}">
+              {{#each triggerOptions}}
+              <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+              {{/each}}
+            </select>
           {{else}}
-          <span class="ca-image-active-badge">&#9679; Active</span>
-          {{/unless}}
-          <button type="button" data-action="remove-linked-scene" data-index="{{index}}" title="Remove" class="ca-btn-remove">&#10005;</button>
+            <div class="ca-linked-scene-macro-dropzone" data-index="{{index}}">
+              <span>Drop macro</span>
+            </div>
+          {{/if}}
         </div>
+
       </li>
       {{/each}}
     </ul>

@@ -329,3 +329,123 @@
   border-radius: var(--ca-radius-sm);
   color: var(--ca-text-primary);
 }
+
+/* ── Two-column layout for image and linked-scene rows ─────────────── */
+.ca-image-item {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.ca-image-left {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  flex: 1;
+  min-width: 0;
+  gap: 8px;
+}
+
+.ca-linked-scene-item {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.ca-linked-scene-left {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1;
+  min-width: 0;
+  gap: 6px;
+}
+
+/* ── Macro column (right side of each row) ──────────────────────────── */
+.ca-item-macro-col {
+  width: 160px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  justify-content: center;
+}
+
+/* Drop zone — idle */
+.ca-image-macro-dropzone,
+.ca-linked-scene-macro-dropzone {
+  height: 100%;
+  min-height: 40px;
+  border: 1px dashed var(--ca-border-toolbar, #555);
+  border-radius: var(--ca-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: var(--ca-text-muted, #888);
+  cursor: copy;
+  transition: border-color 120ms, background 120ms;
+}
+
+/* Drop zone — drag over */
+.ca-image-macro-dropzone.ca-macro-dropzone--over,
+.ca-linked-scene-macro-dropzone.ca-macro-dropzone--over {
+  border-color: var(--ca-primary, #4a90d9);
+  background: color-mix(in srgb, var(--ca-primary, #4a90d9) 8%, transparent);
+}
+
+/* Macro name + action buttons */
+.ca-item-macro-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ca-item-macro-name {
+  flex: 1;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--ca-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.ca-item-macro-row button {
+  padding: 1px 4px;
+  font-size: 11px;
+  cursor: pointer;
+  background: rgba(40, 60, 120, 0.5);
+  border: 1px solid rgba(100, 140, 220, 0.3);
+  border-radius: var(--ca-radius-sm);
+  color: var(--ca-text-primary);
+  flex-shrink: 0;
+}
+
+/* Trigger select */
+.ca-image-macro-trigger,
+.ca-linked-scene-macro-trigger {
+  width: 100%;
+  height: 22px;
+  padding: 0 4px;
+  font-size: 10px;
+  font-family: inherit;
+  background: var(--ca-bg-toolbar, rgba(30, 40, 60, 0.8)) !important;
+  border: 1px solid var(--ca-border-toolbar, #555) !important;
+  border-radius: var(--ca-radius-md) !important;
+  color: var(--ca-text-primary) !important;
+  cursor: pointer;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.ca-image-macro-trigger:focus,
+.ca-linked-scene-macro-trigger:focus {
+  border-color: var(--ca-border-toolbar-hv, #88a) !important;
+  outline: none !important;
+}

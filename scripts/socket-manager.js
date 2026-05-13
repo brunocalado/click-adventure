@@ -21,6 +21,8 @@
  *   so the emitter calls scene.view() directly before emitting.
  */
 
+import { getGraphData, fireActiveItemMacro } from "./node-utils.js";
+
 const SOCKET_ID = "module.click-adventure";
 
 export class AdventureSocketManager {
@@ -144,12 +146,20 @@ export class AdventureSocketManager {
   /**
    * Received by all clients. Only the target user views the scene and refreshes their HUD.
    * Triggered by GM-initiated teleport from the manager right-click menu.
-   * @param {{ sceneId: string, userId: string }} payload
+   * @param {{ sceneId: string, userId: string, nodeId: string|null }} payload
    */
-  async _handleTeleportUser({ sceneId, userId } = {}) {
+  async _handleTeleportUser({ sceneId, userId, nodeId } = {}) {
     if (game.userId !== userId) return;
+
     const scene = game.scenes.get(sceneId);
     if (scene) await scene.view();
+
+    if (nodeId) {
+      const { nodes } = getGraphData();
+      const node = nodes.find(n => n.id === nodeId);
+      if (node) await fireActiveItemMacro(node, "player-view", sceneId);
+    }
+
     const hud = globalThis.ClickAdventure._hud;
     if (hud?.rendered) hud.render({ force: true });
   }
@@ -168,9 +178,10 @@ export class AdventureSocketManager {
    * Tells a specific user's client to view a scene (GM-initiated teleport).
    * @param {string} sceneId
    * @param {string} userId
+   * @param {string|null} [nodeId=null]
    */
-  teleportUser(sceneId, userId) {
-    this._emit("TELEPORT_USER", { sceneId, userId });
+  teleportUser(sceneId, userId, nodeId = null) {
+    this._emit("TELEPORT_USER", { sceneId, userId, nodeId });
   }
 
   /**
@@ -310,6 +321,13 @@ export class AdventureSocketManager {
     }
 
     await game.user.setFlag("click-adventure", "currentNodeId", toNodeId);
+
+    if (toNodeId) {
+      const { nodes } = getGraphData();
+      const node = nodes.find(n => n.id === toNodeId);
+      if (node) await fireActiveItemMacro(node, "player-view", sceneId ?? null);
+    }
+
     this.emitPlayerMoved(toNodeId);
 
     const hud = globalThis.ClickAdventure._hud;

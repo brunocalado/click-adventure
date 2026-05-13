@@ -139,3 +139,45 @@ export async function saveGraphData(patch) {
   const current = getGraphData();
   await game.settings.set("click-adventure", "graph", { ...current, ...patch });
 }
+
+/**
+ * Fires the macro attached to either the active image or the active linked scene
+ * of a node, when that macro's trigger matches the provided trigger string.
+ * Executes locally on the calling client — never via socket.
+ *
+ * Called after navigation events to implement per-image/per-scene macro triggers.
+ *
+ * @param {object} node          - graph node object
+ * @param {string} trigger       - "gm-activate" | "player-view" | "gm-view" | "gm-any"
+ * @param {string|null} sceneId  - the sceneId being viewed/activated (used to match linked scenes)
+ * @returns {Promise<void>}
+ */
+export async function fireActiveItemMacro(node, trigger, sceneId = null) {
+  const images = Array.isArray(node?.images) ? node.images : [];
+  const activeImg = images[node?.activeImageIndex ?? 0];
+  await _tryFireMacro(activeImg?.macro, trigger);
+
+  if (sceneId) {
+    const ls = (node?.linkedScenes ?? []).find(s => s.sceneId === sceneId);
+    await _tryFireMacro(ls?.macro, trigger);
+  }
+}
+
+/**
+ * @param {{ macroId: string, trigger: string }|null|undefined} macroEntry
+ * @param {string} trigger
+ * @returns {Promise<void>}
+ */
+async function _tryFireMacro(macroEntry, trigger) {
+  if (!macroEntry || macroEntry.trigger !== trigger) return;
+  const macro = game.macros.get(macroEntry.macroId);
+  if (!macro) {
+    console.warn(`Click Adventure | Macro ${macroEntry.macroId} not found — was it deleted?`);
+    return;
+  }
+  try {
+    await macro.execute();
+  } catch (err) {
+    console.error(`Click Adventure | Macro "${macro.name}" failed:`, err);
+  }
+}

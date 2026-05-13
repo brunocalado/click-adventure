@@ -8,7 +8,7 @@
  * Lifecycle hook: renderNavHudApp
  */
 
-import { isMultiPassage, getEffectiveDirection, getGraphData } from "./node-utils.js";
+import { isMultiPassage, getEffectiveDirection, getGraphData, fireActiveItemMacro } from "./node-utils.js";
 
 // ── 3D gradient helpers (private to this module) ─────────────────────────────
 function _hexToRgb(hex) {
@@ -464,6 +464,15 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     // Per-user position — does not affect other players' currentNodeId flags
     await game.user.setFlag("click-adventure", "currentNodeId", targetNode.id);
 
+    // ── Fire arrival macros ───────────────────────────────────────────────
+    if (game.user.isGM) {
+      await fireActiveItemMacro(targetNode, "gm-view", targetNode.sceneId ?? null);
+      await fireActiveItemMacro(targetNode, "gm-any",  targetNode.sceneId ?? null);
+    } else {
+      await fireActiveItemMacro(targetNode, "player-view", targetNode.sceneId ?? null);
+    }
+    // ─────────────────────────────────────────────────────────────────────
+
     // Request GM to move this player's token between scenes.
     if (!game.user.isGM) {
       const fromSceneId = currentNode?.sceneId ?? null;
@@ -488,6 +497,9 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const scene = game.scenes.get(targetNode.sceneId);
         if (scene) await scene.activate();
 
+        await fireActiveItemMacro(targetNode, "gm-activate", targetNode.sceneId ?? null);
+        await fireActiveItemMacro(targetNode, "gm-any",       targetNode.sceneId ?? null);
+
         // Still update all players' position flags so the HUD and manager stay consistent.
         const players = game.users.filter(u => !u.isGM && u.active);
         for (const user of players) {
@@ -509,7 +521,7 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
           await user.setFlag("click-adventure", "currentNodeId", targetNode.id);
 
           if (targetNode.sceneId) {
-            globalThis.ClickAdventure._socket.teleportUser(targetNode.sceneId, user.id);
+            globalThis.ClickAdventure._socket.teleportUser(targetNode.sceneId, user.id, targetNode.id);
             // GM is already the executor — call the handler directly instead of emitting
             // to self (socket.io does not echo to the emitter).
             await globalThis.ClickAdventure._socket._handleMoveToken({
