@@ -149,6 +149,7 @@
 
 /* Shared base for both node-card buttons. */
 .ca-view-scene-btn,
+.ca-activate-scene-btn,
 .ca-set-active-btn {
   width: var(--ca-node-btn-size);
   height: var(--ca-node-btn-size);
@@ -171,18 +172,21 @@
   box-sizing: border-box;
 }
 
-.ca-view-scene-btn:hover:not(:disabled) {
+.ca-view-scene-btn:hover:not(:disabled),
+.ca-activate-scene-btn:hover:not(:disabled) {
   color: var(--ca-text-link);
   background: rgba(20, 40, 90, 0.85);
   border-color: rgba(100, 170, 255, 0.55);
 }
 
-.ca-view-scene-btn:disabled {
+.ca-view-scene-btn:disabled,
+.ca-activate-scene-btn:disabled {
   opacity: 0.25;
   cursor: default;
 }
 
 .ca-view-scene-btn svg,
+.ca-activate-scene-btn svg,
 .ca-set-active-btn svg {
   pointer-events: none;
 }

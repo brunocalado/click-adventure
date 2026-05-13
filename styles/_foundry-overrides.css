@@ -20,6 +20,7 @@
 /* Foundry assigns a default min-width/padding to all <button> elements. The
    tiny node icons need to override that to fit the 18x18 slot. */
 .ca-node .ca-node-buttons .ca-view-scene-btn,
+.ca-node .ca-node-buttons .ca-activate-scene-btn,
 .ca-node .ca-node-buttons .ca-set-active-btn {
   width: var(--ca-node-btn-size) !important;
   height: var(--ca-node-btn-size) !important;
@@ -31,6 +32,7 @@
 
 /* Suppress Foundry's global orange focus ring inside node cards. */
 .ca-node .ca-view-scene-btn:focus,
+.ca-node .ca-activate-scene-btn:focus,
 .ca-node .ca-set-active-btn:focus {
   outline: none !important;
   box-shadow: none !important;
