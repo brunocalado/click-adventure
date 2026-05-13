@@ -14,6 +14,7 @@
      .ca-toolbar button:focus                       Suppress Foundry's orange focus ring on toolbar
      .click-adventure.instructions .ca-instr-tab-btn:focus   Suppress Foundry's focus ring on tab buttons
      .click-adventure.settings button:focus, select:focus   Suppress Foundry's focus ring in settings window
+     .click-adventure.settings .window-content      Zero Foundry padding; opaque bg
      .click-adventure.nav-hud                       Free-floating ApplicationV2 (no chrome)
 */
 
@@ -58,6 +59,14 @@
 .click-adventure.settings select:focus {
   outline: none !important;
   box-shadow: none !important;
+}
+
+/* Zero out Foundry's .window-content padding for the settings window,
+   then apply the opaque background directly on it so no gap is visible.
+   Source: foundry2.css:6924 — .application .window-content { padding: var(--spacer-16) } */
+.click-adventure.settings .window-content {
+  padding: 0 !important;
+  background: var(--ca-bg-panel) !important;
 }
 
 /* Foundry's ApplicationV2 ships a window frame (chrome, header, border).
