@@ -14,6 +14,19 @@
   </div>
 
   <div class="ca-settings-section">
+    <div class="ca-settings-section-title">HUD Visibility</div>
+    <div class="ca-settings-row">
+      <label class="ca-settings-label" for="ca-hud-visibility">Visible to</label>
+      <select class="ca-settings-hud-visibility" id="ca-hud-visibility">
+        {{#each hudVisibilityOptions}}
+        <option value="{{value}}" {{#if (eq value ../hudVisibility)}}selected{{/if}}>{{label}}</option>
+        {{/each}}
+      </select>
+    </div>
+    <p class="ca-settings-hint">Controls which users see the navigation HUD. The GM always sees it regardless of this setting.</p>
+  </div>
+
+  <div class="ca-settings-section">
     <div class="ca-settings-section-title">Guide Mode</div>
     <div class="ca-settings-row">
       <label class="ca-settings-label" for="ca-guide-action">Action</label>

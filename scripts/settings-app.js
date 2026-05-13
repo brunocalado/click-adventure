@@ -57,6 +57,12 @@ export class SettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     context.guideModeAction = game.settings.get("click-adventure", "guideModeAction");
 
+    context.hudVisibility = game.settings.get("click-adventure", "hudVisibility");
+    context.hudVisibilityOptions = [
+      { value: "all",     label: "All players" },
+      { value: "gm-only", label: "GM only" }
+    ];
+
     return context;
   }
 
@@ -80,6 +86,11 @@ export class SettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this.element.querySelector(".ca-settings-guide-action")
       ?.addEventListener("change", async (e) => {
         await game.settings.set("click-adventure", "guideModeAction", e.target.value);
+      });
+
+    this.element.querySelector(".ca-settings-hud-visibility")
+      ?.addEventListener("change", async (e) => {
+        await game.settings.set("click-adventure", "hudVisibility", e.target.value);
       });
   }
 }

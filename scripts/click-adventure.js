@@ -38,7 +38,10 @@ Hooks.on("canvasReady", () => {
   const byFlag = scene?.flags?.["click-adventure"]?.isAdventureScene === true;
   const byGraph = _isGraphScene(scene?.id);
 
-  if (byFlag || byGraph) {
+  const hudVisibility = game.settings.get("click-adventure", "hudVisibility");
+  const canSeeHud = game.user.isGM || hudVisibility === "all";
+
+  if ((byFlag || byGraph) && canSeeHud) {
     ClickAdventure.Hud();
   } else {
     if (globalThis.ClickAdventure._hud?.rendered) {
@@ -57,15 +60,40 @@ Hooks.on("updateSetting", (setting) => {
   const scene = canvas?.scene;
   if (!scene) return;
 
+  const hudVisibility = game.settings.get("click-adventure", "hudVisibility");
+  const canSeeHud = game.user.isGM || hudVisibility === "all";
+
   const { nodes } = getGraphData();
   const belongs = nodes.some(n => n.sceneId === scene.id);
 
-  if (belongs && !globalThis.ClickAdventure._hud?.rendered) {
+  if (belongs && canSeeHud && !globalThis.ClickAdventure._hud?.rendered) {
     // HUD is not open yet but this scene is now part of the graph — open it.
     ClickAdventure.Hud();
   } else if (globalThis.ClickAdventure._hud?.rendered) {
     // HUD is already open — re-render so the destination list reflects the new graph.
     globalThis.ClickAdventure._hud.render({ force: true });
+  }
+});
+
+/**
+ * Immediately apply hudVisibility changes without requiring a canvas reload.
+ * Closes non-GM HUDs when the GM switches to "gm-only", and re-opens them
+ * when switching back to "all" if the current scene qualifies.
+ */
+Hooks.on("updateSetting", (setting) => {
+  if (setting.key !== "click-adventure.hudVisibility") return;
+
+  const hudVisibility = game.settings.get("click-adventure", "hudVisibility");
+  const canSeeHud = game.user.isGM || hudVisibility === "all";
+
+  if (!canSeeHud && globalThis.ClickAdventure._hud?.rendered) {
+    globalThis.ClickAdventure._hud.close();
+  } else if (canSeeHud && !globalThis.ClickAdventure._hud?.rendered) {
+    const scene = canvas?.scene;
+    if (!scene) return;
+    const byFlag = scene?.flags?.["click-adventure"]?.isAdventureScene === true;
+    const byGraph = _isGraphScene(scene?.id);
+    if (byFlag || byGraph) ClickAdventure.Hud();
   }
 });
 
@@ -162,6 +190,16 @@ Hooks.on("init", () => {
     type: String,
     default: "view",
     choices: { view: "View (per-player)", activate: "Activate (global)" }
+  });
+
+  game.settings.register("click-adventure", "hudVisibility", {
+    name: "HUD Visibility",
+    hint: "Controls who sees the navigation HUD.",
+    scope: "world",
+    config: false,
+    type: String,
+    default: "all",
+    choices: { all: "All players", "gm-only": "GM only" }
   });
 
   game.settings.register("click-adventure", "orbStyle", {
