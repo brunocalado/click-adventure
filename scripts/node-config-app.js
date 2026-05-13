@@ -183,7 +183,7 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
       const btn = html.querySelector("[data-action='toggle-start']");
       if (btn) {
-        btn.textContent = "★ Start";
+        btn.textContent = "★ Start Node";
         btn.title = "This is the start node (click another node to change)";
         btn.classList.add("ca-toggle-start--active");
       }
@@ -440,6 +440,21 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
         macro.execute();
       });
     });
+
+    // ── Tab switching ────────────────────────────────────────────────────
+    const tabs   = html.querySelectorAll(".ca-nc-tab");
+    const panels = html.querySelectorAll(".ca-nc-panel");
+
+    tabs.forEach(tab => {
+      tab.addEventListener("click", () => {
+        tabs.forEach(t => t.classList.remove("ca-nc-tab--active"));
+        panels.forEach(p => p.classList.add("ca-nc-panel--hidden"));
+        tab.classList.add("ca-nc-tab--active");
+        const target = html.querySelector(`[data-panel="${tab.dataset.tab}"]`);
+        target?.classList.remove("ca-nc-panel--hidden");
+      });
+    });
+    // ────────────────────────────────────────────────────────────────────
   }
 
   /**

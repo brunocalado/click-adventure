@@ -1,91 +1,109 @@
-/* @section: node-config
-   @scope: Node Config window — node label form, image gallery, start-node toggle, save/delete actions
-   @depends: --ca-bg-panel, --ca-state-open*, --ca-text-*, --ca-radius-*
-
-   @manifest:
-     .click-adventure.node-config         Window background
-     .ca-node-config                      Form root (column layout)
-     .ca-node-config-row                  Row of form controls (label + input)
-     .ca-node-label-input                 Label input (flex-fill)
-     .ca-char-limit                       Tiny character-limit hint near label
-     .ca-images-section                   Container for image gallery
-     .ca-images-header                    Title row + "Add image" button
-     .ca-images-list                      Vertical list of image entries
-     .ca-image-item                       Single image row (thumb + info + actions)
-     .ca-image-item--active               Highlighted as the active image
-     .ca-image-thumb                      Thumbnail preview
-     .ca-image-info                       Right-side column: label input + actions
-     .ca-image-label-input                Per-image label input
-     .ca-image-actions                    Action button cluster (set active, delete)
-     .ca-image-active-badge               Small green "active" tag
-     .ca-images-empty                     Empty-state copy
-     .ca-btn-remove                       Generic small "x" remove button
-     .ca-start-node-row                   Row holding the toggle for "is start node?"
-     .ca-toggle-start                     Toggle button base
-     .ca-toggle-start--active             On state (green border + label)
-     .ca-node-config-actions              Footer row with Save/Delete
-     .ca-btn-save                         Save button
-     .ca-btn-delete                       Delete button (red)
-*/
+/* @section: node-config — redesigned */
 
 .click-adventure.node-config {
   background: var(--ca-bg-panel);
 }
 
+/* ── Root layout ──────────────────────────────────────────────────── */
 .ca-node-config {
-  padding: 14px;
+  padding: 14px 14px 10px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
 }
 
-.ca-node-config-row {
+/* ── Default Scene Name field ─────────────────────────────────────── */
+.ca-nc-field-group {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  gap: 3px;
 }
 
-.ca-node-config-row label {
-  font-weight: 600;
-  font-size: 13px;
-  flex-shrink: 0;
-}
-
-.ca-node-label-input {
-  flex: 1;
-  min-width: 0;
-}
-
-.ca-char-limit {
-  font-size: 10px;
-  color: var(--ca-text-mute-row);
-  font-weight: normal;
-}
-
-/* Images section */
-.ca-images-section {
-  margin: 4px 0;
-}
-
-.ca-images-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
+.ca-nc-label {
+  font-weight: 700;
   font-size: 12px;
+  color: var(--ca-text-primary);
+  letter-spacing: 0.02em;
+}
+
+.ca-nc-hint {
+  font-size: 10px;
   color: var(--ca-text-subtle);
 }
 
+.ca-node-label-input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ── Tab bar ──────────────────────────────────────────────────────── */
+.ca-nc-tabs {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid var(--ca-border-divider);
+  padding-bottom: 0;
+}
+
+.ca-nc-tab {
+  padding: 5px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--ca-text-subtle);
+  background: transparent;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: var(--ca-radius-md) var(--ca-radius-md) 0 0;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.ca-nc-tab:hover {
+  color: var(--ca-text-primary);
+  background: rgba(255,255,255,0.05);
+}
+
+.ca-nc-tab--active {
+  color: var(--ca-text-bright);
+  background: var(--ca-bg-toolbar);
+  border-color: var(--ca-border-divider);
+  border-bottom-color: var(--ca-bg-toolbar);
+}
+
+/* ── Tab panels ───────────────────────────────────────────────────── */
+.ca-nc-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ca-nc-panel--hidden {
+  display: none;
+}
+
+/* ── Images header ────────────────────────────────────────────────── */
+.ca-images-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
 .ca-images-header button {
-  padding: 2px 8px;
+  padding: 3px 10px;
   background: rgba(40, 60, 120, 0.6);
   border: 1px solid rgba(100, 140, 220, 0.4);
   border-radius: var(--ca-radius-md);
   color: var(--ca-text-primary);
   font-size: 11px;
   cursor: pointer;
+  transition: background 0.15s;
 }
 
+.ca-images-header button:hover {
+  background: rgba(60, 90, 180, 0.75);
+}
+
+/* ── Images list ──────────────────────────────────────────────────── */
 .ca-images-list {
   list-style: none;
   padding: 0;
@@ -93,14 +111,16 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  max-height: 280px;
+  max-height: 320px;
   overflow-y: auto;
+  padding-right: 2px;
 }
 
 .ca-image-item {
   display: flex;
-  gap: 8px;
-  align-items: center;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 6px;
   padding: 6px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -108,18 +128,37 @@
 }
 
 .ca-image-item--active {
-  border-color: var(--ca-state-open);
-  background: rgba(34, 197, 94, 0.08);
+  border-color: var(--ca-state-open-border);
+  background: var(--ca-state-open-tint);
+}
+
+/* ── Image left column ────────────────────────────────────────────── */
+.ca-image-left {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  gap: 8px;
 }
 
 .ca-image-thumb {
-  width: 56px;
-  height: 40px;
+  width: 60px;
+  height: 44px;
   border-radius: var(--ca-radius-md);
   background-size: cover;
   background-position: center;
   background-color: rgba(255, 255, 255, 0.05);
   flex-shrink: 0;
+  cursor: zoom-in;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.ca-image-thumb:hover {
+  transform: scale(1.08);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+  z-index: 10;
+  position: relative;
 }
 
 .ca-image-info {
@@ -128,6 +167,14 @@
   flex-direction: column;
   gap: 4px;
   min-width: 0;
+}
+
+.ca-image-nav-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ca-text-subtle);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 .ca-image-label-input {
@@ -147,124 +194,77 @@
   align-items: center;
 }
 
-.ca-image-actions button {
-  padding: 1px 6px;
+.ca-image-actions button:not(.ca-btn-remove) {
+  padding: 2px 7px;
   font-size: 11px;
   cursor: pointer;
   background: rgba(40, 60, 120, 0.5);
   border: 1px solid rgba(100, 140, 220, 0.3);
   border-radius: var(--ca-radius-sm);
   color: var(--ca-text-primary);
+  transition: background 0.15s;
+}
+
+.ca-image-actions button:not(.ca-btn-remove):hover {
+  background: rgba(60, 90, 180, 0.7);
 }
 
 .ca-image-active-badge {
   font-size: 11px;
+  font-weight: 600;
   color: var(--ca-state-open);
 }
 
+/* ── Remove buttons (labeled) ─────────────────────────────────────── */
 .ca-btn-remove {
-  margin-left: auto;
   color: var(--ca-state-danger) !important;
   background: none !important;
   border: none !important;
   padding: 0 4px !important;
   cursor: pointer;
+  transition: color 0.15s;
+}
+
+.ca-btn-remove:hover {
+  color: var(--ca-state-danger-hv) !important;
+}
+
+.ca-btn-remove--labeled {
+  font-size: 10px !important;
+  padding: 1px 5px !important;
+  border: 1px solid rgba(200, 112, 112, 0.3) !important;
+  border-radius: var(--ca-radius-sm) !important;
+  background: rgba(200, 112, 112, 0.08) !important;
+  white-space: nowrap;
+}
+
+.ca-btn-remove--labeled:hover {
+  background: rgba(200, 112, 112, 0.18) !important;
+  border-color: var(--ca-state-danger-hv) !important;
 }
 
 .ca-images-empty {
   font-size: 11px;
-  color: var(--ca-text-mute-row);
-  padding: 8px 0;
+  color: var(--ca-text-subtle);
+  padding: 12px 0;
   text-align: center;
 }
 
-/* Start node row */
-.ca-start-node-row {
-  justify-content: space-between;
-}
-
-.ca-start-node-row span {
-  font-size: 12px;
-  color: var(--ca-text-subtle);
-}
-
-.ca-toggle-start {
-  padding: 3px 10px;
-  background: rgba(40, 60, 120, 0.5);
-  border: 1px solid rgba(100, 140, 220, 0.4);
-  border-radius: var(--ca-radius-md);
-  color: var(--ca-text-primary);
-  font-size: 11px;
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
-}
-
-.ca-toggle-start:hover {
-  background: rgba(60, 90, 180, 0.7);
-  border-color: rgba(140, 180, 255, 0.7);
-}
-
-.ca-toggle-start--active {
-  background: rgba(34, 197, 94, 0.15);
-  border-color: var(--ca-state-open);
-  color: var(--ca-state-open);
-  cursor: default;
-}
-
-/* Actions row */
-.ca-node-config-actions {
-  display: flex;
-  gap: 8px;
-  padding: 12px 0 4px;
-  justify-content: flex-end;
-}
-
-.ca-btn-save {
-  padding: 6px 18px;
-  background: #2a4a7a;
-  border: 1px solid #4a6aaa;
-  border-radius: var(--ca-radius-md);
-  color: #dde;
-  cursor: pointer;
-}
-
-.ca-btn-save:hover {
-  background: #3a5a9a;
-}
-
-.ca-btn-delete {
-  padding: 6px 18px;
-  background: #5a1a1a;
-  border: 1px solid #aa3a3a;
-  border-radius: var(--ca-radius-md);
-  color: #ecc;
-  cursor: pointer;
-}
-
-.ca-btn-delete:hover {
-  background: #7a2a2a;
-}
-
-/* Linked Scenes section */
-.ca-linked-scenes-section {
-  margin-top: 2px;
-}
-
+/* ── Linked Scenes tab ────────────────────────────────────────────── */
 .ca-linked-scenes-dropzone {
-  border: 2px dashed var(--ca-border-mid, #555);
+  border: 2px dashed var(--ca-border-mid);
   border-radius: var(--ca-radius-md);
   padding: 10px;
   text-align: center;
-  color: var(--ca-text-mute-row, #888);
-  font-size: 0.85em;
+  color: var(--ca-text-subtle);
+  font-size: 12px;
   cursor: default;
   transition: border-color 0.15s, background 0.15s;
-  margin-bottom: 6px;
 }
 
 .ca-linked-scenes-dropzone--over {
-  border-color: var(--ca-state-open, #22c55e);
-  background: rgba(34, 197, 94, 0.08);
+  border-color: var(--ca-state-open);
+  background: var(--ca-state-open-tint);
 }
 
 .ca-linked-scenes-list {
@@ -273,18 +273,31 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 2px;
 }
 
 .ca-linked-scene-item {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: row;
+  align-items: stretch;
   gap: 6px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--ca-radius-md);
-  padding: 4px 6px;
+  padding: 5px 6px;
+}
+
+.ca-linked-scene-left {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1;
+  min-width: 0;
+  gap: 6px;
 }
 
 .ca-linked-scene-info {
@@ -292,22 +305,24 @@
   flex-direction: column;
   flex: 1;
   min-width: 0;
+  gap: 2px;
 }
 
 .ca-linked-scene-info input {
-  font-size: 0.85em;
-  font-weight: bold;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ca-text-primary);
   background: transparent;
   border: none;
-  border-bottom: 1px solid var(--ca-border-mid, #555);
-  color: inherit;
+  border-bottom: 1px solid var(--ca-border-mid);
   padding: 1px 2px;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .ca-linked-scene-name {
-  font-size: 0.75em;
-  color: var(--ca-text-mute-row, #888);
+  font-size: 10px;
+  color: var(--ca-text-subtle);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -321,50 +336,21 @@
 }
 
 .ca-linked-scene-actions button:not(.ca-btn-remove) {
-  padding: 1px 6px;
+  padding: 2px 7px;
   font-size: 11px;
   cursor: pointer;
   background: rgba(40, 60, 120, 0.5);
   border: 1px solid rgba(100, 140, 220, 0.3);
   border-radius: var(--ca-radius-sm);
   color: var(--ca-text-primary);
+  transition: background 0.15s;
 }
 
-/* ── Two-column layout for image and linked-scene rows ─────────────── */
-.ca-image-item {
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  gap: 6px;
+.ca-linked-scene-actions button:not(.ca-btn-remove):hover {
+  background: rgba(60, 90, 180, 0.7);
 }
 
-.ca-image-left {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  flex: 1;
-  min-width: 0;
-  gap: 8px;
-}
-
-.ca-linked-scene-item {
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  gap: 6px;
-}
-
-.ca-linked-scene-left {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  flex: 1;
-  min-width: 0;
-  gap: 6px;
-}
-
-/* ── Macro column (right side of each row) ──────────────────────────── */
+/* ── Macro column ─────────────────────────────────────────────────── */
 .ca-item-macro-col {
   width: 160px;
   flex-shrink: 0;
@@ -374,34 +360,44 @@
   justify-content: center;
 }
 
-/* Drop zone — idle */
+.ca-item-macro-zone {
+  border-radius: var(--ca-radius-md);
+  border: 1px solid rgba(100, 140, 220, 0.2);
+  background: rgba(20, 30, 60, 0.5);
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 40px;
+}
+
 .ca-image-macro-dropzone,
 .ca-linked-scene-macro-dropzone {
-  height: 100%;
-  min-height: 40px;
-  border: 1px dashed var(--ca-border-toolbar, #555);
-  border-radius: var(--ca-radius-md);
-  display: flex;
+  border-style: dashed;
   align-items: center;
   justify-content: center;
   font-size: 10px;
-  color: var(--ca-text-muted, #888);
+  color: var(--ca-text-subtle);
   cursor: copy;
   transition: border-color 120ms, background 120ms;
 }
 
-/* Drop zone — drag over */
 .ca-image-macro-dropzone.ca-macro-dropzone--over,
 .ca-linked-scene-macro-dropzone.ca-macro-dropzone--over {
-  border-color: var(--ca-primary, #4a90d9);
-  background: color-mix(in srgb, var(--ca-primary, #4a90d9) 8%, transparent);
+  border-color: var(--ca-border-toolbar-hv);
+  border-style: solid;
+  background: rgba(58, 90, 170, 0.2);
 }
 
-/* Macro name + action buttons */
+.ca-item-macro-zone--filled {
+  background: rgba(26, 38, 78, 0.7);
+  border-color: rgba(100, 140, 220, 0.35);
+}
+
 .ca-item-macro-row {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   min-width: 0;
 }
 
@@ -416,18 +412,22 @@
   min-width: 0;
 }
 
-.ca-item-macro-row button {
-  padding: 1px 4px;
-  font-size: 11px;
+.ca-item-macro-row button:not(.ca-btn-remove) {
+  padding: 1px 5px;
+  font-size: 10px;
   cursor: pointer;
   background: rgba(40, 60, 120, 0.5);
   border: 1px solid rgba(100, 140, 220, 0.3);
   border-radius: var(--ca-radius-sm);
   color: var(--ca-text-primary);
   flex-shrink: 0;
+  transition: background 0.15s;
 }
 
-/* Trigger select */
+.ca-item-macro-row button:not(.ca-btn-remove):hover {
+  background: rgba(60, 90, 180, 0.7);
+}
+
 .ca-image-macro-trigger,
 .ca-linked-scene-macro-trigger {
   width: 100%;
@@ -435,9 +435,9 @@
   padding: 0 4px;
   font-size: 10px;
   font-family: inherit;
-  background: var(--ca-bg-toolbar, rgba(30, 40, 60, 0.8)) !important;
-  border: 1px solid var(--ca-border-toolbar, #555) !important;
-  border-radius: var(--ca-radius-md) !important;
+  background: var(--ca-bg-toolbar) !important;
+  border: 1px solid var(--ca-border-toolbar) !important;
+  border-radius: var(--ca-radius-sm) !important;
   color: var(--ca-text-primary) !important;
   cursor: pointer;
   box-shadow: none !important;
@@ -446,6 +446,98 @@
 
 .ca-image-macro-trigger:focus,
 .ca-linked-scene-macro-trigger:focus {
-  border-color: var(--ca-border-toolbar-hv, #88a) !important;
-  outline: none !important;
+  border-color: var(--ca-border-toolbar-hv) !important;
 }
+
+/* ── Settings tab ─────────────────────────────────────────────────── */
+.ca-nc-settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--ca-radius-lg);
+}
+
+.ca-nc-settings-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ca-nc-settings-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ca-text-primary);
+}
+
+.ca-nc-settings-desc {
+  font-size: 10px;
+  color: var(--ca-text-subtle);
+  max-width: 220px;
+}
+
+/* ── Start toggle ─────────────────────────────────────────────────── */
+.ca-toggle-start {
+  padding: 4px 12px;
+  background: rgba(40, 60, 120, 0.5);
+  border: 1px solid rgba(100, 140, 220, 0.4);
+  border-radius: var(--ca-radius-md);
+  color: var(--ca-text-primary);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.ca-toggle-start:hover {
+  background: rgba(60, 90, 180, 0.7);
+  border-color: rgba(140, 180, 255, 0.7);
+}
+
+.ca-toggle-start--active {
+  background: var(--ca-state-open-tint);
+  border-color: var(--ca-state-open-border);
+  color: var(--ca-state-open);
+  cursor: default;
+}
+
+/* ── Footer actions ───────────────────────────────────────────────── */
+.ca-node-config-actions {
+  display: flex;
+  gap: 8px;
+  padding-top: 8px;
+  justify-content: flex-end;
+  border-top: 1px solid var(--ca-border-divider);
+}
+
+.ca-btn-save {
+  padding: 6px 18px;
+  background: #2a4a7a;
+  border: 1px solid #4a6aaa;
+  border-radius: var(--ca-radius-md);
+  color: var(--ca-text-primary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.ca-btn-save:hover { background: #3a5a9a; }
+
+.ca-btn-delete {
+  padding: 6px 18px;
+  background: rgba(90, 26, 26, 0.8);
+  border: 1px solid #aa3a3a;
+  border-radius: var(--ca-radius-md);
+  color: #f4b4b4;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.ca-btn-delete:hover { background: rgba(122, 42, 42, 0.9); }
