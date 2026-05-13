@@ -71,7 +71,7 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     id: "node-config-app",
     classes: ["click-adventure", "node-config"],
     window: { title: "Node Configuration" },
-    position: { width: 600, height: "auto" }
+    position: { width: 660, height: "auto" }
   };
 
   /** @override */
