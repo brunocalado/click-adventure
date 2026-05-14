@@ -16,12 +16,13 @@
   <div class="ca-settings-section">
     <div class="ca-settings-section-title">HUD Visibility</div>
     <div class="ca-settings-row">
-      <label class="ca-settings-label" for="ca-hud-visibility">Visible to</label>
-      <select class="ca-settings-hud-visibility" id="ca-hud-visibility">
-        {{#each hudVisibilityOptions}}
-        <option value="{{value}}" {{#if (eq value ../hudVisibility)}}selected{{/if}}>{{label}}</option>
-        {{/each}}
-      </select>
+      <label class="ca-settings-label">Visible to</label>
+      <div class="ca-btn-group" data-setting="hudVisibility">
+        <button class="ca-btn-group-btn {{#if (eq hudVisibility 'all')}}ca-btn-group-btn--active{{/if}}"
+                type="button" data-value="all">All players</button>
+        <button class="ca-btn-group-btn {{#if (eq hudVisibility 'gm-only')}}ca-btn-group-btn--active{{/if}}"
+                type="button" data-value="gm-only">GM only</button>
+      </div>
     </div>
     <p class="ca-settings-hint">Controls which users see the navigation HUD. The GM always sees it regardless of this setting.</p>
   </div>
@@ -29,11 +30,13 @@
   <div class="ca-settings-section">
     <div class="ca-settings-section-title">Guide Mode</div>
     <div class="ca-settings-row">
-      <label class="ca-settings-label" for="ca-guide-action">Action</label>
-      <select class="ca-settings-guide-action" id="ca-guide-action">
-        <option value="view"     {{#if (eq guideModeAction "view")}}selected{{/if}}>View (per-player)</option>
-        <option value="activate" {{#if (eq guideModeAction "activate")}}selected{{/if}}>Activate (global)</option>
-      </select>
+      <label class="ca-settings-label">Action</label>
+      <div class="ca-btn-group" data-setting="guideModeAction">
+        <button class="ca-btn-group-btn {{#if (eq guideModeAction 'view')}}ca-btn-group-btn--active{{/if}}"
+                type="button" data-value="view">View (per-player)</button>
+        <button class="ca-btn-group-btn {{#if (eq guideModeAction 'activate')}}ca-btn-group-btn--active{{/if}}"
+                type="button" data-value="activate">Activate (global)</button>
+      </div>
     </div>
     <p class="ca-settings-hint">
       <strong>View:</strong> sends each player to the scene individually via socket.<br>
@@ -44,9 +47,12 @@
   <div class="ca-settings-section">
     <div class="ca-settings-section-title">Token Placement</div>
     <div class="ca-settings-row">
-      <label class="ca-settings-label" for="ca-token-pos-toggle">Use saved positions</label>
-      <input class="ca-token-pos-toggle" id="ca-token-pos-toggle" type="checkbox"
-             {{#if useDefaultTokenPositions}}checked{{/if}}>
+      <label class="ca-settings-label">Use saved positions</label>
+      <button class="ca-toggle-btn {{#if useDefaultTokenPositions}}ca-toggle-btn--active{{/if}}"
+              type="button" data-setting="useDefaultTokenPositions"
+              data-value-on="true" data-value-off="false">
+        {{#if useDefaultTokenPositions}}Enabled{{else}}Disabled{{/if}}
+      </button>
     </div>
     <div class="ca-settings-row">
       <button class="ca-capture-token-pos" type="button">Capture Token Positions</button>

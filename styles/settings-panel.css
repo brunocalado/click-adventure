@@ -8,8 +8,11 @@
      .ca-settings-row                                One settings row (label + control)
      .ca-settings-label                              Setting label
      .ca-settings-transition                         <select> dropdown for transition mode
-     .ca-settings-hud-visibility                     <select> dropdown for HUD visibility
-     .ca-settings-guide-action                       <select> dropdown for guide mode action
+     .ca-btn-group                                   Exclusive button group container
+     .ca-btn-group-btn                               Individual option button in a group
+     .ca-btn-group-btn--active                       Active/selected state modifier
+     .ca-toggle-btn                                  Single on/off toggle button
+     .ca-toggle-btn--active                          Enabled state modifier
      .ca-settings-hint                               Small helper text under a setting
 */
 
@@ -46,9 +49,7 @@
   min-width: 110px;
 }
 
-.click-adventure.settings .ca-settings-transition,
-.click-adventure.settings .ca-settings-hud-visibility,
-.click-adventure.settings .ca-settings-guide-action {
+.click-adventure.settings .ca-settings-transition {
   flex: 1;
   height: 28px;
   padding: 0 6px;
@@ -60,9 +61,7 @@
   cursor: pointer;
 }
 
-.click-adventure.settings .ca-settings-transition:focus,
-.click-adventure.settings .ca-settings-hud-visibility:focus,
-.click-adventure.settings .ca-settings-guide-action:focus {
+.click-adventure.settings .ca-settings-transition:focus {
   outline: none;
   border-color: var(--ca-border-toolbar-hv);
 }
@@ -93,7 +92,68 @@
   color: var(--ca-text-primary);
 }
 
-/* Token placement toggle checkbox — align with other rows */
-.click-adventure.settings .ca-token-pos-toggle {
+/* ── Button group (exclusive toggle) ──────────────────────────────────── */
+.click-adventure.settings .ca-btn-group {
+  display: flex;
+  flex: 1;
+  gap: 0;
+  border-radius: var(--ca-radius-md);
+  overflow: hidden;
+  border: 1px solid var(--ca-border-toolbar);
+}
+
+.click-adventure.settings .ca-btn-group-btn {
+  flex: 1;
+  height: 28px;
+  padding: 0 8px;
+  background: var(--ca-bg-toolbar);
+  border: none;
+  border-right: 1px solid var(--ca-border-toolbar);
+  color: var(--ca-text-muted);
+  font-size: 12px;
   cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+  white-space: nowrap;
+}
+
+.click-adventure.settings .ca-btn-group-btn:last-child {
+  border-right: none;
+}
+
+.click-adventure.settings .ca-btn-group-btn:hover:not(.ca-btn-group-btn--active) {
+  background: var(--ca-bg-toolbar-hover);
+  color: var(--ca-text-primary);
+}
+
+.click-adventure.settings .ca-btn-group-btn--active {
+  background: var(--ca-border-toolbar);
+  color: var(--ca-text-bright);
+  cursor: default;
+}
+
+/* ── Toggle button (single on/off) ────────────────────────────────────── */
+.click-adventure.settings .ca-toggle-btn {
+  height: 28px;
+  padding: 0 14px;
+  background: var(--ca-bg-toolbar);
+  border: 1px solid var(--ca-border-toolbar);
+  border-radius: var(--ca-radius-md);
+  color: var(--ca-text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+  min-width: 72px;
+  text-align: center;
+}
+
+.click-adventure.settings .ca-toggle-btn:hover:not(.ca-toggle-btn--active) {
+  background: var(--ca-bg-toolbar-hover);
+  border-color: var(--ca-border-toolbar-hv);
+  color: var(--ca-text-primary);
+}
+
+.click-adventure.settings .ca-toggle-btn--active {
+  background: var(--ca-state-open-tint);
+  border-color: var(--ca-state-open-border);
+  color: var(--ca-state-open);
 }

@@ -85,19 +85,30 @@ export class SettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
         await game.settings.set("click-adventure", "transitionType", e.target.value);
       });
 
-    this.element.querySelector(".ca-settings-guide-action")
-      ?.addEventListener("change", async (e) => {
-        await game.settings.set("click-adventure", "guideModeAction", e.target.value);
-      });
+    // Button groups (HUD Visibility + Guide Mode)
+    this.element.querySelectorAll(".ca-btn-group").forEach(group => {
+      group.querySelectorAll(".ca-btn-group-btn").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const setting = group.dataset.setting;
+          const value   = btn.dataset.value;
 
-    this.element.querySelector(".ca-settings-hud-visibility")
-      ?.addEventListener("change", async (e) => {
-        await game.settings.set("click-adventure", "hudVisibility", e.target.value);
-      });
+          await game.settings.set("click-adventure", setting, value);
 
-    this.element.querySelector(".ca-token-pos-toggle")
-      ?.addEventListener("change", async (e) => {
-        await game.settings.set("click-adventure", "useDefaultTokenPositions", e.target.checked);
+          group.querySelectorAll(".ca-btn-group-btn").forEach(b =>
+            b.classList.toggle("ca-btn-group-btn--active", b === btn)
+          );
+        });
+      });
+    });
+
+    // Toggle button (Use saved positions)
+    this.element.querySelector(".ca-toggle-btn")
+      ?.addEventListener("click", async function () {
+        const current = game.settings.get("click-adventure", "useDefaultTokenPositions");
+        const next    = !current;
+        await game.settings.set("click-adventure", "useDefaultTokenPositions", next);
+        this.classList.toggle("ca-toggle-btn--active", next);
+        this.textContent = next ? "Enabled" : "Disabled";
       });
 
     this.element.querySelector(".ca-capture-token-pos")
@@ -131,8 +142,11 @@ export class SettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const wasEnabled = game.settings.get("click-adventure", "useDefaultTokenPositions");
         if (!wasEnabled) {
           await game.settings.set("click-adventure", "useDefaultTokenPositions", true);
-          const checkbox = this.element.querySelector(".ca-token-pos-toggle");
-          if (checkbox) checkbox.checked = true;
+          const toggleBtn = this.element.querySelector(".ca-toggle-btn");
+          if (toggleBtn) {
+            toggleBtn.classList.add("ca-toggle-btn--active");
+            toggleBtn.textContent = "Enabled";
+          }
         }
 
         ui.notifications.info(`Click Adventure: Saved default positions for ${count} player(s). Token placement enabled.`);
