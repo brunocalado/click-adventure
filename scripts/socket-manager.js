@@ -230,7 +230,34 @@ export class AdventureSocketManager {
     const alreadyThere = toScene.tokens.find(t => t.actorId === actor.id);
     if (alreadyThere) return;
 
+    // Resolve spawn position BEFORE deleting the origin token (order is critical).
+    const proto = actor.prototypeToken.toObject();
+    const useDefaultPos = game.settings.get("click-adventure", "useDefaultTokenPositions");
+
+    // Saved position (only when toggle is on).
+    const savedPos = useDefaultPos
+      ? (game.settings.get("click-adventure", "defaultTokenPositions") ?? {})[user.id] ?? null
+      : null;
+
+    // Origin position: where the token was in the previous scene (only when toggle is off).
+    let originPos = null;
+    if (!savedPos && fromSceneId && fromSceneId !== toSceneId) {
+      const fromScene = game.scenes.get(fromSceneId);
+      if (fromScene) {
+        const originToken = fromScene.tokens.find(t => t.actorId === actor.id);
+        if (originToken) originPos = { x: originToken.x, y: originToken.y };
+      }
+    }
+
+    // Priority: savedPos → originPos → scene center.
+    const centerX = Math.round((toScene.width  / 2) - ((proto.width  ?? 1) * (toScene.grid?.size ?? 100) / 2));
+    const centerY = Math.round((toScene.height / 2) - ((proto.height ?? 1) * (toScene.grid?.size ?? 100) / 2));
+
+    const spawnX = (savedPos ?? originPos)?.x ?? centerX;
+    const spawnY = (savedPos ?? originPos)?.y ?? centerY;
+
     // Delete token from origin scene (if provided and token exists there).
+    // Must happen AFTER reading originPos above.
     if (fromSceneId && fromSceneId !== toSceneId) {
       const fromScene = game.scenes.get(fromSceneId);
       if (fromScene) {
@@ -238,20 +265,6 @@ export class AdventureSocketManager {
         if (originToken) await originToken.delete();
       }
     }
-
-    // Create a new token in the destination scene, preferring the saved default position.
-    const proto = actor.prototypeToken.toObject();
-    const useDefaultPos = game.settings.get("click-adventure", "useDefaultTokenPositions");
-    const defaultPos = useDefaultPos
-      ? (game.settings.get("click-adventure", "defaultTokenPositions") ?? {})[user.id] ?? null
-      : null;
-
-    const spawnX = defaultPos
-      ? defaultPos.x
-      : Math.round((toScene.width  / 2) - ((proto.width  ?? 1) * (toScene.grid?.size ?? 100) / 2));
-    const spawnY = defaultPos
-      ? defaultPos.y
-      : Math.round((toScene.height / 2) - ((proto.height ?? 1) * (toScene.grid?.size ?? 100) / 2));
 
     const tokenData = foundry.utils.mergeObject(proto, {
       x: spawnX,

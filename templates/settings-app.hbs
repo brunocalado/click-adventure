@@ -47,8 +47,8 @@
   <div class="ca-settings-section">
     <div class="ca-settings-section-title">Token Placement</div>
 
+    <div class="ca-settings-section-title ca-token-placement-subtitle">Saved Positions</div>
     <div class="ca-token-placement-card">
-      <span class="ca-token-placement-label">Saved positions</span>
       <div class="ca-token-placement-controls">
         <button class="ca-toggle-btn {{#if useDefaultTokenPositions}}ca-toggle-btn--active{{/if}}"
                 type="button" data-setting="useDefaultTokenPositions">
@@ -62,8 +62,8 @@
     </div>
 
     <p class="ca-settings-hint">
-      Enable to spawn teleported tokens at captured positions instead of scene center.
-      Capturing automatically enables this setting.
+      <strong>Enabled:</strong> teleported tokens spawn at the last captured positions.<br>
+      <strong>Disabled:</strong> tokens appear at the same position they had in the previous scene. Falls back to scene center if no previous position exists.
     </p>
   </div>
 
