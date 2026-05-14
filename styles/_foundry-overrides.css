@@ -9,11 +9,7 @@
    @manifest:
      .ca-node .ca-node-buttons .ca-view-scene-btn   Force 18x18 sizing over Foundry button defaults
      .ca-node .ca-node-buttons .ca-set-active-btn   Force 18x18 sizing over Foundry button defaults
-     .ca-node .ca-view-scene-btn:focus              Suppress Foundry's orange focus ring
-     .ca-node .ca-set-active-btn:focus              Suppress Foundry's orange focus ring
-     .ca-toolbar button:focus                       Suppress Foundry's orange focus ring on toolbar
-     .click-adventure.instructions .ca-instr-tab-btn:focus   Suppress Foundry's focus ring on tab buttons
-     .click-adventure.settings button:focus, select:focus   Suppress Foundry's focus ring in settings window
+     .click-adventure a.button:focus, button:focus, select:focus   Suppress Foundry's orange focus ring (foundry2.css:4004) for all module windows
      .click-adventure.settings .window-content      Zero Foundry padding; opaque bg
      .click-adventure.nav-hud                       Free-floating ApplicationV2 (no chrome)
 */
@@ -31,34 +27,15 @@
   box-sizing: border-box;
 }
 
-/* Suppress Foundry's global orange focus ring inside node cards. */
-.ca-node .ca-view-scene-btn:focus,
-.ca-node .ca-activate-scene-btn:focus,
-.ca-node .ca-set-active-btn:focus {
-  outline: none !important;
-  box-shadow: none !important;
-}
-
-/* Suppress Foundry's global orange focus ring on toolbar buttons. */
-.ca-toolbar button:focus {
-  outline: none !important;
-  box-shadow: none !important;
-}
-
-/* Suppress Foundry's global button focus ring (outline + box-shadow) on
-   Instructions tab buttons. Source: foundry2.css:4004
-   a.button:focus, button:focus { outline: 1px solid ...; box-shadow: 0 0 4px ...; } */
-.click-adventure.instructions .ca-instr-tab-btn:focus {
-  outline: none !important;
-  box-shadow: none !important;
-}
-
-/* Suppress Foundry's global button focus ring on Settings window controls.
-   Source: foundry2.css:4004 */
-.click-adventure.settings button:focus,
-.click-adventure.settings select:focus {
-  outline: none !important;
-  box-shadow: none !important;
+/* Suppress Foundry's orange focus ring (foundry2.css:4004) for all module windows.
+   All apps carry .click-adventure via DEFAULT_OPTIONS.classes, making this the
+   single point of truth — no per-component overrides needed.
+   Parent class raises specificity above Foundry's bare selector, so !important is unnecessary. */
+.click-adventure a.button:focus,
+.click-adventure button:focus,
+.click-adventure select:focus {
+  outline: none;
+  box-shadow: none;
 }
 
 /* Zero out Foundry's .window-content padding for the settings window,
