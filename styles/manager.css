@@ -315,3 +315,9 @@
   flex: 1;
   min-width: 0;
 }
+
+/* ── Scenes directory sidebar button ─────────────────────────── */
+.click-adventure-sidebar-btn {
+  width: calc(100% - 16px);
+  margin: 0px 8px 0;
+}
