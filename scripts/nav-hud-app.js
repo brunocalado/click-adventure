@@ -500,11 +500,24 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
         await fireActiveItemMacro(targetNode, "gm-activate", targetNode.sceneId ?? null);
         await fireActiveItemMacro(targetNode, "gm-any",       targetNode.sceneId ?? null);
 
-        // Still update all players' position flags so the HUD and manager stay consistent.
+        // Update all players' position flags and move their tokens to the activated scene.
+        const { nodes: guideNodes } = getGraphData();
         const players = game.users.filter(u => !u.isGM && u.active);
         for (const user of players) {
+          // Capture origin BEFORE overwriting the flag.
+          const fromNodeId  = user.getFlag("click-adventure", "currentNodeId") ?? null;
+          const fromNode    = guideNodes.find(n => n.id === fromNodeId);
+          const fromSceneId = fromNode?.sceneId ?? null;
+
           await user.unsetFlag("click-adventure", "previousNodeId");
           await user.setFlag("click-adventure", "currentNodeId", targetNode.id);
+
+          // GM is the executor — call directly (socket.io does not echo to emitter).
+          await globalThis.ClickAdventure._socket._handleMoveToken({
+            userId: user.id,
+            fromSceneId,
+            toSceneId: targetNode.sceneId
+          });
         }
 
       } else {

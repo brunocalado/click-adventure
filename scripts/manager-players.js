@@ -442,13 +442,25 @@ export function onNodeContextMenu(app, e, nodeId) {
  * @returns {Promise<void>}
  */
 export async function onSendAllToNode(app, targetNode, players) {
+  const { nodes } = getGraphData();
   for (const user of players) {
+    // Capture origin BEFORE overwriting the flag.
+    const fromNodeId  = user.getFlag("click-adventure", "currentNodeId") ?? null;
+    const fromNode    = nodes.find(n => n.id === fromNodeId);
+    const fromSceneId = fromNode?.sceneId ?? null;
+
     // Teleport clears the "came from" context
     await user.unsetFlag("click-adventure", "previousNodeId");
     await user.setFlag("click-adventure", "currentNodeId", targetNode.id);
 
     if (targetNode.sceneId) {
       globalThis.ClickAdventure._socket.teleportUser(targetNode.sceneId, user.id);
+      // GM is the executor — call directly (socket.io does not echo to emitter).
+      await globalThis.ClickAdventure._socket._handleMoveToken({
+        userId: user.id,
+        fromSceneId,
+        toSceneId: targetNode.sceneId
+      });
     } else {
       globalThis.ClickAdventure._socket.notifyHudRefresh(user.id);
     }
@@ -470,12 +482,23 @@ export async function onTeleportPlayer(app, user, nodeId) {
   const targetNode = nodes.find(n => n.id === nodeId);
   if (!targetNode) return;
 
+  // Capture origin BEFORE overwriting the flag.
+  const fromNodeId  = user.getFlag("click-adventure", "currentNodeId") ?? null;
+  const fromNode    = nodes.find(n => n.id === fromNodeId);
+  const fromSceneId = fromNode?.sceneId ?? null;
+
   // Teleport clears the "came from" context
   await user.unsetFlag("click-adventure", "previousNodeId");
   await user.setFlag("click-adventure", "currentNodeId", nodeId);
 
   if (targetNode.sceneId) {
     await globalThis.ClickAdventure._socket.teleportUser(targetNode.sceneId, user.id);
+    // GM is the executor — call directly (socket.io does not echo to emitter).
+    await globalThis.ClickAdventure._socket._handleMoveToken({
+      userId: user.id,
+      fromSceneId,
+      toSceneId: targetNode.sceneId
+    });
   } else {
     await globalThis.ClickAdventure._socket.notifyHudRefresh(user.id);
   }
