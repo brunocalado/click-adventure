@@ -73,23 +73,96 @@
   line-height: 1.4;
 }
 
-/* Token Placement button */
-.click-adventure.settings .ca-capture-token-pos {
-  height: 28px;
-  padding: 0 10px;
+/* ── Token Placement card ─────────────────────────────────────────────── */
+.click-adventure.settings .ca-token-placement-card {
+  display: flex;
+  align-items: center;
+  gap: 0;
   background: var(--ca-bg-toolbar);
   border: 1px solid var(--ca-border-toolbar);
   border-radius: var(--ca-radius-md);
+  overflow: hidden;
+  height: 30px;
+}
+
+.click-adventure.settings .ca-token-placement-label {
+  flex-shrink: 0;
+  padding: 0 10px;
+  font-size: 12px;
+  color: var(--ca-text-muted);
+  border-right: 1px solid var(--ca-border-toolbar);
+  height: 100%;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.click-adventure.settings .ca-token-placement-controls {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  height: 100%;
+}
+
+.click-adventure.settings .ca-token-placement-divider {
+  width: 1px;
+  height: 100%;
+  background: var(--ca-border-toolbar);
+  flex-shrink: 0;
+}
+
+/* Toggle button — lives inside the card, no outer border */
+.click-adventure.settings .ca-toggle-btn {
+  height: 100%;
+  padding: 0 12px;
+  background: transparent;
+  border: none;
   color: var(--ca-text-muted);
   font-size: 12px;
   cursor: pointer;
-  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+  transition: background 120ms ease, color 120ms ease;
+  min-width: 68px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.click-adventure.settings .ca-toggle-btn:hover:not(.ca-toggle-btn--active) {
+  background: var(--ca-bg-toolbar-hover);
+  color: var(--ca-text-primary);
+}
+
+.click-adventure.settings .ca-toggle-btn--active {
+  background: var(--ca-state-open-tint);
+  color: var(--ca-state-open);
+}
+
+/* Capture button — lives inside the card, no outer border */
+.click-adventure.settings .ca-capture-token-pos {
+  flex: 1;
+  height: 100%;
+  padding: 0 10px;
+  background: transparent;
+  border: none;
+  color: var(--ca-text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  white-space: nowrap;
 }
 
 .click-adventure.settings .ca-capture-token-pos:hover {
   background: var(--ca-bg-toolbar-hover);
-  border-color: var(--ca-border-toolbar-hv);
   color: var(--ca-text-primary);
+}
+
+.click-adventure.settings .ca-capture-token-pos i {
+  font-size: 11px;
+  opacity: 0.8;
 }
 
 /* ── Button group (exclusive toggle) ──────────────────────────────────── */
@@ -131,29 +204,3 @@
   cursor: default;
 }
 
-/* ── Toggle button (single on/off) ────────────────────────────────────── */
-.click-adventure.settings .ca-toggle-btn {
-  height: 28px;
-  padding: 0 14px;
-  background: var(--ca-bg-toolbar);
-  border: 1px solid var(--ca-border-toolbar);
-  border-radius: var(--ca-radius-md);
-  color: var(--ca-text-muted);
-  font-size: 12px;
-  cursor: pointer;
-  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
-  min-width: 72px;
-  text-align: center;
-}
-
-.click-adventure.settings .ca-toggle-btn:hover:not(.ca-toggle-btn--active) {
-  background: var(--ca-bg-toolbar-hover);
-  border-color: var(--ca-border-toolbar-hv);
-  color: var(--ca-text-primary);
-}
-
-.click-adventure.settings .ca-toggle-btn--active {
-  background: var(--ca-state-open-tint);
-  border-color: var(--ca-state-open-border);
-  color: var(--ca-state-open);
-}
