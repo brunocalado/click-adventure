@@ -286,3 +286,32 @@ Hooks.on("init", () => {
     _socket: socketManager
   };
 });
+
+/**
+ * Inject a "Click Adventure" button into the Scene Directory sidebar header.
+ * The button opens (or brings to front) the scene-graph Manager.
+ * Guard against double-injection with a sentinel class check.
+ * Restricted to GM users only, since the Manager is a GM-only tool.
+ */
+Hooks.on("renderSceneDirectory", (_app, html) => {
+  if (!game.user.isGM) return;
+  if (html.querySelector(".click-adventure-sidebar-btn")) return;
+
+  const header = html.querySelector(".directory-header");
+  if (!header) return;
+
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "click-adventure-sidebar-btn";
+  btn.innerHTML = '<i class="fas fa-map-signs"></i> Click Adventure';
+  btn.addEventListener("click", () => ClickAdventure.Manager());
+
+  // Insert after the native action buttons (Create Scene / Create Folder) so
+  // the button sits between those and the search bar, regardless of the search
+  // element's tag or class name in v14.
+  const actionButtons =
+    header.querySelector(".action-buttons") ??
+    header.querySelector(".header-actions");
+  const anchor = actionButtons ? actionButtons.nextSibling : null;
+  header.insertBefore(btn, anchor);
+});
