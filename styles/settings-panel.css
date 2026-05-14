@@ -201,3 +201,17 @@
   cursor: default;
 }
 
+/* ── Settings — Danger Zone inline row ──────────────────────── */
+.click-adventure.settings .ca-danger-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.click-adventure.settings .ca-danger-hint {
+  margin: 0;
+  font-size: var(--font-size-12, 12px);
+  color: var(--ca-text-muted);
+  line-height: 1.4;
+}
