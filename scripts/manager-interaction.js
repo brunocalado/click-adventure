@@ -98,8 +98,8 @@ export function onAnchorMouseDown(app, e, anchor) {
   const wsRect = workspace.getBoundingClientRect();
   const anchorRect = anchor.getBoundingClientRect();
 
-  const startX = anchorRect.left + anchorRect.width / 2 - wsRect.left;
-  const startY = anchorRect.top + anchorRect.height / 2 - wsRect.top;
+  const startX = anchorRect.left + anchorRect.width  / 2 - wsRect.left - app._pan.x;
+  const startY = anchorRect.top  + anchorRect.height / 2 - wsRect.top  - app._pan.y;
 
   const svg = workspace.querySelector(".ca-links-layer");
   const srcAnchor = anchor.dataset.anchor;
@@ -190,8 +190,8 @@ export function onDocMouseMove(app, e) {
 
   if (app._linkState) {
     const { tempLine: tempPath, startX, startY, sourceAnchor } = app._linkState;
-    const mx = e.clientX - wsRect.left;
-    const my = e.clientY - wsRect.top;
+    const mx = e.clientX - wsRect.left - app._pan.x;
+    const my = e.clientY - wsRect.top  - app._pan.y;
     const c1 = bezierOffset(sourceAnchor);
     tempPath.setAttribute("d",
       `M ${startX},${startY} C ${startX + c1.dx},${startY + c1.dy} ${mx},${my} ${mx},${my}`

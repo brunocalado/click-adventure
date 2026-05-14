@@ -50,6 +50,7 @@
 }
 
 .click-adventure.manager .ca-temp-link {
+  fill: none;
   stroke: var(--ca-state-temp);
   stroke-width: 2;
   stroke-dasharray: 6 3;
