@@ -211,6 +211,15 @@ Hooks.on("init", () => {
     default: { type: "orb", size: 1, color: "#3355aa", orbImage: "" }
   });
 
+  game.settings.register("click-adventure", "defaultTokenPositions", {
+    name: "Default Token Positions",
+    hint: "Stores per-user default token spawn coordinates. Managed via the Settings panel in the Manager.",
+    scope: "world",
+    config: false,
+    type: Object,
+    default: {}
+  });
+
   game.settings.registerMenu("click-adventure", "orbStyleMenu", {
     name: "HUD Button Style",
     label: "Customize HUD Button Style…",

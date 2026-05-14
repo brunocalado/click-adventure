@@ -92,5 +92,29 @@ export class SettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
       ?.addEventListener("change", async (e) => {
         await game.settings.set("click-adventure", "hudVisibility", e.target.value);
       });
+
+    this.element.querySelector(".ca-capture-token-pos")
+      ?.addEventListener("click", async () => {
+        const scene = canvas.scene;
+        if (!scene) {
+          ui.notifications.warn("Click Adventure: No active scene on canvas.");
+          return;
+        }
+
+        const current = game.settings.get("click-adventure", "defaultTokenPositions") ?? {};
+        const updated = { ...current };
+        let count = 0;
+
+        for (const token of scene.tokens) {
+          if (!token.actorId) continue;
+          const user = game.users.find(u => u.character?.id === token.actorId);
+          if (!user) continue;
+          updated[user.id] = { x: token.x, y: token.y };
+          count++;
+        }
+
+        await game.settings.set("click-adventure", "defaultTokenPositions", updated);
+        ui.notifications.info(`Click Adventure: Saved default positions for ${count} player(s).`);
+      });
   }
 }

@@ -239,11 +239,21 @@ export class AdventureSocketManager {
       }
     }
 
-    // Create a new token in the destination scene at the scene center.
+    // Create a new token in the destination scene, preferring the saved default position.
     const proto = actor.prototypeToken.toObject();
+    const defaultPositions = game.settings.get("click-adventure", "defaultTokenPositions") ?? {};
+    const defaultPos = defaultPositions[user.id] ?? null;
+
+    const spawnX = defaultPos
+      ? defaultPos.x
+      : Math.round((toScene.width  / 2) - ((proto.width  ?? 1) * (toScene.grid?.size ?? 100) / 2));
+    const spawnY = defaultPos
+      ? defaultPos.y
+      : Math.round((toScene.height / 2) - ((proto.height ?? 1) * (toScene.grid?.size ?? 100) / 2));
+
     const tokenData = foundry.utils.mergeObject(proto, {
-      x: Math.round((toScene.width  / 2) - ((proto.width  ?? 1) * (toScene.grid?.size ?? 100) / 2)),
-      y: Math.round((toScene.height / 2) - ((proto.height ?? 1) * (toScene.grid?.size ?? 100) / 2)),
+      x: spawnX,
+      y: spawnY,
       actorId: actor.id,
       actorLink: true
     });
