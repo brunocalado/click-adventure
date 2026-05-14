@@ -27,7 +27,7 @@
      .ca-occupant-label                    Single player presence label
 */
 
-.ca-node {
+.click-adventure.manager .ca-node {
   position: absolute;
   width: var(--ca-node-size);
   height: var(--ca-node-size);
@@ -45,23 +45,23 @@
   overflow: visible;
 }
 
-.ca-node:hover {
+.click-adventure.manager .ca-node:hover {
   border-color: var(--ca-border-card-hover);
   box-shadow: 0 0 0 2px rgba(127, 170, 255, 0.3), 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
-.ca-node:active {
+.click-adventure.manager .ca-node:active {
   cursor: grabbing;
 }
 
 /* Active node — green border. */
-.ca-node[data-active="true"] {
+.click-adventure.manager .ca-node[data-active="true"] {
   border-color: var(--ca-state-open);
   box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.4), 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 /* Image fills the top of the card, flush with rounded corners. */
-.ca-node-image {
+.click-adventure.manager .ca-node-image {
   width: 100%;
   height: var(--ca-node-image-h);
   flex-shrink: 0;
@@ -72,7 +72,7 @@
 }
 
 /* Subtle gradient so the top-right buttons stay legible over any image. */
-.ca-node-image::after {
+.click-adventure.manager .ca-node-image::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -81,13 +81,13 @@
   pointer-events: none;
 }
 
-.ca-node-image--empty {
+.click-adventure.manager .ca-node-image--empty {
   background-color: var(--ca-bg-card-empty);
   border-bottom: 1px dashed rgba(74, 111, 165, 0.5);
 }
 
 /* Label area — fills the remaining height with centered text. */
-.ca-node-label-area {
+.click-adventure.manager .ca-node-label-area {
   flex: 1;
   display: flex;
   align-items: center;
@@ -99,7 +99,7 @@
   overflow: hidden;
 }
 
-.ca-node-label {
+.click-adventure.manager .ca-node-label {
   color: var(--ca-text-primary);
   font-size: 10.5px;
   font-weight: 500;
@@ -112,7 +112,7 @@
 }
 
 /* Wrapper top-left: holds start star and occupant badge side by side. */
-.ca-node-top-left {
+.click-adventure.manager .ca-node-top-left {
   position: absolute;
   top: 4px;
   left: 4px;
@@ -124,19 +124,19 @@
 }
 
 /* Start point star icon — inside the wrapper, no own absolute position. */
-.ca-start-icon {
+.click-adventure.manager .ca-start-icon {
   display: flex;
   align-items: center;
   color: var(--ca-state-warning);
   filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.8));
 }
 
-.ca-start-icon svg {
+.click-adventure.manager .ca-start-icon svg {
   pointer-events: none;
 }
 
 /* Two identical buttons stacked in the top-right corner. */
-.ca-node-buttons {
+.click-adventure.manager .ca-node-buttons {
   position: absolute;
   top: 4px;
   right: 4px;
@@ -148,9 +148,9 @@
 }
 
 /* Shared base for both node-card buttons. */
-.ca-view-scene-btn,
-.ca-activate-scene-btn,
-.ca-set-active-btn {
+.click-adventure.manager .ca-view-scene-btn,
+.click-adventure.manager .ca-activate-scene-btn,
+.click-adventure.manager .ca-set-active-btn {
   width: var(--ca-node-btn-size);
   height: var(--ca-node-btn-size);
   min-width: var(--ca-node-btn-size);
@@ -172,39 +172,39 @@
   box-sizing: border-box;
 }
 
-.ca-view-scene-btn:hover:not(:disabled),
-.ca-activate-scene-btn:hover:not(:disabled) {
+.click-adventure.manager .ca-view-scene-btn:hover:not(:disabled),
+.click-adventure.manager .ca-activate-scene-btn:hover:not(:disabled) {
   color: var(--ca-text-link);
   background: rgba(20, 40, 90, 0.85);
   border-color: rgba(100, 170, 255, 0.55);
 }
 
-.ca-view-scene-btn:disabled,
-.ca-activate-scene-btn:disabled {
+.click-adventure.manager .ca-view-scene-btn:disabled,
+.click-adventure.manager .ca-activate-scene-btn:disabled {
   opacity: 0.25;
   cursor: default;
 }
 
-.ca-view-scene-btn svg,
-.ca-activate-scene-btn svg,
-.ca-set-active-btn svg {
+.click-adventure.manager .ca-view-scene-btn svg,
+.click-adventure.manager .ca-activate-scene-btn svg,
+.click-adventure.manager .ca-set-active-btn svg {
   pointer-events: none;
 }
 
-.ca-set-active-btn:hover {
+.click-adventure.manager .ca-set-active-btn:hover {
   color: var(--ca-state-open);
   background: rgba(20, 40, 90, 0.85);
   border-color: rgba(100, 170, 255, 0.55);
 }
 
-.ca-set-active-btn--active {
+.click-adventure.manager .ca-set-active-btn--active {
   color: var(--ca-state-open);
   background: var(--ca-state-open-tint);
   border-color: rgba(34, 197, 94, 0.5);
 }
 
 /* Anchor dots */
-.ca-anchor {
+.click-adventure.manager .ca-anchor {
   position: absolute;
   width: var(--ca-anchor-size);
   height: var(--ca-anchor-size);
@@ -217,24 +217,24 @@
   transition: background 0.15s, transform 0.15s;
 }
 
-.ca-anchor:hover {
+.click-adventure.manager .ca-anchor:hover {
   background: var(--ca-state-temp);
 }
 
 /* Position variants — offset by half the dot size (6px) so the center sits on the node edge. */
-.ca-anchor-top    { top: -7px;  left: 50%; transform: translateX(-50%); }
-.ca-anchor-right  { right: -7px; top: 50%; transform: translateY(-50%); }
-.ca-anchor-bottom { bottom: -7px; left: 50%; transform: translateX(-50%); }
-.ca-anchor-left   { left: -7px;  top: 50%; transform: translateY(-50%); }
+.click-adventure.manager .ca-anchor-top    { top: -7px;  left: 50%; transform: translateX(-50%); }
+.click-adventure.manager .ca-anchor-right  { right: -7px; top: 50%; transform: translateY(-50%); }
+.click-adventure.manager .ca-anchor-bottom { bottom: -7px; left: 50%; transform: translateX(-50%); }
+.click-adventure.manager .ca-anchor-left   { left: -7px;  top: 50%; transform: translateY(-50%); }
 
 /* Hover scale — must preserve the existing translate. */
-.ca-anchor-top:hover    { transform: translateX(-50%) scale(1.4); }
-.ca-anchor-right:hover  { transform: translateY(-50%) scale(1.4); }
-.ca-anchor-bottom:hover { transform: translateX(-50%) scale(1.4); }
-.ca-anchor-left:hover   { transform: translateY(-50%) scale(1.4); }
+.click-adventure.manager .ca-anchor-top:hover    { transform: translateX(-50%) scale(1.4); }
+.click-adventure.manager .ca-anchor-right:hover  { transform: translateY(-50%) scale(1.4); }
+.click-adventure.manager .ca-anchor-bottom:hover { transform: translateX(-50%) scale(1.4); }
+.click-adventure.manager .ca-anchor-left:hover   { transform: translateY(-50%) scale(1.4); }
 
 /* Node occupant count badge — compact icon + number inside the top-left wrapper. */
-.ca-node-occupant-badge {
+.click-adventure.manager .ca-node-occupant-badge {
   display: flex;
   align-items: center;
   gap: 3px;
@@ -249,15 +249,15 @@
   white-space: nowrap;
 }
 
-.ca-node-occupant-badge i {
+.click-adventure.manager .ca-node-occupant-badge i {
   font-size: 9px;
   color: rgba(255, 255, 255, 0.55);
 }
 
 /* Node highlight — amber ring when hovered from the player panel or after focus.
    Uses !important to override the active-node green border (higher specificity). */
-.ca-node--highlighted,
-.ca-node[data-active="true"].ca-node--highlighted {
+.click-adventure.manager .ca-node--highlighted,
+.click-adventure.manager .ca-node[data-active="true"].ca-node--highlighted {
   outline: 2px solid rgba(255, 200, 60, 0.85) !important;
   outline-offset: 3px;
   border-radius: 6px;
@@ -270,7 +270,7 @@
      - .ca-node--highlighted   (outline amber)
    When a node is simultaneously selected AND highlighted, both outlines
    stack visually because this rule uses outline-offset: 7px vs highlighted's 3px. */
-.ca-node--selected {
+.click-adventure.manager .ca-node--selected {
   outline: 2px solid rgba(160, 100, 255, 0.9);
   outline-offset: 7px;
   animation: ca-node-wobble 0.7s ease-in-out infinite alternate;
@@ -278,8 +278,8 @@
 
 /* Selected AND highlighted simultaneously — increase offset further so
    the purple outline clears the amber one. */
-.ca-node--selected.ca-node--highlighted,
-.ca-node[data-active="true"].ca-node--selected.ca-node--highlighted {
+.click-adventure.manager .ca-node--selected.ca-node--highlighted,
+.click-adventure.manager .ca-node[data-active="true"].ca-node--selected.ca-node--highlighted {
   outline: 2px solid rgba(160, 100, 255, 0.9);
   outline-offset: 10px;
 }
@@ -290,7 +290,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ca-node--selected {
+  .click-adventure.manager .ca-node--selected {
     animation: none;
   }
 }

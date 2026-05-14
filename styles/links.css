@@ -21,14 +21,14 @@
      .ca-link-direction-arrow                     Polygon arrow used for forward/backward states
 */
 
-.ca-links-layer {
+.click-adventure.manager .ca-links-layer {
   position: absolute;
   inset: 0;
   pointer-events: none;
   z-index: var(--ca-z-link);
 }
 
-.ca-link {
+.click-adventure.manager .ca-link {
   stroke: var(--ca-state-link-base);
   stroke-width: 2px;
   fill: none;
@@ -37,19 +37,19 @@
   transition: stroke 0.1s, stroke-width 0.1s;
 }
 
-.ca-link.ca-link--hover {
+.click-adventure.manager .ca-link.ca-link--hover {
   stroke: var(--ca-state-link-hover);
   stroke-width: 3px;
 }
 
-.ca-link-hit {
+.click-adventure.manager .ca-link-hit {
   stroke: transparent;
   stroke-width: 16px;
   fill: none;
   cursor: pointer;
 }
 
-.ca-temp-link {
+.click-adventure.manager .ca-temp-link {
   stroke: var(--ca-state-temp);
   stroke-width: 2;
   stroke-dasharray: 6 3;
@@ -57,58 +57,58 @@
 }
 
 /* Text indicators (↔ and ✕) shown at the path midpoint. */
-.ca-link-direction {
+.click-adventure.manager .ca-link-direction {
   font-size: 13px;
   font-family: sans-serif;
   pointer-events: none;
 }
 
-.ca-link-direction[data-direction="both"]    { fill: var(--ca-state-open); }
-.ca-link-direction[data-direction="blocked"] { fill: var(--ca-state-blocked); }
-.ca-link-direction[data-direction="locked"]  { fill: var(--ca-state-locked); }
+.click-adventure.manager .ca-link-direction[data-direction="both"]    { fill: var(--ca-state-open); }
+.click-adventure.manager .ca-link-direction[data-direction="blocked"] { fill: var(--ca-state-blocked); }
+.click-adventure.manager .ca-link-direction[data-direction="locked"]  { fill: var(--ca-state-locked); }
 
 /* Directional arrow polygon. */
-.ca-link-direction-arrow {
+.click-adventure.manager .ca-link-direction-arrow {
   pointer-events: none;
 }
 
-.ca-link-direction-arrow[data-direction="forward"],
-.ca-link-direction-arrow[data-direction="backward"] {
+.click-adventure.manager .ca-link-direction-arrow[data-direction="forward"],
+.click-adventure.manager .ca-link-direction-arrow[data-direction="backward"] {
   fill: var(--ca-state-directional);
 }
 
 /* Link path color varies by direction state. */
-.ca-link[data-direction="both"] {
+.click-adventure.manager .ca-link[data-direction="both"] {
   stroke: var(--ca-state-open);
 }
 
-.ca-link[data-direction="forward"],
-.ca-link[data-direction="backward"] {
+.click-adventure.manager .ca-link[data-direction="forward"],
+.click-adventure.manager .ca-link[data-direction="backward"] {
   stroke: var(--ca-state-directional);
 }
 
-.ca-link[data-direction="blocked"] {
+.click-adventure.manager .ca-link[data-direction="blocked"] {
   stroke: var(--ca-state-blocked);
   stroke-dasharray: 6 4;
 }
 
-.ca-link[data-direction="locked"] {
+.click-adventure.manager .ca-link[data-direction="locked"] {
   stroke: var(--ca-state-locked);
   stroke-dasharray: 6 4;
 }
 
 /* Multi-passage link visual. */
-.ca-link[data-multi="true"] {
+.click-adventure.manager .ca-link[data-multi="true"] {
   stroke-width: 4px;
   stroke: var(--ca-state-multi);
 }
 
-.ca-link[data-multi="true"].ca-link--hover {
+.click-adventure.manager .ca-link[data-multi="true"].ca-link--hover {
   stroke: var(--ca-state-multi-hover);
   stroke-width: 5px;
 }
 
-.ca-link-direction[data-direction="multi"] {
+.click-adventure.manager .ca-link-direction[data-direction="multi"] {
   fill: var(--ca-state-multi);
   font-size: 14px;
 }

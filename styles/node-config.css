@@ -5,7 +5,7 @@
 }
 
 /* ── Root layout ──────────────────────────────────────────────────── */
-.ca-node-config {
+.click-adventure.node-config .ca-node-config {
   padding: 14px 14px 10px;
   display: flex;
   flex-direction: column;
@@ -13,7 +13,7 @@
 }
 
 /* ── Default Scene Name field ─────────────────────────────────────── */
-.ca-nc-field-group {
+.click-adventure.node-config .ca-nc-field-group {
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -23,7 +23,7 @@
   border-radius: var(--ca-radius-lg);
 }
 
-.ca-nc-label {
+.click-adventure.node-config .ca-nc-label {
   font-size: 10px;
   font-weight: 700;
   color: var(--ca-text-muted);
@@ -31,13 +31,13 @@
   text-transform: uppercase;
 }
 
-.ca-nc-field-input-row {
+.click-adventure.node-config .ca-nc-field-input-row {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.ca-node-label-input {
+.click-adventure.node-config .ca-node-label-input {
   flex: 1;
   min-width: 0;
   font-size: 13px;
@@ -51,12 +51,12 @@
   transition: border-color 0.15s;
 }
 
-.ca-node-label-input:focus {
+.click-adventure.node-config .ca-node-label-input:focus {
   border-color: var(--ca-border-toolbar-hv);
   outline: none;
 }
 
-.ca-nc-hint {
+.click-adventure.node-config .ca-nc-hint {
   font-size: 10px;
   color: var(--ca-text-muted);
   white-space: nowrap;
@@ -64,14 +64,14 @@
 }
 
 /* ── Tab bar ──────────────────────────────────────────────────────── */
-.ca-nc-tabs {
+.click-adventure.node-config .ca-nc-tabs {
   display: flex;
   gap: 2px;
   border-bottom: 1px solid var(--ca-border-divider);
   padding-bottom: 0;
 }
 
-.ca-nc-tab {
+.click-adventure.node-config .ca-nc-tab {
   padding: 5px 14px;
   font-size: 11px;
   font-weight: 600;
@@ -85,12 +85,12 @@
   transition: color 0.15s, background 0.15s;
 }
 
-.ca-nc-tab:hover {
+.click-adventure.node-config .ca-nc-tab:hover {
   color: var(--ca-text-primary);
   background: rgba(255,255,255,0.05);
 }
 
-.ca-nc-tab--active {
+.click-adventure.node-config .ca-nc-tab--active {
   color: var(--ca-text-bright);
   background: var(--ca-bg-toolbar);
   border-color: var(--ca-border-divider);
@@ -98,24 +98,24 @@
 }
 
 /* ── Tab panels ───────────────────────────────────────────────────── */
-.ca-nc-panel {
+.click-adventure.node-config .ca-nc-panel {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.ca-nc-panel--hidden {
+.click-adventure.node-config .ca-nc-panel--hidden {
   display: none;
 }
 
 /* ── Images header ────────────────────────────────────────────────── */
-.ca-images-header {
+.click-adventure.node-config .ca-images-header {
   display: flex;
   justify-content: flex-end;
   align-items: center;
 }
 
-.ca-images-header button {
+.click-adventure.node-config .ca-images-header button {
   padding: 3px 10px;
   background: rgba(40, 60, 120, 0.6);
   border: 1px solid rgba(100, 140, 220, 0.4);
@@ -126,12 +126,12 @@
   transition: background 0.15s;
 }
 
-.ca-images-header button:hover {
+.click-adventure.node-config .ca-images-header button:hover {
   background: rgba(60, 90, 180, 0.75);
 }
 
 /* ── Images list ──────────────────────────────────────────────────── */
-.ca-images-list {
+.click-adventure.node-config .ca-images-list {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -143,7 +143,7 @@
   padding-right: 2px;
 }
 
-.ca-image-item {
+.click-adventure.node-config .ca-image-item {
   display: flex;
   flex-direction: row;
   align-items: stretch;
@@ -154,13 +154,13 @@
   border-radius: var(--ca-radius-lg);
 }
 
-.ca-image-item--active {
+.click-adventure.node-config .ca-image-item--active {
   border-color: var(--ca-state-open-border);
   background: var(--ca-state-open-tint);
 }
 
 /* ── Image left column ────────────────────────────────────────────── */
-.ca-image-left {
+.click-adventure.node-config .ca-image-left {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -169,7 +169,7 @@
   gap: 8px;
 }
 
-.ca-image-thumb {
+.click-adventure.node-config .ca-image-thumb {
   width: 60px;
   height: 44px;
   border-radius: var(--ca-radius-md);
@@ -180,7 +180,8 @@
   cursor: pointer;
 }
 
-/* Floating preview tooltip — positioned via JS */
+/* Floating preview tooltip — positioned via JS and appended to document.body,
+   so it cannot be scoped inside .click-adventure.node-config. */
 .ca-image-preview-tooltip {
   position: fixed;
   z-index: var(--ca-z-popover);
@@ -202,7 +203,7 @@
   opacity: 1;
 }
 
-.ca-image-info {
+.click-adventure.node-config .ca-image-info {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -210,7 +211,7 @@
   min-width: 0;
 }
 
-.ca-image-nav-label {
+.click-adventure.node-config .ca-image-nav-label {
   font-size: 10px;
   font-weight: 700;
   color: var(--ca-text-muted);
@@ -218,7 +219,7 @@
   text-transform: uppercase;
 }
 
-.ca-image-label-input {
+.click-adventure.node-config .ca-image-label-input {
   font-size: 11px;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid var(--ca-border-mid);
@@ -229,13 +230,13 @@
   box-sizing: border-box;
 }
 
-.ca-image-actions {
+.click-adventure.node-config .ca-image-actions {
   display: flex;
   gap: 4px;
   align-items: center;
 }
 
-.ca-image-actions button:not(.ca-btn-remove) {
+.click-adventure.node-config .ca-image-actions button:not(.ca-btn-remove) {
   padding: 2px 7px;
   font-size: 11px;
   cursor: pointer;
@@ -246,18 +247,18 @@
   transition: background 0.15s;
 }
 
-.ca-image-actions button:not(.ca-btn-remove):hover {
+.click-adventure.node-config .ca-image-actions button:not(.ca-btn-remove):hover {
   background: rgba(60, 90, 180, 0.7);
 }
 
-.ca-image-active-badge {
+.click-adventure.node-config .ca-image-active-badge {
   font-size: 11px;
   font-weight: 600;
   color: var(--ca-state-open);
 }
 
 /* ── Remove buttons (labeled) ─────────────────────────────────────── */
-.ca-btn-remove {
+.click-adventure.node-config .ca-btn-remove {
   color: var(--ca-state-danger) !important;
   background: none !important;
   border: none !important;
@@ -266,11 +267,11 @@
   transition: color 0.15s;
 }
 
-.ca-btn-remove:hover {
+.click-adventure.node-config .ca-btn-remove:hover {
   color: var(--ca-state-danger-hv) !important;
 }
 
-.ca-btn-remove--labeled {
+.click-adventure.node-config .ca-btn-remove--labeled {
   font-size: 11px !important;
   color: var(--ca-state-danger-hv) !important;
   padding: 2px 6px !important;
@@ -281,13 +282,13 @@
   font-weight: 600 !important;
 }
 
-.ca-btn-remove--labeled:hover {
+.click-adventure.node-config .ca-btn-remove--labeled:hover {
   background: rgba(200, 80, 80, 0.22) !important;
   border-color: var(--ca-state-danger-hv) !important;
   color: #ffd0d0 !important;
 }
 
-.ca-images-empty {
+.click-adventure.node-config .ca-images-empty {
   font-size: 11px;
   color: var(--ca-text-muted);
   padding: 12px 0;
@@ -295,7 +296,7 @@
 }
 
 /* ── Linked Scenes tab ────────────────────────────────────────────── */
-.ca-linked-scenes-dropzone {
+.click-adventure.node-config .ca-linked-scenes-dropzone {
   border: 2px dashed var(--ca-border-mid);
   border-radius: var(--ca-radius-md);
   padding: 10px;
@@ -306,12 +307,12 @@
   transition: border-color 0.15s, background 0.15s;
 }
 
-.ca-linked-scenes-dropzone--over {
+.click-adventure.node-config .ca-linked-scenes-dropzone--over {
   border-color: var(--ca-state-open);
   background: var(--ca-state-open-tint);
 }
 
-.ca-linked-scenes-list {
+.click-adventure.node-config .ca-linked-scenes-list {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -323,7 +324,7 @@
   padding-right: 2px;
 }
 
-.ca-linked-scene-item {
+.click-adventure.node-config .ca-linked-scene-item {
   display: flex;
   flex-direction: row;
   align-items: stretch;
@@ -334,7 +335,7 @@
   padding: 5px 6px;
 }
 
-.ca-linked-scene-left {
+.click-adventure.node-config .ca-linked-scene-left {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -344,7 +345,7 @@
   gap: 6px;
 }
 
-.ca-linked-scene-info {
+.click-adventure.node-config .ca-linked-scene-info {
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -352,7 +353,7 @@
   gap: 2px;
 }
 
-.ca-linked-scene-info input {
+.click-adventure.node-config .ca-linked-scene-info input {
   font-size: 12px;
   font-weight: 600;
   color: var(--ca-text-primary);
@@ -364,7 +365,7 @@
   box-sizing: border-box;
 }
 
-.ca-linked-scene-name {
+.click-adventure.node-config .ca-linked-scene-name {
   font-size: 10px;
   color: var(--ca-text-muted);
   white-space: nowrap;
@@ -372,14 +373,14 @@
   text-overflow: ellipsis;
 }
 
-.ca-linked-scene-actions {
+.click-adventure.node-config .ca-linked-scene-actions {
   display: flex;
   gap: 4px;
   flex-shrink: 0;
   align-items: center;
 }
 
-.ca-linked-scene-actions button:not(.ca-btn-remove) {
+.click-adventure.node-config .ca-linked-scene-actions button:not(.ca-btn-remove) {
   padding: 2px 7px;
   font-size: 11px;
   cursor: pointer;
@@ -390,12 +391,12 @@
   transition: background 0.15s;
 }
 
-.ca-linked-scene-actions button:not(.ca-btn-remove):hover {
+.click-adventure.node-config .ca-linked-scene-actions button:not(.ca-btn-remove):hover {
   background: rgba(60, 90, 180, 0.7);
 }
 
 /* ── Macro column ─────────────────────────────────────────────────── */
-.ca-item-macro-col {
+.click-adventure.node-config .ca-item-macro-col {
   width: 200px;
   flex-shrink: 0;
   display: flex;
@@ -404,7 +405,7 @@
   justify-content: center;
 }
 
-.ca-item-macro-zone {
+.click-adventure.node-config .ca-item-macro-zone {
   border-radius: var(--ca-radius-md);
   border: 1px solid rgba(100, 140, 220, 0.2);
   background: rgba(20, 30, 60, 0.5);
@@ -415,8 +416,8 @@
   min-height: 40px;
 }
 
-.ca-image-macro-dropzone,
-.ca-linked-scene-macro-dropzone {
+.click-adventure.node-config .ca-image-macro-dropzone,
+.click-adventure.node-config .ca-linked-scene-macro-dropzone {
   border-style: dashed;
   align-items: center;
   justify-content: center;
@@ -426,19 +427,19 @@
   transition: border-color 120ms, background 120ms;
 }
 
-.ca-image-macro-dropzone.ca-macro-dropzone--over,
-.ca-linked-scene-macro-dropzone.ca-macro-dropzone--over {
+.click-adventure.node-config .ca-image-macro-dropzone.ca-macro-dropzone--over,
+.click-adventure.node-config .ca-linked-scene-macro-dropzone.ca-macro-dropzone--over {
   border-color: var(--ca-border-toolbar-hv);
   border-style: solid;
   background: rgba(58, 90, 170, 0.2);
 }
 
-.ca-item-macro-zone--filled {
+.click-adventure.node-config .ca-item-macro-zone--filled {
   background: rgba(26, 38, 78, 0.7);
   border-color: rgba(100, 140, 220, 0.35);
 }
 
-.ca-item-macro-name {
+.click-adventure.node-config .ca-item-macro-name {
   display: block;
   font-size: 11px;
   font-weight: 700;
@@ -450,14 +451,14 @@
   margin-bottom: 3px;
 }
 
-.ca-item-macro-row {
+.click-adventure.node-config .ca-item-macro-row {
   display: flex;
   align-items: center;
   gap: 4px;
   flex-wrap: nowrap;
 }
 
-.ca-item-macro-row button:not(.ca-btn-remove) {
+.click-adventure.node-config .ca-item-macro-row button:not(.ca-btn-remove) {
   padding: 2px 7px;
   font-size: 10px;
   font-weight: 600;
@@ -470,12 +471,12 @@
   transition: background 0.15s;
 }
 
-.ca-item-macro-row button:not(.ca-btn-remove):hover {
+.click-adventure.node-config .ca-item-macro-row button:not(.ca-btn-remove):hover {
   background: rgba(60, 90, 180, 0.75);
 }
 
-.ca-image-macro-trigger,
-.ca-linked-scene-macro-trigger {
+.click-adventure.node-config .ca-image-macro-trigger,
+.click-adventure.node-config .ca-linked-scene-macro-trigger {
   width: 100%;
   height: 22px;
   padding: 0 4px;
@@ -490,13 +491,13 @@
   outline: none !important;
 }
 
-.ca-image-macro-trigger:focus,
-.ca-linked-scene-macro-trigger:focus {
+.click-adventure.node-config .ca-image-macro-trigger:focus,
+.click-adventure.node-config .ca-linked-scene-macro-trigger:focus {
   border-color: var(--ca-border-toolbar-hv) !important;
 }
 
 /* ── Settings tab ─────────────────────────────────────────────────── */
-.ca-nc-settings-row {
+.click-adventure.node-config .ca-nc-settings-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -507,28 +508,28 @@
   border-radius: var(--ca-radius-lg);
 }
 
-.ca-nc-settings-item {
+.click-adventure.node-config .ca-nc-settings-item {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.ca-nc-settings-label {
+.click-adventure.node-config .ca-nc-settings-label {
   font-size: 12px;
   font-weight: 700;
   color: var(--ca-text-primary);
 }
 
-.ca-nc-settings-desc {
+.click-adventure.node-config .ca-nc-settings-desc {
   font-size: 10px;
   color: var(--ca-text-muted);
   max-width: 220px;
 }
 
 /* ── Shared: star-glyph action buttons (Set Default, Use Scene, Set as Start) */
-.ca-image-actions button[data-action="set-active"],
-.ca-linked-scene-actions button[data-action="use-linked-scene"],
-.ca-toggle-start {
+.click-adventure.node-config .ca-image-actions button[data-action="set-active"],
+.click-adventure.node-config .ca-linked-scene-actions button[data-action="use-linked-scene"],
+.click-adventure.node-config .ca-toggle-start {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -546,15 +547,15 @@
   white-space: nowrap;
 }
 
-.ca-image-actions button[data-action="set-active"]:hover,
-.ca-linked-scene-actions button[data-action="use-linked-scene"]:hover,
-.ca-toggle-start:hover {
+.click-adventure.node-config .ca-image-actions button[data-action="set-active"]:hover,
+.click-adventure.node-config .ca-linked-scene-actions button[data-action="use-linked-scene"]:hover,
+.click-adventure.node-config .ca-toggle-start:hover {
   background: rgba(60, 90, 180, 0.7);
   border-color: rgba(140, 180, 255, 0.7);
 }
 
 /* ── Start toggle ─────────────────────────────────────────────────── */
-.ca-toggle-start--active {
+.click-adventure.node-config .ca-toggle-start--active {
   background: var(--ca-state-open-tint);
   border-color: var(--ca-state-open-border);
   color: var(--ca-state-open);
@@ -562,7 +563,7 @@
 }
 
 /* ── Footer actions ───────────────────────────────────────────────── */
-.ca-node-config-actions {
+.click-adventure.node-config .ca-node-config-actions {
   display: flex;
   gap: 8px;
   padding-top: 8px;
@@ -570,7 +571,7 @@
   border-top: 1px solid var(--ca-border-divider);
 }
 
-.ca-btn-save {
+.click-adventure.node-config .ca-btn-save {
   padding: 6px 18px;
   background: #2a4a7a;
   border: 1px solid #4a6aaa;
@@ -582,9 +583,9 @@
   transition: background 0.15s;
 }
 
-.ca-btn-save:hover { background: #3a5a9a; }
+.click-adventure.node-config .ca-btn-save:hover { background: #3a5a9a; }
 
-.ca-btn-delete {
+.click-adventure.node-config .ca-btn-delete {
   padding: 6px 18px;
   background: rgba(90, 26, 26, 0.8);
   border: 1px solid #aa3a3a;
@@ -596,10 +597,10 @@
   transition: background 0.15s;
 }
 
-.ca-btn-delete:hover { background: rgba(122, 42, 42, 0.9); }
+.click-adventure.node-config .ca-btn-delete:hover { background: rgba(122, 42, 42, 0.9); }
 
 /* ── Macros tab ───────────────────────────────────────────────────── */
-.ca-node-macro-drop {
+.click-adventure.node-config .ca-node-macro-drop {
   border: 2px dashed var(--ca-border-mid);
   border-radius: var(--ca-radius-md);
   padding: 10px;
@@ -610,12 +611,12 @@
   transition: border-color 0.15s, background 0.15s;
 }
 
-.ca-node-macro-drop--over {
+.click-adventure.node-config .ca-node-macro-drop--over {
   border-color: var(--ca-state-open);
   background: var(--ca-state-open-tint);
 }
 
-.ca-node-macro-item {
+.click-adventure.node-config .ca-node-macro-item {
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -625,13 +626,13 @@
   border-radius: var(--ca-radius-md);
 }
 
-.ca-node-macro-header {
+.click-adventure.node-config .ca-node-macro-header {
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-.ca-node-macro-name {
+.click-adventure.node-config .ca-node-macro-name {
   flex: 1;
   min-width: 0;
   font-size: 12px;
@@ -642,7 +643,7 @@
   text-overflow: ellipsis;
 }
 
-.ca-node-macro-executed-badge {
+.click-adventure.node-config .ca-node-macro-executed-badge {
   flex-shrink: 0;
   font-size: 10px;
   font-weight: 700;
@@ -654,7 +655,7 @@
   white-space: nowrap;
 }
 
-.ca-node-macro-header button[data-action="reset-node-macro"] {
+.click-adventure.node-config .ca-node-macro-header button[data-action="reset-node-macro"] {
   flex-shrink: 0;
   padding: 2px 7px;
   font-size: 10px;
@@ -667,16 +668,16 @@
   transition: background 0.15s;
 }
 
-.ca-node-macro-header button[data-action="reset-node-macro"]:hover {
+.click-adventure.node-config .ca-node-macro-header button[data-action="reset-node-macro"]:hover {
   background: rgba(60, 90, 180, 0.75);
 }
 
-.ca-node-macro-controls {
+.click-adventure.node-config .ca-node-macro-controls {
   display: flex;
   gap: 6px;
 }
 
-.ca-node-macro-controls select {
+.click-adventure.node-config .ca-node-macro-controls select {
   flex: 1;
   min-width: 0;
   height: 22px;
@@ -692,6 +693,6 @@
   outline: none !important;
 }
 
-.ca-node-macro-controls select:focus {
+.click-adventure.node-config .ca-node-macro-controls select:focus {
   border-color: var(--ca-border-toolbar-hv) !important;
 }

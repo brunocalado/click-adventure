@@ -77,7 +77,7 @@
   display: flex;
 }
 
-.ca-instr-panel h3 {
+.click-adventure.instructions .ca-instr-panel h3 {
   margin: 0 0 5px;
   font-size: 11px;
   font-weight: 700;
@@ -88,7 +88,7 @@
   padding-bottom: 4px;
 }
 
-.ca-instr-panel ul {
+.click-adventure.instructions .ca-instr-panel ul {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -97,12 +97,12 @@
   gap: 5px;
 }
 
-.ca-instr-panel li {
+.click-adventure.instructions .ca-instr-panel li {
   line-height: 1.5;
   color: var(--ca-text-primary);
 }
 
-.ca-instr-panel p {
+.click-adventure.instructions .ca-instr-panel p {
   margin: 0;
   line-height: 1.5;
   color: #a8b8d8;
@@ -110,7 +110,7 @@
 
 /* ── Keyboard key glyph ──────────────────────────────── */
 
-.ca-instr-panel kbd {
+.click-adventure.instructions .ca-instr-panel kbd {
   display: inline-block;
   padding: 1px 5px;
   background: rgba(80, 100, 160, 0.4);

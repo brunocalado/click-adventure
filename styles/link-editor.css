@@ -21,7 +21,7 @@
   padding: 0;
 }
 
-.ca-link-editor {
+.click-adventure.link-editor .ca-link-editor {
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -29,19 +29,19 @@
   color: var(--ca-text-primary);
 }
 
-.ca-link-editor-header {
+.click-adventure.link-editor .ca-link-editor-header {
   padding: 10px 14px;
   border-bottom: 1px solid rgba(100, 130, 200, 0.25);
   background: var(--ca-bg-panel-alt);
 }
 
-.ca-link-editor-title {
+.click-adventure.link-editor .ca-link-editor-title {
   font-size: 13px;
   font-weight: 600;
   color: #99b4dd;
 }
 
-.ca-passages-list {
+.click-adventure.link-editor .ca-passages-list {
   list-style: none;
   padding: 10px 14px;
   margin: 0;
@@ -52,13 +52,13 @@
   overflow-y: auto;
 }
 
-.ca-passage-row {
+.click-adventure.link-editor .ca-passage-row {
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-.ca-passage-label {
+.click-adventure.link-editor .ca-passage-label {
   flex: 1;
   min-width: 0;
   font-size: 12px;
@@ -70,13 +70,13 @@
   box-sizing: border-box;
 }
 
-.ca-passage-label:focus {
+.click-adventure.link-editor .ca-passage-label:focus {
   outline: none;
   border-color: rgba(100, 150, 255, 0.5);
   background: rgba(255, 255, 255, 0.09);
 }
 
-.ca-passage-direction {
+.click-adventure.link-editor .ca-passage-direction {
   flex-shrink: 0;
   width: 36px;
   height: 28px;
@@ -92,12 +92,12 @@
   transition: background 0.12s, border-color 0.12s;
 }
 
-.ca-passage-direction:hover {
+.click-adventure.link-editor .ca-passage-direction:hover {
   background: rgba(60, 90, 180, 0.8);
   border-color: rgba(140, 180, 255, 0.7);
 }
 
-.ca-passage-remove {
+.click-adventure.link-editor .ca-passage-remove {
   flex-shrink: 0;
   width: 26px;
   height: 26px;
@@ -113,12 +113,12 @@
   transition: background 0.12s, color 0.12s;
 }
 
-.ca-passage-remove:hover {
+.click-adventure.link-editor .ca-passage-remove:hover {
   background: rgba(160, 40, 40, 0.3);
   color: var(--ca-state-danger-hv);
 }
 
-.ca-link-editor-footer {
+.click-adventure.link-editor .ca-link-editor-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -127,7 +127,7 @@
   background: var(--ca-bg-panel-alt);
 }
 
-.ca-passage-add {
+.click-adventure.link-editor .ca-passage-add {
   padding: 5px 12px;
   background: rgba(30, 60, 50, 0.7);
   border: 1px solid rgba(60, 140, 100, 0.5);
@@ -138,13 +138,13 @@
   transition: background 0.12s, border-color 0.12s;
 }
 
-.ca-passage-add:hover {
+.click-adventure.link-editor .ca-passage-add:hover {
   background: rgba(40, 90, 70, 0.85);
   border-color: rgba(80, 180, 130, 0.7);
   color: #aaeebb;
 }
 
-.ca-link-editor-save {
+.click-adventure.link-editor .ca-link-editor-save {
   padding: 5px 18px;
   background: #2a4a7a;
   border: 1px solid #4a6aaa;
@@ -155,6 +155,6 @@
   transition: background 0.12s;
 }
 
-.ca-link-editor-save:hover {
+.click-adventure.link-editor .ca-link-editor-save:hover {
   background: #3a5a9a;
 }

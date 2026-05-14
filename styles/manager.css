@@ -35,7 +35,7 @@
   height: 100%;
 }
 
-.ca-toolbar {
+.click-adventure .ca-toolbar {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -45,7 +45,7 @@
   flex-shrink: 0;
 }
 
-.ca-toolbar-spacer {
+.click-adventure .ca-toolbar-spacer {
   flex: 1;
 }
 
@@ -74,7 +74,7 @@
 }
 
 /* Generic toolbar pill — base for ca-sync-scenes, ca-instructions-btn, requests button, etc. */
-.ca-toolbar-pill {
+.click-adventure .ca-toolbar-pill {
   box-sizing: border-box;
   height: var(--ca-toolbar-h);
   padding: 0 12px;
@@ -88,7 +88,7 @@
   transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
-.ca-toolbar-pill:hover {
+.click-adventure .ca-toolbar-pill:hover {
   background: var(--ca-bg-toolbar-hover);
   border-color: var(--ca-border-toolbar-hv);
   color: #ccddf0;
@@ -216,7 +216,7 @@
 }
 
 /* ── Manager layout wrapper ────────────────────────────────────────────────── */
-.manager .ca-manager-layout {
+.click-adventure.manager .ca-manager-layout {
   display: flex;
   flex: 1;
   min-height: 0;
@@ -224,7 +224,7 @@
 }
 
 /* ── Player panel sidebar ──────────────────────────────────────────────────── */
-.manager .ca-player-panel {
+.click-adventure.manager .ca-player-panel {
   width: 160px;
   min-width: 160px;
   background: #1a1a1f;
@@ -236,7 +236,7 @@
   flex-shrink: 0;
 }
 
-.manager .ca-player-panel-title {
+.click-adventure.manager .ca-player-panel-title {
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
@@ -248,13 +248,13 @@
   flex-shrink: 0;
 }
 
-.manager .ca-player-list {
+.click-adventure.manager .ca-player-list {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-.manager .ca-player-row {
+.click-adventure.manager .ca-player-row {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -265,27 +265,27 @@
   transition: background 120ms ease;
 }
 
-.manager .ca-player-row[data-node-id] {
+.click-adventure.manager .ca-player-row[data-node-id] {
   cursor: pointer;
 }
 
-.manager .ca-player-row[data-node-id]:hover,
-.manager .ca-player-row--highlighted {
+.click-adventure.manager .ca-player-row[data-node-id]:hover,
+.click-adventure.manager .ca-player-row--highlighted {
   background: rgba(255, 255, 255, 0.08);
 }
 
-.manager .ca-player-row--offline {
+.click-adventure.manager .ca-player-row--offline {
   opacity: 0.45;
 }
 
-.manager .ca-player-dot {
+.click-adventure.manager .ca-player-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
-.manager .ca-player-name {
+.click-adventure.manager .ca-player-name {
   font-size: 12px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.85);
@@ -296,7 +296,7 @@
   min-width: 0;
 }
 
-.manager .ca-player-location {
+.click-adventure.manager .ca-player-location {
   font-size: 10px;
   color: rgba(255, 255, 255, 0.4);
   white-space: nowrap;
@@ -306,12 +306,12 @@
   flex-shrink: 0;
 }
 
-.manager .ca-player-location--none {
+.click-adventure.manager .ca-player-location--none {
   color: rgba(255, 255, 255, 0.2);
 }
 
 /* The workspace must expand to fill remaining space next to the panel */
-.manager .ca-manager-layout > .ca-workspace {
+.click-adventure.manager .ca-manager-layout > .ca-workspace {
   flex: 1;
   min-width: 0;
 }

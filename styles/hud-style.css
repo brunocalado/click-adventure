@@ -11,7 +11,7 @@
    @scope: HudStyleApp configuration window
 */
 
-.hud-style .ca-os-panel {
+.click-adventure.hud-style .ca-os-panel {
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -20,23 +20,23 @@
   color: var(--ca-text-primary);
 }
 
-.hud-style .ca-os-section {
+.click-adventure.hud-style .ca-os-section {
   padding: 10px 14px;
   border-bottom: 1px solid var(--ca-border-divider);
 }
 
-.hud-style .ca-os-section:last-child {
+.click-adventure.hud-style .ca-os-section:last-child {
   border-bottom: none;
 }
 
 /* Type selector buttons */
-.hud-style .ca-os-type-row {
+.click-adventure.hud-style .ca-os-type-row {
   display: flex;
   gap: 6px;
   margin-top: 6px;
 }
 
-.hud-style .ca-os-type-btn {
+.click-adventure.hud-style .ca-os-type-btn {
   flex: 1;
   padding: 5px 10px;
   background: var(--ca-bg-toolbar);
@@ -48,38 +48,38 @@
   transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
-.hud-style .ca-os-type-btn:hover {
+.click-adventure.hud-style .ca-os-type-btn:hover {
   background: var(--ca-bg-toolbar-hover);
   color: var(--ca-text-bright);
 }
 
-.hud-style .ca-os-type-btn--active {
+.click-adventure.hud-style .ca-os-type-btn--active {
   background: rgba(60, 90, 180, 0.5);
   border-color: rgba(140, 180, 255, 0.6);
   color: var(--ca-text-bright);
 }
 
 /* Size / color rows */
-.hud-style .ca-os-row {
+.click-adventure.hud-style .ca-os-row {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-top: 6px;
 }
 
-.hud-style .ca-os-size {
+.click-adventure.hud-style .ca-os-size {
   flex: 1;
   accent-color: var(--ca-state-link-base);
 }
 
-.hud-style .ca-os-size-label {
+.click-adventure.hud-style .ca-os-size-label {
   min-width: 32px;
   font-size: 11px;
   color: var(--ca-text-muted);
   text-align: right;
 }
 
-.hud-style .ca-os-color {
+.click-adventure.hud-style .ca-os-color {
   width: 40px;
   height: 26px;
   padding: 0;
@@ -90,7 +90,7 @@
 }
 
 /* Preview area — no background set; inherits panel color for a homogeneous surface */
-.hud-style .ca-os-preview {
+.click-adventure.hud-style .ca-os-preview {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -101,7 +101,7 @@
 }
 
 /* Image row */
-.hud-style .ca-os-image-path {
+.click-adventure.hud-style .ca-os-image-path {
   flex: 1;
   font-size: 11px;
   color: var(--ca-text-muted);
@@ -111,8 +111,8 @@
   max-width: 160px;
 }
 
-.hud-style .ca-os-image-browse,
-.hud-style .ca-os-image-clear {
+.click-adventure.hud-style .ca-os-image-browse,
+.click-adventure.hud-style .ca-os-image-clear {
   padding: 4px 8px;
   background: var(--ca-bg-toolbar);
   border: 1px solid var(--ca-border-toolbar);
@@ -124,25 +124,25 @@
   transition: background 0.15s, color 0.15s;
 }
 
-.hud-style .ca-os-image-browse:hover,
-.hud-style .ca-os-image-clear:hover {
+.click-adventure.hud-style .ca-os-image-browse:hover,
+.click-adventure.hud-style .ca-os-image-clear:hover {
   background: var(--ca-bg-toolbar-hover);
   color: var(--ca-text-bright);
 }
 
-.hud-style .ca-os-image-clear {
+.click-adventure.hud-style .ca-os-image-clear {
   padding: 4px 6px;
   color: var(--ca-state-danger);
   border-color: rgba(200, 112, 112, 0.3);
 }
 
-.hud-style .ca-os-image-thumb-wrap {
+.click-adventure.hud-style .ca-os-image-thumb-wrap {
   display: flex;
   justify-content: center;
   margin-top: 8px;
 }
 
-.hud-style .ca-os-image-thumb {
+.click-adventure.hud-style .ca-os-image-thumb {
   width: 48px;
   height: 48px;
   border-radius: 50%;
@@ -150,11 +150,11 @@
   border: 2px solid var(--ca-border-soft);
 }
 
-.hud-style .ca-os-image-thumb--square {
+.click-adventure.hud-style .ca-os-image-thumb--square {
   border-radius: 20%;
 }
 
-.hud-style .ca-os-optional {
+.click-adventure.hud-style .ca-os-optional {
   font-size: 10px;
   color: var(--ca-text-subtle);
   font-weight: normal;
@@ -162,18 +162,18 @@
 }
 
 /* Preview shapes */
-.hud-style .ca-os-preview-shape {
+.click-adventure.hud-style .ca-os-preview-shape {
   width: 52px;
   height: 52px;
   border-radius: 50%;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
 }
 
-.hud-style .ca-os-preview-shape--square {
+.click-adventure.hud-style .ca-os-preview-shape--square {
   border-radius: 20%;
 }
 
-.hud-style .ca-os-preview-img {
+.click-adventure.hud-style .ca-os-preview-img {
   width: 52px;
   height: 52px;
   border-radius: 50%;
@@ -181,6 +181,6 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
 }
 
-.hud-style .ca-os-preview-img--square {
+.click-adventure.hud-style .ca-os-preview-img--square {
   border-radius: 20%;
 }

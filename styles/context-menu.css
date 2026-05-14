@@ -27,7 +27,7 @@
   user-select: none;
 }
 
-.ca-context-menu-header {
+.ca-context-menu .ca-context-menu-header {
   padding: 7px 12px 6px;
   font-size: 11px;
   font-weight: 700;
@@ -36,13 +36,13 @@
   color: var(--ca-text-section);
 }
 
-.ca-context-menu-divider {
+.ca-context-menu .ca-context-menu-divider {
   height: 1px;
   background: var(--ca-border-divider);
   margin: 0;
 }
 
-.ca-context-menu-item {
+.ca-context-menu .ca-context-menu-item {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -53,33 +53,33 @@
   transition: background 0.1s;
 }
 
-.ca-context-menu-item:hover:not(.ca-context-menu-item--active) {
+.ca-context-menu .ca-context-menu-item:hover:not(.ca-context-menu-item--active) {
   background: rgba(60, 90, 180, 0.4);
 }
 
-.ca-context-menu-item--active {
+.ca-context-menu .ca-context-menu-item--active {
   opacity: 0.5;
   cursor: default;
 }
 
-.ca-context-menu-item--send-all {
+.ca-context-menu .ca-context-menu-item--send-all {
   color: #7faaff;
   font-weight: 600;
 }
 
-.ca-context-menu-item--send-all:hover {
+.ca-context-menu .ca-context-menu-item--send-all:hover {
   background: rgba(60, 90, 180, 0.35);
   color: #aacfff;
 }
 
-.ca-context-menu-dot {
+.ca-context-menu .ca-context-menu-dot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
-.ca-context-menu-badge {
+.ca-context-menu .ca-context-menu-badge {
   margin-left: auto;
   font-size: 10px;
   color: var(--ca-state-open);

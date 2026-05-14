@@ -30,7 +30,7 @@
   pointer-events: all;
 }
 
-.ca-hud-root {
+.click-adventure.nav-hud .ca-hud-root {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -39,7 +39,7 @@
 }
 
 /* Destinations panel — hidden by default, shown via --open. */
-.ca-hud-destinations {
+.click-adventure.nav-hud .ca-hud-destinations {
   display: none;
   flex-direction: column;
   gap: 6px;
@@ -53,11 +53,11 @@
   order: 1;
 }
 
-.ca-hud-destinations--open {
+.click-adventure.nav-hud .ca-hud-destinations--open {
   display: flex;
 }
 
-.ca-hud-dest-btn {
+.click-adventure.nav-hud .ca-hud-dest-btn {
   width: 100%;
   padding: 6px 14px;
   background: rgba(40, 60, 120, 0.7);
@@ -74,27 +74,27 @@
   box-sizing: border-box;
 }
 
-.ca-hud-dest-btn:hover {
+.click-adventure.nav-hud .ca-hud-dest-btn:hover {
   background: rgba(60, 90, 180, 0.85);
   border-color: rgba(140, 180, 255, 0.7);
   color: var(--ca-text-bright);
 }
 
-.ca-hud-dest-btn--locked {
+.click-adventure.nav-hud .ca-hud-dest-btn--locked {
   opacity: 0.85;
   border-color: rgba(239, 68, 68, 0.6);
   color: var(--ca-text-locked);
   cursor: not-allowed;
 }
 
-.ca-hud-dest-btn--locked:hover {
+.click-adventure.nav-hud .ca-hud-dest-btn--locked:hover {
   background: var(--ca-state-locked-tint);
   border-color: rgba(239, 68, 68, 0.85);
   color: var(--ca-text-locked-hv);
 }
 
 /* Orb */
-.ca-hud-orb {
+.click-adventure.nav-hud .ca-hud-orb {
   order: 0;
   width: var(--ca-orb-size);
   height: var(--ca-orb-size);
@@ -105,12 +105,12 @@
   flex-shrink: 0;
 }
 
-.ca-hud-orb--dragging {
+.click-adventure.nav-hud .ca-hud-orb--dragging {
   cursor: grabbing;
 }
 
 /* Orb inner — gradient sphere. background set via inline style from _prepareContext. */
-.ca-hud-orb-inner {
+.click-adventure.nav-hud .ca-hud-orb-inner {
   width: var(--ca-orb-inner);
   height: var(--ca-orb-inner);
   border-radius: 50%;
@@ -125,7 +125,7 @@
   transition: transform 0.15s, box-shadow 0.15s;
 }
 
-.ca-hud-orb:hover .ca-hud-orb-inner {
+.click-adventure.nav-hud .ca-hud-orb:hover .ca-hud-orb-inner {
   transform: scale(1.12);
   box-shadow:
     0 6px 20px var(--ca-orb-glow, rgba(60, 100, 255, 0.5)),
@@ -134,7 +134,7 @@
     inset 0 -2px 5px rgba(0, 0, 0, 0.3);
 }
 
-.ca-hud-orb--dragging .ca-hud-orb-inner {
+.click-adventure.nav-hud .ca-hud-orb--dragging .ca-hud-orb-inner {
   transform: scale(0.92);
   box-shadow:
     0 2px 6px rgba(0, 0, 0, 0.6),
@@ -143,17 +143,17 @@
 }
 
 /* Square variant — same inner styles, only border-radius changes */
-.ca-hud-orb-inner--square {
+.click-adventure.nav-hud .ca-hud-orb-inner--square {
   border-radius: 20%;
 }
 
 /* Square shape container */
-.ca-hud-orb--square {
+.click-adventure.nav-hud .ca-hud-orb--square {
   /* No extra layout changes needed; shape is on the inner element */
 }
 
 /* Image inside orb — covers the inner area, shape-matches the orb type */
-.ca-hud-orb-img {
+.click-adventure.nav-hud .ca-hud-orb-img {
   width: var(--ca-orb-inner);
   height: var(--ca-orb-inner);
   border-radius: 50%;
@@ -168,41 +168,41 @@
   transition: transform 0.15s, box-shadow 0.15s;
 }
 
-.ca-hud-orb:hover .ca-hud-orb-img {
+.click-adventure.nav-hud .ca-hud-orb:hover .ca-hud-orb-img {
   transform: scale(1.12);
   box-shadow:
     0 6px 20px var(--ca-orb-glow, rgba(60, 100, 255, 0.5)),
     0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
-.ca-hud-orb--dragging .ca-hud-orb-img {
+.click-adventure.nav-hud .ca-hud-orb--dragging .ca-hud-orb-img {
   transform: scale(0.92);
 }
 
-.ca-hud-orb-img--square {
+.click-adventure.nav-hud .ca-hud-orb-img--square {
   border-radius: 20%;
 }
 
 /* Origin indicator — the node this user navigated here from */
-.ca-hud-dest-btn--origin {
+.click-adventure.nav-hud .ca-hud-dest-btn--origin {
   border-color: rgba(100, 220, 140, 0.7);
   background: rgba(30, 80, 50, 0.75);
 }
 
-.ca-hud-dest-btn--origin:hover {
+.click-adventure.nav-hud .ca-hud-dest-btn--origin:hover {
   background: rgba(40, 110, 70, 0.9);
   border-color: rgba(130, 255, 170, 0.85);
   color: var(--ca-text-bright);
 }
 
-.ca-hud-origin-icon {
+.click-adventure.nav-hud .ca-hud-origin-icon {
   margin-right: 5px;
   font-size: 11px;
   opacity: 0.85;
 }
 
 /* Column wrapper: mode button stacked above the orb */
-.ca-hud-orb-column {
+.click-adventure.nav-hud .ca-hud-orb-column {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -210,7 +210,7 @@
 }
 
 /* GM navigation mode toggle */
-.ca-hud-mode-btn {
+.click-adventure.nav-hud .ca-hud-mode-btn {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -229,24 +229,24 @@
   pointer-events: all;
 }
 
-.ca-hud-mode-btn:hover {
+.click-adventure.nav-hud .ca-hud-mode-btn:hover {
   background: rgba(0, 0, 0, 0.75);
   color: rgba(255, 255, 255, 0.9);
 }
 
 /* Amber in guide mode — immediately distinct, warns the GM that all players will follow */
-.ca-hud-mode-btn--guide {
+.click-adventure.nav-hud .ca-hud-mode-btn--guide {
   background: rgba(180, 100, 0, 0.75);
   border-color: rgba(255, 165, 0, 0.6);
   color: #ffd580;
 }
 
-.ca-hud-mode-btn--guide:hover {
+.click-adventure.nav-hud .ca-hud-mode-btn--guide:hover {
   background: rgba(200, 115, 0, 0.9);
 }
 
 /* GM shortcut to open the Scene Graph Manager */
-.ca-hud-manager-btn {
+.click-adventure.nav-hud .ca-hud-manager-btn {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -265,7 +265,7 @@
   pointer-events: all;
 }
 
-.ca-hud-manager-btn:hover {
+.click-adventure.nav-hud .ca-hud-manager-btn:hover {
   background: rgba(0, 0, 0, 0.75);
   color: rgba(255, 255, 255, 0.9);
 }
