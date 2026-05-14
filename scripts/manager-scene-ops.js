@@ -387,3 +387,49 @@ export async function onActivateScene(app, sceneId, nodeId) {
     }
   }
 }
+
+/**
+ * Resets the executedOnce flag of all "once" macros across every node in the graph.
+ * Shows a confirmation dialog first. The button label includes the count of affected
+ * macros so the GM knows what will be reset before confirming.
+ *
+ * @param {ManagerApp} app
+ * @returns {Promise<void>}
+ */
+export async function onResetMacros(app) {
+  const { sceneId, startNodeId, nodes, links } = getGraphData();
+
+  // Count how many once-macros are currently in the executed state
+  const count = nodes.reduce((total, node) => {
+    if (!Array.isArray(node.nodeMacros)) return total;
+    return total + node.nodeMacros.filter(
+      m => m.executeMode === "once" && m.executedOnce === true
+    ).length;
+  }, 0);
+
+  if (count === 0) {
+    ui.notifications.info("Click Adventure: No executed macros to reset.");
+    return;
+  }
+
+  const confirmed = await foundry.applications.api.DialogV2.confirm({
+    window: { title: "Reset Macros" },
+    content: `<p>This will reset <strong>${count} executed macro(s)</strong> across all nodes so they can fire again.</p><p>Are you sure?</p>`,
+    rejectClose: false
+  });
+  if (!confirmed) return;
+
+  const updatedNodes = nodes.map(node => {
+    if (!Array.isArray(node.nodeMacros)) return node;
+    const updatedMacros = node.nodeMacros.map(m =>
+      m.executeMode === "once" && m.executedOnce === true
+        ? { ...m, executedOnce: false }
+        : m
+    );
+    return { ...node, nodeMacros: updatedMacros };
+  });
+
+  await saveGraphData({ sceneId, startNodeId, nodes: updatedNodes, links });
+  app.render({ force: true });
+  ui.notifications.info(`Click Adventure: ${count} macro(s) reset.`);
+}

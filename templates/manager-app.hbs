@@ -25,6 +25,11 @@
     {{!-- Spacer pushes Reset and Instructions to the far right --}}
     <span class="ca-toolbar-spacer"></span>
 
+    <button class="ca-reset-macros ca-toolbar-pill" type="button"
+            title="Reset all once-executed macros across all nodes"
+            {{#unless resetMacrosCount}}disabled{{/unless}}>
+      Reset Macros ({{resetMacrosCount}})
+    </button>
     <button class="ca-reset-graph" type="button" title="Delete all nodes, links and scenes">Reset</button>
     <button class="ca-settings-btn" type="button" aria-label="Settings" title="Settings">
       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"

@@ -30,7 +30,7 @@ import {
   onSetActiveNode, onNodeContextMenu
 } from "./manager-players.js";
 import {
-  onAddNode, onImportFolder, onSyncScenes, onResetGraph,
+  onAddNode, onImportFolder, onSyncScenes, onResetGraph, onResetMacros,
   onViewScene, onActivateScene
 } from "./manager-scene-ops.js";
 
@@ -157,6 +157,14 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     context.activeNodeId = activeNodeId;
     context.hasAnyScene = nodes.some(n => n.sceneId && game.scenes.get(n.sceneId));
 
+    // Count once-macros that have already fired across all nodes
+    context.resetMacrosCount = context.nodes.reduce((total, node) => {
+      if (!Array.isArray(node.nodeMacros)) return total;
+      return total + node.nodeMacros.filter(
+        m => m.executeMode === "once" && m.executedOnce === true
+      ).length;
+    }, 0);
+
     const getLabel = id => nodes.find(n => n.id === id)?.label || id;
     context.navigationMode = game.settings.get("click-adventure", "navigationMode");
     context.requestCount   = this._navRequests.size;
@@ -258,6 +266,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     html.querySelector(".ca-import-folder")?.addEventListener("click", () => onImportFolder(this));
     html.querySelector(".ca-sync-scenes")?.addEventListener("click", () => onSyncScenes(this));
     html.querySelector(".ca-reset-graph")?.addEventListener("click", () => onResetGraph(this));
+    html.querySelector(".ca-reset-macros")?.addEventListener("click", () => onResetMacros(this));
 
     html.querySelectorAll(".ca-nav-mode-btn").forEach(btn => {
       btn.addEventListener("click", async () => {
