@@ -241,8 +241,10 @@ export class AdventureSocketManager {
 
     // Create a new token in the destination scene, preferring the saved default position.
     const proto = actor.prototypeToken.toObject();
-    const defaultPositions = game.settings.get("click-adventure", "defaultTokenPositions") ?? {};
-    const defaultPos = defaultPositions[user.id] ?? null;
+    const useDefaultPos = game.settings.get("click-adventure", "useDefaultTokenPositions");
+    const defaultPos = useDefaultPos
+      ? (game.settings.get("click-adventure", "defaultTokenPositions") ?? {})[user.id] ?? null
+      : null;
 
     const spawnX = defaultPos
       ? defaultPos.x

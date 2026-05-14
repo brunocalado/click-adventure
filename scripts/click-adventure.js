@@ -220,6 +220,15 @@ Hooks.on("init", () => {
     default: {}
   });
 
+  game.settings.register("click-adventure", "useDefaultTokenPositions", {
+    name: "Use Default Token Positions",
+    hint: "When enabled, teleported tokens spawn at the captured positions instead of scene center.",
+    scope: "world",
+    config: false,
+    type: Boolean,
+    default: false
+  });
+
   game.settings.registerMenu("click-adventure", "orbStyleMenu", {
     name: "HUD Button Style",
     label: "Customize HUD Button Style…",

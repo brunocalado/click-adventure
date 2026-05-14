@@ -73,3 +73,27 @@
   margin: 4px 0 0;
   line-height: 1.4;
 }
+
+/* Token Placement button */
+.click-adventure.settings .ca-capture-token-pos {
+  height: 28px;
+  padding: 0 10px;
+  background: var(--ca-bg-toolbar);
+  border: 1px solid var(--ca-border-toolbar);
+  border-radius: var(--ca-radius-md);
+  color: var(--ca-text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.click-adventure.settings .ca-capture-token-pos:hover {
+  background: var(--ca-bg-toolbar-hover);
+  border-color: var(--ca-border-toolbar-hv);
+  color: var(--ca-text-primary);
+}
+
+/* Token placement toggle checkbox — align with other rows */
+.click-adventure.settings .ca-token-pos-toggle {
+  cursor: pointer;
+}

@@ -63,6 +63,8 @@ export class SettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
       { value: "gm-only", label: "GM only" }
     ];
 
+    context.useDefaultTokenPositions = game.settings.get("click-adventure", "useDefaultTokenPositions");
+
     return context;
   }
 
@@ -93,6 +95,11 @@ export class SettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
         await game.settings.set("click-adventure", "hudVisibility", e.target.value);
       });
 
+    this.element.querySelector(".ca-token-pos-toggle")
+      ?.addEventListener("change", async (e) => {
+        await game.settings.set("click-adventure", "useDefaultTokenPositions", e.target.checked);
+      });
+
     this.element.querySelector(".ca-capture-token-pos")
       ?.addEventListener("click", async () => {
         const scene = canvas.scene;
@@ -113,8 +120,22 @@ export class SettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
           count++;
         }
 
+        if (count === 0) {
+          ui.notifications.warn("Click Adventure: No linked-actor tokens found in the current scene.");
+          return;
+        }
+
         await game.settings.set("click-adventure", "defaultTokenPositions", updated);
-        ui.notifications.info(`Click Adventure: Saved default positions for ${count} player(s).`);
+
+        // Auto-enable the toggle if it was off
+        const wasEnabled = game.settings.get("click-adventure", "useDefaultTokenPositions");
+        if (!wasEnabled) {
+          await game.settings.set("click-adventure", "useDefaultTokenPositions", true);
+          const checkbox = this.element.querySelector(".ca-token-pos-toggle");
+          if (checkbox) checkbox.checked = true;
+        }
+
+        ui.notifications.info(`Click Adventure: Saved default positions for ${count} player(s). Token placement enabled.`);
       });
   }
 }

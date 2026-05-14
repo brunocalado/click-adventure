@@ -44,10 +44,16 @@
   <div class="ca-settings-section">
     <div class="ca-settings-section-title">Token Placement</div>
     <div class="ca-settings-row">
+      <label class="ca-settings-label" for="ca-token-pos-toggle">Use saved positions</label>
+      <input class="ca-token-pos-toggle" id="ca-token-pos-toggle" type="checkbox"
+             {{#if useDefaultTokenPositions}}checked{{/if}}>
+    </div>
+    <div class="ca-settings-row">
       <button class="ca-capture-token-pos" type="button">Capture Token Positions</button>
     </div>
     <p class="ca-settings-hint">
-      Reads all linked-actor tokens in the current scene and saves their position as the default spawn point for each player. Run this after placing tokens where you want them to appear on teleport.
+      When enabled, teleported tokens spawn at the captured positions instead of scene center.
+      Capturing positions automatically enables this setting.
     </p>
   </div>
 
