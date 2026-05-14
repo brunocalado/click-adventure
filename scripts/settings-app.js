@@ -7,6 +7,8 @@
  */
 
 
+import { onResetGraph } from "./manager-scene-ops.js";
+
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 export class SettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
@@ -150,6 +152,12 @@ export class SettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
         }
 
         ui.notifications.info(`Click Adventure: Saved default positions for ${count} player(s). Token placement enabled.`);
+      });
+
+    this.element.querySelector(".ca-reset-graph")
+      ?.addEventListener("click", () => {
+        const managerApp = globalThis.ClickAdventure?._manager;
+        onResetGraph(managerApp ?? { render: () => {} });
       });
   }
 }

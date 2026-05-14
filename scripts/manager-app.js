@@ -30,7 +30,7 @@ import {
   onSetActiveNode, onNodeContextMenu
 } from "./manager-players.js";
 import {
-  onAddNode, onImportFolder, onSyncScenes, onResetGraph, onResetMacros,
+  onAddNode, onImportFolder, onSyncScenes, onResetMacros,
   onViewScene, onActivateScene
 } from "./manager-scene-ops.js";
 
@@ -265,7 +265,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     html.querySelector(".ca-add-node")?.addEventListener("click", () => onAddNode(this));
     html.querySelector(".ca-import-folder")?.addEventListener("click", () => onImportFolder(this));
     html.querySelector(".ca-sync-scenes")?.addEventListener("click", () => onSyncScenes(this));
-    html.querySelector(".ca-reset-graph")?.addEventListener("click", () => onResetGraph(this));
+
     html.querySelector(".ca-reset-macros")?.addEventListener("click", () => onResetMacros(this));
 
     html.querySelectorAll(".ca-nav-mode-btn").forEach(btn => {
