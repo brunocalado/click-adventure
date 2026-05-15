@@ -97,6 +97,14 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this._onUpdateUserHook = undefined;
 
     /**
+     * Foundry hook ID for the "userConnected" hook, registered while the app is open.
+     * Fires when any user connects or disconnects, allowing the player panel to reflect
+     * online/offline status without requiring the manager to be closed and reopened.
+     * @type {number|undefined}
+     */
+    this._onUserConnectedHook = undefined;
+
+    /**
      * Current pan offset of the canvas.
      * @type {{ x: number, y: number }}
      */
@@ -348,6 +356,14 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       patchOccupantAvatars(this);
     });
 
+    // Reflect user connection/disconnection in the player panel without reopening the manager.
+    if (this._onUserConnectedHook !== undefined) {
+      Hooks.off("userConnected", this._onUserConnectedHook);
+    }
+    this._onUserConnectedHook = Hooks.on("userConnected", () => {
+      patchOccupantAvatars(this);
+    });
+
     // Bidirectional highlight: hovering a node highlights the panel row.
     html.querySelectorAll(".ca-node").forEach(nodeEl => {
       const nodeId = nodeEl.dataset.nodeId;
@@ -420,6 +436,10 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     if (this._onUpdateUserHook !== undefined) {
       Hooks.off("updateUser", this._onUpdateUserHook);
       this._onUpdateUserHook = undefined;
+    }
+    if (this._onUserConnectedHook !== undefined) {
+      Hooks.off("userConnected", this._onUserConnectedHook);
+      this._onUserConnectedHook = undefined;
     }
     await super._onClose(options);
   }
