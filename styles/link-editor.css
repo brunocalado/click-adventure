@@ -5,11 +5,15 @@
    @manifest:
      .click-adventure.link-editor .window-content   Removes ApplicationV2 padding
      .ca-link-editor                                Form root (column layout)
-     .ca-link-editor-header                         Sheet title bar
-     .ca-link-editor-title                          Title text
+     .ca-link-editor-header                         Sheet title bar (centered)
+     .ca-link-nodes-display                         Flex row: source badge + arrow + target badge
+     .ca-node-badge                                 Highlighted pill showing a node name
+     .ca-node-badge--source                         Source node badge (left)
+     .ca-node-badge--target                         Target node badge (right)
+     .ca-node-arrow                                 Direction arrow between badges
      .ca-passages-list                              Vertical list of passage rows
      .ca-passage-row                                Single passage row
-     .ca-passage-label                              Label input (flex-fill)
+     .ca-passage-label                              Label input (flex-fill, max 100 chars)
      .ca-passage-direction                          Direction toggle button (cycles arrow icon)
      .ca-passage-remove                             Remove (×) button for a passage
      .ca-link-editor-footer                         Sheet footer with Add + Save
@@ -30,15 +34,40 @@
 }
 
 .click-adventure.link-editor .ca-link-editor-header {
-  padding: 10px 14px;
+  padding: 12px 14px;
   border-bottom: 1px solid rgba(100, 130, 200, 0.25);
   background: var(--ca-bg-panel-alt);
+  display: flex;
+  justify-content: center;
 }
 
-.click-adventure.link-editor .ca-link-editor-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: #99b4dd;
+.click-adventure.link-editor .ca-link-nodes-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+}
+
+.click-adventure.link-editor .ca-node-badge {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: var(--ca-radius-md);
+  background: rgba(25, 45, 90, 0.85);
+  border: 1px solid rgba(100, 150, 230, 0.55);
+  color: #c8d8f8;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
+.click-adventure.link-editor .ca-node-arrow {
+  font-size: 15px;
+  color: #6080b0;
+  flex-shrink: 0;
+  user-select: none;
 }
 
 .click-adventure.link-editor .ca-passages-list {

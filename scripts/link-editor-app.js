@@ -126,6 +126,8 @@ export class LinkEditorApp extends HandlebarsApplicationMixin(ApplicationV2) {
     html.querySelectorAll(".ca-passage-label").forEach(input => {
       const i = parseInt(input.closest("[data-index]").dataset.index, 10);
       input.addEventListener("input", () => {
+        // Enforce 100-char limit as a safeguard alongside the maxlength HTML attribute
+        if (input.value.length > 100) input.value = input.value.slice(0, 100);
         this._pendingPassages[i] = { ...this._pendingPassages[i], label: input.value };
       });
     });

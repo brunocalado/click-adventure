@@ -7,6 +7,7 @@
  */
 
 import { NodeConfigApp } from "./node-config-app.js";
+import { LinkEditorApp } from "./link-editor-app.js";
 import { getGraphData, saveGraphData } from "./node-utils.js";
 import { bezierOffset, renderLinks, NODE_W, NODE_H } from "./manager-graph.js";
 
@@ -253,7 +254,7 @@ export async function onDocMouseUp(app, e) {
     if (targetId && targetId !== sourceId) {
       const targetAnchorEl = e.target.closest?.(".ca-anchor");
       const targetAnchor = targetAnchorEl?.dataset?.anchor ?? nearestAnchor(e, targetEl);
-      await saveLink(app, sourceId, sourceAnchor, targetId, targetAnchor);
+      await saveLink(app, sourceId, sourceAnchor, targetId, targetAnchor, e.shiftKey);
     }
   }
 }
@@ -293,14 +294,17 @@ export async function saveNodePositions(app, updates) {
 
 /**
  * Persists a new directed link between two anchor points, skipping duplicates.
+ * When openEditor is true (Shift held during drag), the LinkEditorApp opens immediately
+ * after creation so the user can configure multiple passages in one step.
  * @param {ManagerApp} app
  * @param {string} sourceId
  * @param {string} sourceAnchor
  * @param {string} targetId
  * @param {string} targetAnchor
+ * @param {boolean} [openEditor=false]
  * @returns {Promise<void>}
  */
-export async function saveLink(app, sourceId, sourceAnchor, targetId, targetAnchor) {
+export async function saveLink(app, sourceId, sourceAnchor, targetId, targetAnchor, openEditor = false) {
   const { sceneId, startNodeId, nodes, links } = getGraphData();
   const duplicate = links.some(l =>
     l.sourceId === sourceId && l.sourceAnchor === sourceAnchor &&
@@ -308,11 +312,13 @@ export async function saveLink(app, sourceId, sourceAnchor, targetId, targetAnch
   );
   if (duplicate) return;
 
-  await saveGraphData({
-    sceneId, startNodeId, nodes,
-    links: [...links, { sourceId, sourceAnchor, targetId, targetAnchor, passages: [{ label: "", direction: "both" }] }]
-  });
+  const newLinks = [...links, { sourceId, sourceAnchor, targetId, targetAnchor, passages: [{ label: "", direction: "both" }] }];
+  await saveGraphData({ sceneId, startNodeId, nodes, links: newLinks });
   app.render({ force: true });
+
+  if (openEditor) {
+    new LinkEditorApp(newLinks.length - 1).render(true);
+  }
 }
 
 /**
