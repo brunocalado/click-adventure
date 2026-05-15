@@ -94,6 +94,21 @@
     <aside class="ca-player-panel">
       <div class="ca-player-panel-title">Players</div>
 
+      <section class="ca-player-group ca-player-group--gm">
+        <div class="ca-player-group-label">Game Master</div>
+        <ul class="ca-player-list">
+          {{#each players.gm}}
+          <li class="ca-player-row {{#unless active}}ca-player-row--offline{{/unless}}"
+              data-user-id="{{userId}}"
+              {{#if nodeId}}data-node-id="{{nodeId}}"{{/if}}>
+            <span class="ca-player-dot" style="background:{{color}};"
+                  title="{{#if active}}Online{{else}}Offline{{/if}}"></span>
+            <span class="ca-player-name">{{displayName}}</span>
+          </li>
+          {{/each}}
+        </ul>
+      </section>
+
       <section class="ca-player-group ca-player-group--online">
         <div class="ca-player-group-label">Online</div>
         <ul class="ca-player-list">

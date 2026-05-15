@@ -36,29 +36,33 @@ export function buildOccupants() {
 
 /**
  * Builds grouped player data for the sidebar panel.
- * Includes all non-GM users split into online and offline buckets.
- * @returns {{ online: Array<{ userId, displayName, color, active, nodeId, nodeLabel, isLocked }>, offline: Array }}
+ * Includes GMs in a dedicated bucket and non-GM users split into online/offline.
+ * @returns {{ gm: Array, online: Array, offline: Array }}
+ *   Each entry: { userId, displayName, color, active, nodeId, nodeLabel, isLocked }
  */
 export function buildPlayerPanelData() {
   const { nodes } = getGraphData();
-  const all = game.users
-    .filter(u => !u.isGM)
-    .map(u => {
-      const nodeId = u.getFlag("click-adventure", "currentNodeId") ?? null;
-      const node   = nodes.find(n => n.id === nodeId);
-      return {
-        userId:      u.id,
-        displayName: u.character?.name ?? u.name,
-        color:       u.color?.css ?? u.color ?? "#ffffff",
-        active:      u.active,
-        nodeId:      nodeId,
-        nodeLabel:   node?.label ?? null,
-        isLocked:    isUserLocked(u.id)
-      };
-    });
+  const toEntry = u => {
+    const nodeId = u.getFlag("click-adventure", "currentNodeId") ?? null;
+    const node   = nodes.find(n => n.id === nodeId);
+    return {
+      userId:      u.id,
+      displayName: u.character?.name ?? u.name,
+      color:       u.color?.css ?? u.color ?? "#ffffff",
+      active:      u.active,
+      nodeId:      nodeId,
+      nodeLabel:   node?.label ?? null,
+      isLocked:    isUserLocked(u.id)
+    };
+  };
+
+  const gms      = game.users.filter(u => u.isGM).map(toEntry);
+  const players  = game.users.filter(u => !u.isGM).map(toEntry);
+
   return {
-    online:  all.filter(p => p.active),
-    offline: all.filter(p => !p.active)
+    gm:      gms,
+    online:  players.filter(p => p.active),
+    offline: players.filter(p => !p.active)
   };
 }
 
@@ -106,12 +110,14 @@ export function patchOccupantAvatars(app) {
   });
 
   // ── 2. Rebuild player panel rows ──────────────────────────────────────────
+  const gmList      = html.querySelector(".ca-player-group--gm .ca-player-list");
   const onlineList  = html.querySelector(".ca-player-group--online .ca-player-list");
   const offlineList = html.querySelector(".ca-player-group--offline .ca-player-list");
-  if (!onlineList || !offlineList) return;
+  if (!gmList || !onlineList || !offlineList) return;
 
-  _fillPlayerList(onlineList,  panelData.online,  false, app);
-  _fillPlayerList(offlineList, panelData.offline, true,  app);
+  _fillPlayerList(gmList,      panelData.gm,      false, app, false);
+  _fillPlayerList(onlineList,  panelData.online,  false, app, true);
+  _fillPlayerList(offlineList, panelData.offline, true,  app, true);
 }
 
 // ---------------------------------------------------------------------------
@@ -121,13 +127,14 @@ export function patchOccupantAvatars(app) {
 /**
  * Fills a player list element with rows for the given player data array.
  * Shows an empty-state placeholder when the array is empty.
- * Called from patchOccupantAvatars for both the online and offline groups.
+ * Called from patchOccupantAvatars for gm, online, and offline groups.
  * @param {HTMLElement} listEl - The <ul> to populate
- * @param {Array<object>} players - Subset of buildPlayerPanelData() (online or offline)
+ * @param {Array<object>} players - Subset of buildPlayerPanelData()
  * @param {boolean} isOffline - Whether this group is the offline bucket (affects row class + dot title)
  * @param {ManagerApp} app
+ * @param {boolean} showLock - Whether to render the lock/unlock button
  */
-function _fillPlayerList(listEl, players, isOffline, app) {
+function _fillPlayerList(listEl, players, isOffline, app, showLock = true) {
   listEl.innerHTML = "";
 
   if (players.length === 0) {
@@ -144,16 +151,19 @@ function _fillPlayerList(listEl, players, isOffline, app) {
     li.dataset.userId = p.userId;
     if (p.nodeId) li.dataset.nodeId = p.nodeId;
 
-    li.innerHTML = `
-      <span class="ca-player-dot" style="background:${p.color};"
-            title="${isOffline ? "Offline" : "Online"}"></span>
-      <span class="ca-player-name">${p.displayName}</span>
+    const lockBtn = showLock ? `
       <button class="ca-player-lock-btn ${p.isLocked ? "ca-player-lock-btn--locked" : ""}"
               data-user-id="${p.userId}"
               title="${p.isLocked ? "Click to unlock" : "Click to lock"}"
               type="button">
         <i class="fa-solid ${p.isLocked ? "fa-lock" : "fa-lock-open"}"></i>
-      </button>
+      </button>` : "";
+
+    li.innerHTML = `
+      <span class="ca-player-dot" style="background:${p.color};"
+            title="${isOffline ? "Offline" : "Online"}"></span>
+      <span class="ca-player-name">${p.displayName}</span>
+      ${lockBtn}
     `;
 
     li.querySelector(".ca-player-lock-btn")?.addEventListener("click", async (e) => {
