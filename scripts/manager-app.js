@@ -441,6 +441,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       Hooks.off("userConnected", this._onUserConnectedHook);
       this._onUserConnectedHook = undefined;
     }
+    globalThis.ClickAdventure._manager = null;
     await super._onClose(options);
   }
 }

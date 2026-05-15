@@ -300,6 +300,7 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
   async _onClose(options) {
     document.removeEventListener("mousemove", this._docMouseMove);
     document.removeEventListener("mouseup",   this._docMouseUp);
+    globalThis.ClickAdventure._hud = null;
     await super._onClose(options);
   }
 
