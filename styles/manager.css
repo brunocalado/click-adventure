@@ -352,3 +352,28 @@
 .click-adventure.manager .ca-player-lock-btn:hover {
   color: var(--ca-text-bright, #eee);
 }
+
+/* ── Toolbar separator ────────────────────────────────────────── */
+.click-adventure .ca-toolbar-sep {
+  width: 1px;
+  height: 18px;
+  background: rgba(255, 255, 255, 0.12);
+  flex-shrink: 0;
+  margin: 0 2px;
+}
+
+/* ── Free Move toolbar toggle (mirrors Autolock pattern) ─────── */
+.click-adventure.manager .ca-free-move-toggle {
+  border: 1px solid var(--ca-border-toolbar, rgba(255,255,255,0.12));
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.click-adventure.manager .ca-free-move-toggle--on {
+  background: rgba(53, 185, 100, 0.20);
+  color: #4ecb71;
+  border-color: #4ecb71;
+}
+.click-adventure.manager .ca-free-move-toggle--off {
+  background: rgba(180, 60, 60, 0.18);
+  color: #d96060;
+  border-color: #d96060;
+}
