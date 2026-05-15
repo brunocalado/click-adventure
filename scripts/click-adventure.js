@@ -182,6 +182,15 @@ Hooks.on("init", () => {
     default: "null"
   });
 
+  game.settings.register("click-adventure", "gmNavigationMode", {
+    name: "GM Navigation Mode",
+    scope: "world",
+    config: false,
+    type: String,
+    default: "solo",
+    choices: { solo: "Solo", guide: "Guide" }
+  });
+
   game.settings.register("click-adventure", "guideModeAction", {
     name: "Guide Mode Action",
     hint: "View: sends each player to the scene individually. Activate: activates the scene globally (Foundry handles view for all connected users).",

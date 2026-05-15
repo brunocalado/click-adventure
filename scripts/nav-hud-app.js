@@ -72,13 +72,6 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this._docMouseUp   = this._onDocMouseUp.bind(this);
     /** @type {boolean} — true only when the current mousedown originated on the orb */
     this._orbMouseDownActive = false;
-    /**
-     * GM navigation mode.
-     * "solo"  — only the GM moves (default, resets on reload).
-     * "guide" — all active non-GM players are dragged along with the GM.
-     * @type {"solo"|"guide"}
-     */
-    this._gmNavMode = "solo";
   }
 
 
@@ -247,8 +240,8 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     context.isOpen = false;
 
     context.isGM        = game.user.isGM;
-    context.gmNavMode   = this._gmNavMode;
-    context.isGuideMode = this._gmNavMode === "guide";
+    context.gmNavMode   = game.settings.get("click-adventure", "gmNavigationMode");
+    context.isGuideMode = game.settings.get("click-adventure", "gmNavigationMode") === "guide";
 
     // Orb style — per-client
     const orbStyle  = game.settings.get("click-adventure", "orbStyle");
@@ -349,9 +342,10 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
       globalThis.ClickAdventure.Manager();
     });
 
-    html.querySelector(".ca-hud-mode-btn")?.addEventListener("click", (e) => {
+    html.querySelector(".ca-hud-mode-btn")?.addEventListener("click", async (e) => {
       e.stopPropagation();
-      this._gmNavMode = this._gmNavMode === "solo" ? "guide" : "solo";
+      const next = game.settings.get("click-adventure", "gmNavigationMode") === "solo" ? "guide" : "solo";
+      await game.settings.set("click-adventure", "gmNavigationMode", next);
       this.render({ force: true });
     });
 
@@ -511,7 +505,7 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     // Guide mode: drag all active non-GM players to the same node, bypassing gated mode.
-    if (game.user.isGM && this._gmNavMode === "guide") {
+    if (game.user.isGM && game.settings.get("click-adventure", "gmNavigationMode") === "guide") {
       const guideModeAction = game.settings.get("click-adventure", "guideModeAction");
 
       if (guideModeAction === "activate" && targetNode.sceneId) {
