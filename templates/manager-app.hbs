@@ -17,14 +17,14 @@
       Free Move: {{#if (eq navigationMode 'open')}}ON{{else}}OFF{{/if}}
     </button>
 
-    {{!-- Separator between Free Move and Autolock --}}
-    <span class="ca-toolbar-sep"></span>
-
     {{!-- Requests button — shows count badge when queue is non-empty --}}
     <button class="ca-requests-btn ca-toolbar-pill {{#if requestCount}}ca-requests-btn--active{{/if}}"
             type="button" title="Pending navigation requests">
       {{#if requestCount}}Requests ({{requestCount}}){{else}}Requests{{/if}}
     </button>
+
+    {{!-- Separator between Requests and Autolock --}}
+    <span class="ca-toolbar-sep"></span>
 
     {{!-- Autolock global toggle --}}
     <button class="ca-autolock-toggle ca-toolbar-pill {{#if autolockDefault}}ca-autolock-toggle--on{{/if}}"
