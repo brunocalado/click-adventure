@@ -20,7 +20,7 @@ export class SettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
     id: "settings-app",
     classes: ["click-adventure", "settings"],
     window: { title: "Click Adventure — Settings", resizable: false },
-    position: { width: 360, height: "auto" }
+    position: { width: 420, height: "auto" }
   };
 
   /** @override */

@@ -215,3 +215,8 @@
   color: var(--ca-text-muted);
   line-height: 1.4;
 }
+
+.click-adventure.settings .ca-danger-row .ca-reset-graph {
+  white-space: nowrap;  /* impede quebra de linha "Reset / Graph" */
+  flex-shrink: 0;       /* impede que o flex encolha o botão */
+}
