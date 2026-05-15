@@ -296,19 +296,6 @@
   min-width: 0;
 }
 
-.click-adventure.manager .ca-player-location {
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.4);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 60px;
-  flex-shrink: 0;
-}
-
-.click-adventure.manager .ca-player-location--none {
-  color: rgba(255, 255, 255, 0.2);
-}
 
 /* The workspace must expand to fill remaining space next to the panel */
 .click-adventure.manager .ca-manager-layout > .ca-workspace {

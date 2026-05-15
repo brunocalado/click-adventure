@@ -116,10 +116,6 @@ export function patchOccupantAvatars(app) {
       <span class="ca-player-dot" style="background:${p.color};"
             title="${p.active ? "Online" : "Offline"}"></span>
       <span class="ca-player-name">${p.displayName}</span>
-      ${p.nodeLabel
-        ? `<span class="ca-player-location" title="${p.nodeLabel}">${p.nodeLabel}</span>`
-        : `<span class="ca-player-location ca-player-location--none">—</span>`
-      }
       <button class="ca-player-lock-btn ${p.isLocked ? "ca-player-lock-btn--locked" : ""}"
               data-user-id="${p.userId}"
               title="${p.isLocked ? "Click to unlock" : "Click to lock"}"
