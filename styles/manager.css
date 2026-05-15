@@ -248,10 +248,36 @@
   flex-shrink: 0;
 }
 
+.click-adventure.manager .ca-player-group {
+  margin-bottom: 4px;
+}
+
+.click-adventure.manager .ca-player-group-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.3);
+  padding: 6px 10px 2px;
+}
+
+.click-adventure.manager .ca-player-group--offline {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin-top: 4px;
+  padding-top: 2px;
+}
+
 .click-adventure.manager .ca-player-list {
   list-style: none;
   margin: 0;
   padding: 0;
+}
+
+.click-adventure.manager .ca-player-row--empty {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.25);
+  font-style: italic;
+  padding: 3px 10px;
 }
 
 .click-adventure.manager .ca-player-row {

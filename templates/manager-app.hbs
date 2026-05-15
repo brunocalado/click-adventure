@@ -93,17 +93,38 @@
     {{!-- LEFT SIDEBAR: Player panel --}}
     <aside class="ca-player-panel">
       <div class="ca-player-panel-title">Players</div>
-      <ul class="ca-player-list">
-        {{#each players}}
-        <li class="ca-player-row {{#unless active}}ca-player-row--offline{{/unless}}"
-            data-user-id="{{userId}}"
-            {{#if nodeId}}data-node-id="{{nodeId}}"{{/if}}>
-          <span class="ca-player-dot" style="background:{{color}};"
-                title="{{#if active}}Online{{else}}Offline{{/if}}"></span>
-          <span class="ca-player-name">{{displayName}}</span>
-        </li>
-        {{/each}}
-      </ul>
+
+      <section class="ca-player-group ca-player-group--online">
+        <div class="ca-player-group-label">Online</div>
+        <ul class="ca-player-list">
+          {{#each players.online}}
+          <li class="ca-player-row"
+              data-user-id="{{userId}}"
+              {{#if nodeId}}data-node-id="{{nodeId}}"{{/if}}>
+            <span class="ca-player-dot" style="background:{{color}};" title="Online"></span>
+            <span class="ca-player-name">{{displayName}}</span>
+          </li>
+          {{else}}
+          <li class="ca-player-row ca-player-row--empty">No players online</li>
+          {{/each}}
+        </ul>
+      </section>
+
+      <section class="ca-player-group ca-player-group--offline">
+        <div class="ca-player-group-label">Offline</div>
+        <ul class="ca-player-list">
+          {{#each players.offline}}
+          <li class="ca-player-row ca-player-row--offline"
+              data-user-id="{{userId}}"
+              {{#if nodeId}}data-node-id="{{nodeId}}"{{/if}}>
+            <span class="ca-player-dot" style="background:{{color}};" title="Offline"></span>
+            <span class="ca-player-name">{{displayName}}</span>
+          </li>
+          {{else}}
+          <li class="ca-player-row ca-player-row--empty">No players offline</li>
+          {{/each}}
+        </ul>
+      </section>
     </aside>
 
     {{!-- WORKSPACE --}}

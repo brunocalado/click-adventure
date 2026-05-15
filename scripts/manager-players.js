@@ -35,17 +35,17 @@ export function buildOccupants() {
 }
 
 /**
- * Builds the data array used to render the player panel sidebar.
- * Includes all non-GM users (active and inactive).
- * @returns {Array<{ userId, displayName, color, active, nodeId, nodeLabel }>}
+ * Builds grouped player data for the sidebar panel.
+ * Includes all non-GM users split into online and offline buckets.
+ * @returns {{ online: Array<{ userId, displayName, color, active, nodeId, nodeLabel, isLocked }>, offline: Array }}
  */
 export function buildPlayerPanelData() {
   const { nodes } = getGraphData();
-  return game.users
+  const all = game.users
     .filter(u => !u.isGM)
     .map(u => {
-      const nodeId    = u.getFlag("click-adventure", "currentNodeId") ?? null;
-      const node      = nodes.find(n => n.id === nodeId);
+      const nodeId = u.getFlag("click-adventure", "currentNodeId") ?? null;
+      const node   = nodes.find(n => n.id === nodeId);
       return {
         userId:      u.id,
         displayName: u.character?.name ?? u.name,
@@ -56,6 +56,10 @@ export function buildPlayerPanelData() {
         isLocked:    isUserLocked(u.id)
       };
     });
+  return {
+    online:  all.filter(p => p.active),
+    offline: all.filter(p => !p.active)
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -73,7 +77,7 @@ export function patchOccupantAvatars(app) {
   const html = app.element;
 
   const occupants   = buildOccupants();       // nodeId → [{name, color}]
-  const panelData   = buildPlayerPanelData(); // array of player rows
+  const panelData   = buildPlayerPanelData(); // { online: [], offline: [] }
 
   // ── 1. Update node badges (count + icon, no text labels) ──────────────────
   html.querySelectorAll(".ca-node").forEach(nodeEl => {
@@ -102,19 +106,47 @@ export function patchOccupantAvatars(app) {
   });
 
   // ── 2. Rebuild player panel rows ──────────────────────────────────────────
-  const list = html.querySelector(".ca-player-list");
-  if (!list) return;
-  list.innerHTML = "";
+  const onlineList  = html.querySelector(".ca-player-group--online .ca-player-list");
+  const offlineList = html.querySelector(".ca-player-group--offline .ca-player-list");
+  if (!onlineList || !offlineList) return;
 
-  for (const p of panelData) {
+  _fillPlayerList(onlineList,  panelData.online,  false, app);
+  _fillPlayerList(offlineList, panelData.offline, true,  app);
+}
+
+// ---------------------------------------------------------------------------
+// Private helpers — panel interaction
+// ---------------------------------------------------------------------------
+
+/**
+ * Fills a player list element with rows for the given player data array.
+ * Shows an empty-state placeholder when the array is empty.
+ * Called from patchOccupantAvatars for both the online and offline groups.
+ * @param {HTMLElement} listEl - The <ul> to populate
+ * @param {Array<object>} players - Subset of buildPlayerPanelData() (online or offline)
+ * @param {boolean} isOffline - Whether this group is the offline bucket (affects row class + dot title)
+ * @param {ManagerApp} app
+ */
+function _fillPlayerList(listEl, players, isOffline, app) {
+  listEl.innerHTML = "";
+
+  if (players.length === 0) {
     const li = document.createElement("li");
-    li.className = "ca-player-row" + (p.active ? "" : " ca-player-row--offline");
+    li.className = "ca-player-row ca-player-row--empty";
+    li.textContent = isOffline ? "No players offline" : "No players online";
+    listEl.appendChild(li);
+    return;
+  }
+
+  for (const p of players) {
+    const li = document.createElement("li");
+    li.className = "ca-player-row" + (isOffline ? " ca-player-row--offline" : "");
     li.dataset.userId = p.userId;
     if (p.nodeId) li.dataset.nodeId = p.nodeId;
 
     li.innerHTML = `
       <span class="ca-player-dot" style="background:${p.color};"
-            title="${p.active ? "Online" : "Offline"}"></span>
+            title="${isOffline ? "Offline" : "Online"}"></span>
       <span class="ca-player-name">${p.displayName}</span>
       <button class="ca-player-lock-btn ${p.isLocked ? "ca-player-lock-btn--locked" : ""}"
               data-user-id="${p.userId}"
@@ -124,7 +156,6 @@ export function patchOccupantAvatars(app) {
       </button>
     `;
 
-    // Lock toggle: stop row-click propagation so centering doesn't fire
     li.querySelector(".ca-player-lock-btn")?.addEventListener("click", async (e) => {
       e.stopPropagation();
       if (p.isLocked) {
@@ -137,22 +168,16 @@ export function patchOccupantAvatars(app) {
       patchOccupantAvatars(app);
     });
 
-    // Click: center canvas on the player's node
     if (p.nodeId) {
       li.addEventListener("click", () => _focusNode(app, p.nodeId));
     }
 
-    // Hover: highlight the corresponding node
     li.addEventListener("mouseenter", () => _setNodeHighlight(app, p.nodeId, true));
     li.addEventListener("mouseleave", () => _setNodeHighlight(app, p.nodeId, false));
 
-    list.appendChild(li);
+    listEl.appendChild(li);
   }
 }
-
-// ---------------------------------------------------------------------------
-// Private helpers — panel interaction
-// ---------------------------------------------------------------------------
 
 /**
  * Centers the canvas viewport on the given node by adjusting app._pan.
