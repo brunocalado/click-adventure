@@ -57,7 +57,7 @@ Hooks.on("canvasReady", () => {
   const canSeeHud = game.user.isGM || hudVisibility === "all";
 
   if ((byFlag || byGraph) && canSeeHud) {
-    ClickAdventure.Hud();
+    ClickAdventure.HUD();
   } else {
     if (globalThis.ClickAdventure._hud?.rendered) {
       globalThis.ClickAdventure._hud.close();
@@ -83,7 +83,7 @@ Hooks.on("updateSetting", (setting) => {
 
   if (belongs && canSeeHud && !globalThis.ClickAdventure._hud?.rendered) {
     // HUD is not open yet but this scene is now part of the graph — open it.
-    ClickAdventure.Hud();
+    ClickAdventure.HUD();
   } else if (globalThis.ClickAdventure._hud?.rendered) {
     // HUD is already open — re-render so the destination list reflects the new graph.
     globalThis.ClickAdventure._hud.render({ force: true });
@@ -108,7 +108,7 @@ Hooks.on("updateSetting", (setting) => {
     if (!scene) return;
     const byFlag = scene?.flags?.["click-adventure"]?.isAdventureScene === true;
     const byGraph = _isGraphScene(scene?.id);
-    if (byFlag || byGraph) ClickAdventure.Hud();
+    if (byFlag || byGraph) ClickAdventure.HUD();
   }
 });
 
@@ -308,7 +308,7 @@ Hooks.on("init", () => {
      * Opens the floating navigation HUD, or brings the existing one to front.
      * @returns {NavHudApp}
      */
-    Hud: () => {
+    HUD: () => {
       if (globalThis.ClickAdventure._hud?.rendered) {
         globalThis.ClickAdventure._hud.render();
         return globalThis.ClickAdventure._hud;
