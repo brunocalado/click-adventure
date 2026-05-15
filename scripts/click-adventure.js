@@ -16,6 +16,22 @@ import { getGraphData } from "./node-utils.js";
 import { HudStyleApp } from "./hud-style-app.js";
 
 /**
+ * O(1) lookup set of sceneIds belonging to graph nodes.
+ * Populated in the ready hook and rebuilt whenever the graph setting changes.
+ * @type {Set<string>}
+ */
+let _graphSceneIds = new Set();
+
+/**
+ * Rebuilds _graphSceneIds from the current graph setting.
+ * Must only be called after settings are available (ready hook or later).
+ */
+function _buildSceneIdCache() {
+  const { nodes } = getGraphData();
+  _graphSceneIds = new Set(nodes.map(n => n.sceneId).filter(Boolean));
+}
+
+/**
  * Returns true if the given sceneId belongs to any node in the current graph.
  * Used to decide whether to show the HUD regardless of the scene flag.
  * @param {string|null} sceneId
@@ -23,8 +39,7 @@ import { HudStyleApp } from "./hud-style-app.js";
  */
 function _isGraphScene(sceneId) {
   if (!sceneId) return false;
-  const { nodes } = getGraphData();
-  return nodes.some(n => n.sceneId === sceneId);
+  return _graphSceneIds.has(sceneId);
 }
 
 /**
@@ -57,14 +72,14 @@ Hooks.on("canvasReady", () => {
  */
 Hooks.on("updateSetting", (setting) => {
   if (setting.key !== "click-adventure.graph") return;
+  _buildSceneIdCache();
   const scene = canvas?.scene;
   if (!scene) return;
 
   const hudVisibility = game.settings.get("click-adventure", "hudVisibility");
   const canSeeHud = game.user.isGM || hudVisibility === "all";
 
-  const { nodes } = getGraphData();
-  const belongs = nodes.some(n => n.sceneId === scene.id);
+  const belongs = _graphSceneIds.has(scene.id);
 
   if (belongs && canSeeHud && !globalThis.ClickAdventure._hud?.rendered) {
     // HUD is not open yet but this scene is now part of the graph — open it.
@@ -113,6 +128,7 @@ Hooks.on("updateSetting", (setting) => {
  * node's scene, avoiding a redundant reload when the user is already in the right place.
  */
 Hooks.on("ready", async () => {
+  _buildSceneIdCache();
   const { startNodeId, nodes } = getGraphData();
   const existing = game.user.getFlag("click-adventure", "currentNodeId");
 
