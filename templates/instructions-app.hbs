@@ -14,6 +14,11 @@
 
   {{!-- Tab: Controls --}}
   <section class="ca-instr-panel {{#if (eq activeTab 'controls')}}ca-instr-panel--active{{/if}}" data-panel="controls" role="tabpanel">
+    <h3>Toolbar</h3>
+    <ul>
+      <li><strong>Reset Macros</strong> — resets all "Once" macros so they can fire again on the next visit; the button shows the count of pending resets</li>
+    </ul>
+
     <h3>Canvas</h3>
     <ul>
       <li><kbd>Right-click</kbd> + drag on background — pan the canvas</li>
@@ -47,10 +52,11 @@
 
     <h3>Node Settings</h3>
     <ul>
-      <li>Double-click any node to open its config window</li>
-      <li>Assign a scene, label, and image to the node</li>
-      <li>The <strong>★ Start Node</strong> is where new players begin</li>
-      <li>The <strong>Active Node</strong> (green border) is the GM's current scene</li>
+      <li>Double-click a node to open its config window</li>
+      <li><strong>Images tab</strong> — add multiple images; each image can have its own macro trigger</li>
+      <li><strong>Scenes tab</strong> — link an external Foundry scene to the node; each scene can have a macro trigger</li>
+      <li><strong>Macros tab</strong> — add node-level macros that fire on arrival; set trigger (GM View / Activate) and mode (Always / Once)</li>
+      <li><strong>Settings tab</strong> — set per-node Autolock: <em>Open</em> (never lock), <em>Locked</em> (always lock), or <em>Inherit</em> (follow global toggle)</li>
     </ul>
 
     <h3>Visual Indicators</h3>
@@ -80,18 +86,26 @@
 
     <h3>Direction Types</h3>
     <ul>
-      <li><strong>⟷ Both ways</strong> — players can travel in either direction</li>
-      <li><strong>→ Forward only</strong> — one-way from source to target</li>
-      <li><strong>← Backward only</strong> — one-way from target to source</li>
-      <li><strong>✕ Blocked</strong> — link exists but cannot be traversed</li>
+      <li><strong style="color:#22c55e">⟷ Both ways</strong> — green — players can travel either direction</li>
+      <li><strong style="color:#f59e0b">→ Forward only</strong> — amber — one-way from source to target</li>
+      <li><strong style="color:#f59e0b">← Backward only</strong> — amber — one-way from target to source</li>
+      <li><strong style="color:#a855f7">✕ Blocked</strong> — purple — hidden from players; cannot be traversed</li>
+      <li><strong style="color:#ef4444">⊘ Locked</strong> — red — visible to players but not traversable (hints at a locked passage)</li>
     </ul>
 
     <h3>Multi-Passage Links</h3>
-    <p><kbd>Shift</kbd> + click any link to add multiple named passages between two nodes. Each passage has its own direction rule. Reducing to one passage restores simple link behaviour.</p>
+    <p><kbd>Shift</kbd> + click any link to add multiple named passages between two nodes. Each passage has its own direction rule. Reducing to one passage restores simple link behaviour. Multi-passage links appear <strong style="color:#a855f7">purple</strong> with a thicker line.</p>
   </section>
 
   {{!-- Tab: Players --}}
   <section class="ca-instr-panel {{#if (eq activeTab 'players')}}ca-instr-panel--active{{/if}}" data-panel="players" role="tabpanel">
+    <h3>Autolock</h3>
+    <ul>
+      <li>When <strong>Autolock</strong> is ON (toolbar toggle), players are locked upon arriving at a node</li>
+      <li>Locked players cannot request navigation — the GM must send them manually</li>
+      <li>Per-node setting (node Settings tab) can override the global toggle: <em>Open</em>, <em>Locked</em>, or <em>Inherit</em></li>
+    </ul>
+
     <h3>Navigation Modes</h3>
     <ul>
       <li><strong>Free Move On</strong> — players move freely without GM approval</li>
