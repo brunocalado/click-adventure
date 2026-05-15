@@ -12,6 +12,7 @@ export { LinkEditorApp }          from "./link-editor-app.js";
 export { InstructionsApp }        from "./instructions-app.js";
 export { AdventureSocketManager } from "./socket-manager.js";
 export { HudStyleApp }            from "./hud-style-app.js";
+export { shouldLockOnArrival, isUserLocked, lockUser, unlockUser } from "./autolock-utils.js";
 
 // Main init — must be last because it references all the above
 import "./click-adventure.js";

@@ -7,6 +7,7 @@
  */
 
 import { getGraphData } from "./node-utils.js";
+import { isUserLocked, lockUser, unlockUser, shouldLockOnArrival } from "./autolock-utils.js";
 
 // ---------------------------------------------------------------------------
 // Occupant map
@@ -51,7 +52,8 @@ export function buildPlayerPanelData() {
         color:       u.color?.css ?? u.color ?? "#ffffff",
         active:      u.active,
         nodeId:      nodeId,
-        nodeLabel:   node?.label ?? null
+        nodeLabel:   node?.label ?? null,
+        isLocked:    isUserLocked(u.id)
       };
     });
 }
@@ -118,7 +120,26 @@ export function patchOccupantAvatars(app) {
         ? `<span class="ca-player-location" title="${p.nodeLabel}">${p.nodeLabel}</span>`
         : `<span class="ca-player-location ca-player-location--none">—</span>`
       }
+      <button class="ca-player-lock-btn ${p.isLocked ? "ca-player-lock-btn--locked" : ""}"
+              data-user-id="${p.userId}"
+              title="${p.isLocked ? "Click to unlock" : "Click to lock"}"
+              type="button">
+        <i class="fa-solid ${p.isLocked ? "fa-lock" : "fa-lock-open"}"></i>
+      </button>
     `;
+
+    // Lock toggle: stop row-click propagation so centering doesn't fire
+    li.querySelector(".ca-player-lock-btn")?.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      if (p.isLocked) {
+        await unlockUser(p.userId);
+        globalThis.ClickAdventure._socket.notifyLockChanged(p.userId);
+      } else {
+        await lockUser(p.userId, p.nodeId ?? "");
+        globalThis.ClickAdventure._socket.notifyLockChanged(p.userId);
+      }
+      patchOccupantAvatars(app);
+    });
 
     // Click: center canvas on the player's node
     if (p.nodeId) {
@@ -453,6 +474,12 @@ export async function onSendAllToNode(app, targetNode, players) {
     await user.unsetFlag("click-adventure", "previousNodeId");
     await user.setFlag("click-adventure", "currentNodeId", targetNode.id);
 
+    // Apply autolock if the destination node requires it (Risk: teleport bypasses player-side check)
+    if (shouldLockOnArrival(targetNode)) {
+      await lockUser(user.id, targetNode.id);
+      globalThis.ClickAdventure._socket.notifyLockChanged(user.id);
+    }
+
     if (targetNode.sceneId) {
       globalThis.ClickAdventure._socket.teleportUser(targetNode.sceneId, user.id);
       // GM is the executor — call directly (socket.io does not echo to emitter).
@@ -490,6 +517,12 @@ export async function onTeleportPlayer(app, user, nodeId) {
   // Teleport clears the "came from" context
   await user.unsetFlag("click-adventure", "previousNodeId");
   await user.setFlag("click-adventure", "currentNodeId", nodeId);
+
+  // Apply autolock if the destination node requires it (Risk: teleport bypasses player-side check)
+  if (shouldLockOnArrival(targetNode)) {
+    await lockUser(user.id, nodeId);
+    globalThis.ClickAdventure._socket.notifyLockChanged(user.id);
+  }
 
   if (targetNode.sceneId) {
     await globalThis.ClickAdventure._socket.teleportUser(targetNode.sceneId, user.id);

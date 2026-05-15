@@ -229,6 +229,21 @@ Hooks.on("init", () => {
     default: false
   });
 
+  game.settings.register("click-adventure", "autolockDefault", {
+    scope: "world",
+    config: false,
+    type: Boolean,
+    default: false
+  });
+
+  game.settings.register("click-adventure", "lockedUsers", {
+    scope: "world",
+    config: false,
+    type: Array,
+    default: []
+    // Stored as: [{ userId: string, nodeId: string }, ...]
+  });
+
   game.settings.registerMenu("click-adventure", "orbStyleMenu", {
     name: "HUD Button Style",
     label: "Customize HUD Button Style…",

@@ -136,6 +136,8 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this._activeTab = "images";
     /** @type {Array<{id:string, macroId:string, trigger:string, executeMode:string, executedOnce:boolean}>|null} */
     this._pendingNodeMacros = null;
+    /** @type {"open"|"inherit"|"locked"|null} */
+    this._pendingAutolockMode = null;
   }
 
 
@@ -198,6 +200,8 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
       modeOptions:      buildNodeMacroModeOptions(entry.executeMode),
       showExecutedBadge: entry.executeMode === "once" && entry.executedOnce === true
     }));
+
+    context.autolockMode = this._pendingAutolockMode ?? node.autolockMode ?? "inherit";
 
     return context;
   }
@@ -609,6 +613,17 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
       });
     });
 
+    // ── Autolock mode btn-group ──────────────────────────────────────────
+    html.querySelectorAll("[data-field='autolockMode'] .ca-btn-group-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        this._pendingAutolockMode = btn.dataset.value;
+        html.querySelectorAll("[data-field='autolockMode'] .ca-btn-group-btn").forEach(b => {
+          b.classList.toggle("ca-btn-group-btn--active", b.dataset.value === this._pendingAutolockMode);
+        });
+      });
+    });
+    // ────────────────────────────────────────────────────────────────────
+
     // ── Tab switching ────────────────────────────────────────────────────
     const tabs   = html.querySelectorAll(".ca-nc-tab");
     const panels = html.querySelectorAll(".ca-nc-panel");
@@ -788,9 +803,10 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const activeIndex = this._pendingActiveIndex ?? 0;
     const linkedScenes = this._getWorkingLinkedScenes();
     const nodeMacros = this._getWorkingNodeMacros();
+    const autolockMode = this._pendingAutolockMode ?? (nodes.find(n => n.id === this.nodeId)?.autolockMode ?? "inherit");
     const updatedNodes = nodes.map(n => {
       if (n.id !== this.nodeId) return n;
-      return { ...n, label, images, activeImageIndex: activeIndex, linkedScenes, nodeMacros, imageSrc: undefined };
+      return { ...n, label, images, activeImageIndex: activeIndex, linkedScenes, nodeMacros, autolockMode, imageSrc: undefined };
     });
     await saveGraphData({ sceneId, startNodeId, nodes: updatedNodes, links });
 
@@ -823,6 +839,7 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this._pendingStartNode = null;
     this._pendingLinkedScenes = null;
     this._pendingNodeMacros = null;
+    this._pendingAutolockMode = null;
 
     const manager = foundry.applications.instances.get("manager-app");
     if (manager?.rendered) manager.render({ force: true });

@@ -321,3 +321,34 @@
   width: calc(100% - 16px);
   margin: 0px 8px 0;
 }
+
+/* ── Autolock toolbar toggle ──────────────────────────────────── */
+.click-adventure.manager .ca-autolock-toggle {
+  border: 1px solid var(--ca-border-toolbar, rgba(255,255,255,0.12));
+  transition: background 0.15s, color 0.15s;
+}
+.click-adventure.manager .ca-autolock-toggle--on {
+  background: var(--ca-state-locked-bg, rgba(231,140,53,0.25));
+  color: var(--ca-state-locked-text, #e78c35);
+  border-color: var(--ca-state-locked-text, #e78c35);
+}
+
+/* ── Player lock button in the sidebar ───────────────────────── */
+.click-adventure.manager .ca-player-lock-btn {
+  margin-left: auto;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--ca-text-muted, #aaa);
+  padding: 2px 4px;
+  border-radius: 3px;
+  transition: color 0.15s;
+  line-height: 1;
+}
+.click-adventure.manager .ca-player-lock-btn--locked {
+  color: var(--ca-state-locked-text, #e78c35);
+}
+.click-adventure.manager .ca-player-lock-btn:hover {
+  color: var(--ca-text-bright, #eee);
+}

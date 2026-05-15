@@ -166,8 +166,9 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }, 0);
 
     const getLabel = id => nodes.find(n => n.id === id)?.label || id;
-    context.navigationMode = game.settings.get("click-adventure", "navigationMode");
-    context.requestCount   = this._navRequests.size;
+    context.navigationMode   = game.settings.get("click-adventure", "navigationMode");
+    context.autolockDefault  = game.settings.get("click-adventure", "autolockDefault");
+    context.requestCount     = this._navRequests.size;
     context.drawerOpen     = this._drawerOpen;
     context.requests       = [...this._navRequests.values()]
       .sort((a, b) => a.timestamp - b.timestamp)
@@ -267,6 +268,12 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     html.querySelector(".ca-sync-scenes")?.addEventListener("click", () => onSyncScenes(this));
 
     html.querySelector(".ca-reset-macros")?.addEventListener("click", () => onResetMacros(this));
+
+    html.querySelector(".ca-autolock-toggle")?.addEventListener("click", async () => {
+      const current = game.settings.get("click-adventure", "autolockDefault");
+      await game.settings.set("click-adventure", "autolockDefault", !current);
+      this.render({ force: true });
+    });
 
     html.querySelectorAll(".ca-nav-mode-btn").forEach(btn => {
       btn.addEventListener("click", async () => {

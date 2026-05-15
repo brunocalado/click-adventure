@@ -9,6 +9,7 @@
  */
 
 import { isMultiPassage, getEffectiveDirection, getGraphData, fireActiveItemMacro } from "./node-utils.js";
+import { shouldLockOnArrival, isUserLocked } from "./autolock-utils.js";
 
 // ── 3D gradient helpers (private to this module) ─────────────────────────────
 function _hexToRgb(hex) {
@@ -232,6 +233,14 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
     // ─────────────────────────────────────────────────────────────────────
 
+    // ── Mark destinations blocked when the player is currently locked ─────
+    const playerIsLocked = !game.user.isGM && isUserLocked(game.userId);
+    context.playerIsLocked = playerIsLocked;
+    for (const dest of availableDestinations) {
+      dest.autolocked = playerIsLocked || dest.locked;
+    }
+    // ─────────────────────────────────────────────────────────────────────
+
     context.availableDestinations = availableDestinations;
     context.hasAnyDirection = availableDestinations.length > 0;
     // isOpen is managed via DOM class toggle — default false on each render
@@ -319,6 +328,10 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
       btn.addEventListener("click", () => {
         if (btn.dataset.locked === "true") {
           ui.notifications.warn("This path is not accessible.");
+          return;
+        }
+        if (btn.dataset.autolocked === "true") {
+          ui.notifications.warn("This path is locked. Wait for the GM to release you.");
           return;
         }
         const nodeId = btn.dataset.nodeId;
@@ -463,6 +476,17 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     // Per-user position — does not affect other players' currentNodeId flags
     await game.user.setFlag("click-adventure", "currentNodeId", targetNode.id);
+
+    // ── Request autolock if the destination node requires it ──────────────
+    // Non-GM only: ask the GM (server) to register the lock since only GM
+    // can write world-scoped settings (lockedUsers).
+    if (!game.user.isGM && shouldLockOnArrival(targetNode)) {
+      globalThis.ClickAdventure._socket.emitRequestLock({
+        userId: game.userId,
+        nodeId: targetNode.id
+      });
+    }
+    // ─────────────────────────────────────────────────────────────────────
 
     // ── Fire arrival macros ───────────────────────────────────────────────
     if (game.user.isGM) {

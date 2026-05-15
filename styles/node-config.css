@@ -696,3 +696,47 @@
 .click-adventure.node-config .ca-node-macro-controls select:focus {
   border-color: var(--ca-border-toolbar-hv) !important;
 }
+
+/* ── Auto-Lock config section ─────────────────────────────────── */
+.click-adventure.node-config .ca-config-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid var(--ca-border-soft, rgba(255,255,255,0.08));
+  border-radius: var(--ca-radius-md, 6px);
+  margin-top: 8px;
+}
+.click-adventure.node-config .ca-config-section-title {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ca-text-muted, #aaa);
+}
+.click-adventure.node-config .ca-btn-group {
+  display: flex;
+  gap: 4px;
+}
+.click-adventure.node-config .ca-btn-group-btn {
+  flex: 1;
+  padding: 4px 8px;
+  background: var(--ca-bg-overlay, rgba(0,0,0,0.35));
+  border: 1px solid var(--ca-border-soft, rgba(255,255,255,0.08));
+  border-radius: var(--ca-radius-md, 6px);
+  color: var(--ca-text-muted, #aaa);
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background 0.15s, color 0.15s;
+}
+.click-adventure.node-config .ca-btn-group-btn--active {
+  background: var(--ca-bg-toolbar-hv, rgba(255,255,255,0.12));
+  color: var(--ca-text-bright, #eee);
+  border-color: var(--ca-border-toolbar-hv, rgba(255,255,255,0.25));
+}
+.click-adventure.node-config .ca-config-hint {
+  font-size: 0.72rem;
+  color: var(--ca-text-muted, #999);
+  line-height: 1.5;
+  margin: 0;
+}

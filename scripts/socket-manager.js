@@ -22,6 +22,7 @@
  */
 
 import { getGraphData, fireActiveItemMacro } from "./node-utils.js";
+import { lockUser, unlockUser } from "./autolock-utils.js";
 
 const SOCKET_ID = "module.click-adventure";
 
@@ -61,6 +62,12 @@ export class AdventureSocketManager {
           break;
         case "MOVE_TOKEN":
           this._handleMoveToken(payload);
+          break;
+        case "REQUEST_LOCK":
+          this._handleRequestLock(payload);
+          break;
+        case "LOCK_CHANGED":
+          this._handleLockChanged(payload);
           break;
         default:
           console.warn(`AdventureSocketManager | Unknown message type: ${type}`);
@@ -368,5 +375,50 @@ export class AdventureSocketManager {
   _handleNavRejected({ userId } = {}) {
     if (game.userId !== userId) return;
     ui.notifications.warn("Navigation request denied by the GM.");
+  }
+
+  /**
+   * Emits a lock request from a player to the GM.
+   * Called from NavHudApp._navigateTo() when the destination node requires a lock.
+   * @param {{ userId: string, nodeId: string }} param0
+   */
+  emitRequestLock({ userId, nodeId }) {
+    this._emit("REQUEST_LOCK", { userId, nodeId });
+  }
+
+  /**
+   * Broadcasts to all clients that a specific player's lock state has changed.
+   * Called by the GM after writing to the lockedUsers setting.
+   * @param {string} userId
+   */
+  notifyLockChanged(userId) {
+    this._emit("LOCK_CHANGED", { userId });
+  }
+
+  /**
+   * Received by all clients. Only the GM client registers the lock.
+   * After writing, notifies the player so their HUD re-renders.
+   * Triggered by socket message type REQUEST_LOCK.
+   * @param {{ userId: string, nodeId: string }} payload
+   */
+  async _handleRequestLock({ userId, nodeId } = {}) {
+    if (!game.user.isGM) return;
+    if (!userId) return;
+    await lockUser(userId, nodeId);
+    this.notifyLockChanged(userId);
+    // Patch the manager sidebar immediately so the GM sees the new lock icon.
+    const manager = foundry.applications.instances.get("manager-app");
+    if (manager?.rendered) manager._patchOccupantAvatars();
+  }
+
+  /**
+   * Received by all clients. Only the targeted player re-renders their HUD.
+   * Triggered by socket message type LOCK_CHANGED.
+   * @param {{ userId: string }} payload
+   */
+  _handleLockChanged({ userId } = {}) {
+    if (game.userId !== userId) return;
+    const hud = globalThis.ClickAdventure._hud;
+    if (hud?.rendered) hud.render({ force: true });
   }
 }

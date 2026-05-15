@@ -22,6 +22,13 @@
       {{#if requestCount}}Requests ({{requestCount}}){{else}}Requests{{/if}}
     </button>
 
+    {{!-- Autolock global toggle --}}
+    <button class="ca-autolock-toggle ca-toolbar-pill {{#if autolockDefault}}ca-autolock-toggle--on{{/if}}"
+            type="button"
+            title="When ON, all nodes set to Inherit will lock players upon arrival">
+      Autolock: {{#if autolockDefault}}ON{{else}}OFF{{/if}}
+    </button>
+
     {{!-- Spacer pushes Reset and Instructions to the far right --}}
     <span class="ca-toolbar-spacer"></span>
 

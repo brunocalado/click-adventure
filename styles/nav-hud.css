@@ -269,3 +269,12 @@
   background: rgba(0, 0, 0, 0.75);
   color: rgba(255, 255, 255, 0.9);
 }
+
+/* ── Auto-lock destination state ──────────────────────────────── */
+.click-adventure.nav-hud .ca-hud-dest-btn--autolocked {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.click-adventure.nav-hud .ca-hud-dest-btn--autolocked i {
+  margin-right: 0.3em;
+}

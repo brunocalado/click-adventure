@@ -196,6 +196,23 @@
         {{#if isStartNode}}&#9733; Start Node{{else}}&#9734; Set as Start{{/if}}
       </button>
     </div>
+
+    <div class="ca-config-section">
+      <div class="ca-config-section-title">Auto-Lock</div>
+      <div class="ca-btn-group" data-field="autolockMode">
+        <button class="ca-btn-group-btn {{#if (eq autolockMode 'open')}}ca-btn-group-btn--active{{/if}}"
+                type="button" data-value="open">Open</button>
+        <button class="ca-btn-group-btn {{#if (eq autolockMode 'inherit')}}ca-btn-group-btn--active{{/if}}"
+                type="button" data-value="inherit">Inherit</button>
+        <button class="ca-btn-group-btn {{#if (eq autolockMode 'locked')}}ca-btn-group-btn--active{{/if}}"
+                type="button" data-value="locked">Locked</button>
+      </div>
+      <p class="ca-config-hint">
+        <strong>Open:</strong> players are never locked here.<br>
+        <strong>Locked:</strong> players are always locked upon arrival.<br>
+        <strong>Inherit:</strong> follows the global Autolock toggle in the Manager.
+      </p>
+    </div>
   </div>
 
   {{!-- Footer actions: always visible --}}
