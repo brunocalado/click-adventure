@@ -14,6 +14,7 @@ import { NavHudApp } from "./nav-hud-app.js";
 import { AdventureSocketManager } from "./socket-manager.js";
 import { getGraphData } from "./node-utils.js";
 import { HudStyleApp } from "./hud-style-app.js";
+import { lockAllUsers, restoreLockedUsers } from "./autolock-utils.js";
 
 /**
  * O(1) lookup set of sceneIds belonging to graph nodes.
@@ -120,6 +121,31 @@ Hooks.on("updateSetting", (setting) => {
 });
 
 /**
+ * When the GM pauses the game: snapshot current lock state, then lock all players.
+ * When the GM unpauses: restore the pre-pause lock state exactly.
+ * Guard: only the GM can write world-scope settings.
+ *
+ * Triggered by the native Foundry pauseGame hook (v13/v14 compatible).
+ * @param {boolean} paused
+ */
+Hooks.on("pauseGame", async (paused) => {
+  if (!game.user.isGM) return;
+
+  if (paused) {
+    // Save current lockedUsers state before locking everyone
+    const snapshot = game.settings.get("click-adventure", "lockedUsers") ?? [];
+    await game.settings.set("click-adventure", "_pauseSnapshot", [...snapshot]);
+    await lockAllUsers();
+  } else {
+    // Restore pre-pause lock state
+    const snapshot = game.settings.get("click-adventure", "_pauseSnapshot") ?? [];
+    await restoreLockedUsers(snapshot);
+    // Clear the snapshot — it's no longer needed
+    await game.settings.set("click-adventure", "_pauseSnapshot", []);
+  }
+});
+
+/**
  * Seeds this user's per-user currentNodeId flag from startNodeId on first load,
  * then restores the correct scene view based on the saved node position.
  * Runs for every user (GM and players alike) — each gets their own independent flag.
@@ -129,6 +155,13 @@ Hooks.on("updateSetting", (setting) => {
  */
 Hooks.on("ready", async () => {
   _buildSceneIdCache();
+
+  // Clear stale pause snapshot if the world reloaded without a proper unpause.
+  // Prevents an old snapshot from being applied when someone unpauses in a new session.
+  if (!game.paused && game.user.isGM) {
+    await game.settings.set("click-adventure", "_pauseSnapshot", []);
+  }
+
   const { startNodeId, nodes } = getGraphData();
   const existing = game.user.getFlag("click-adventure", "currentNodeId");
 
@@ -267,6 +300,15 @@ Hooks.on("init", () => {
     type: Array,
     default: []
     // Stored as: [{ userId: string, nodeId: string }, ...]
+  });
+
+  game.settings.register("click-adventure", "_pauseSnapshot", {
+    scope: "world",
+    config: false,
+    type: Array,
+    default: []
+    // Stores the lockedUsers array as it was immediately before a pause.
+    // Restored verbatim on unpause to preserve manual locks set before pausing.
   });
 
   game.settings.registerMenu("click-adventure", "orbStyleMenu", {

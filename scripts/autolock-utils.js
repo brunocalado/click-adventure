@@ -61,3 +61,38 @@ export async function unlockUser(userId) {
     .filter(e => e.userId !== userId);
   await game.settings.set("click-adventure", "lockedUsers", locked);
 }
+
+/**
+ * Locks ALL non-GM users (online and offline).
+ * Pure utility — no dependency on ManagerApp instance.
+ * Only the GM client should call this.
+ *
+ * Called from the pauseGame hook so navigation is blocked while the world is paused.
+ *
+ * @returns {Promise<void>}
+ */
+export async function lockAllUsers() {
+  const players = game.users.filter(u => !u.isGM);
+  for (const user of players) {
+    const nodeId = user.getFlag("click-adventure", "currentNodeId") ?? "";
+    await lockUser(user.id, nodeId);
+    globalThis.ClickAdventure._socket.notifyLockChanged(user.id);
+  }
+}
+
+/**
+ * Replaces the entire lockedUsers setting with the provided snapshot array,
+ * then notifies every non-GM user of their new lock state.
+ * Used to restore the pre-pause lock state on unpause.
+ * Only the GM client should call this.
+ *
+ * @param {Array<{userId: string, nodeId: string}>} snapshot
+ * @returns {Promise<void>}
+ */
+export async function restoreLockedUsers(snapshot) {
+  await game.settings.set("click-adventure", "lockedUsers", snapshot);
+  const players = game.users.filter(u => !u.isGM);
+  for (const user of players) {
+    globalThis.ClickAdventure._socket.notifyLockChanged(user.id);
+  }
+}
