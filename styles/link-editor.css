@@ -175,15 +175,20 @@
 }
 
 .click-adventure.link-editor .ca-display-mode-toggle {
-  padding: 5px 10px;
-  background: rgba(50, 30, 80, 0.6);
-  border: 1px solid rgba(130, 80, 200, 0.5);
-  border-radius: var(--ca-radius-md);
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  background: rgba(50, 30, 80, 0.5);
+  border: 1px solid rgba(130, 80, 200, 0.45);
+  border-radius: var(--ca-radius-sm);
   color: #ccaaee;
   font-size: 11px;
+  font-weight: 700;
   cursor: pointer;
+  line-height: 26px;
+  text-align: center;
   transition: background 0.12s, border-color 0.12s;
-  white-space: nowrap;
 }
 
 .click-adventure.link-editor .ca-display-mode-toggle:hover {

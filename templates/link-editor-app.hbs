@@ -10,6 +10,10 @@
     {{#each passages}}
     <li class="ca-passage-row" data-index="{{index}}">
       <input class="ca-passage-label" type="text" value="{{label}}" placeholder="Passage name (optional)" maxlength="100" />
+      <button class="ca-display-mode-toggle" type="button"
+              title="{{#if displayModeIsPathOnly}}Players see: Path Name only{{else}}Players see: Full Name (Path Name){{/if}}">
+        {{#if displayModeIsPathOnly}}P{{else}}F{{/if}}
+      </button>
       <button class="ca-passage-direction" type="button" title="Click to cycle direction"
               data-direction="{{direction}}">{{caDirectionIcon direction}}</button>
       <button class="ca-passage-remove" type="button" title="Remove passage">✕</button>
@@ -18,10 +22,6 @@
   </ul>
   <div class="ca-link-editor-footer">
     <button class="ca-passage-add" type="button">+ Add passage</button>
-    <button class="ca-display-mode-toggle" type="button"
-            title="Toggle how passage names appear for players">
-      {{#if displayModeIsPathOnly}}Players: Path Name only{{else}}Players: Full Name{{/if}}
-    </button>
     <button class="ca-link-editor-save" type="button">Save</button>
   </div>
 </div>

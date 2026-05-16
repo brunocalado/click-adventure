@@ -190,7 +190,7 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
             const other = nodes.find(n => n.id === otherId);
             if (!other) continue;
             const navName = other.label || game.scenes.get(other.sceneId)?.name || other.id;
-            const isPathOnly = !game.user.isGM && link.displayMode === "path-only";
+            const isPathOnly = !game.user.isGM && passage.displayMode === "path-only";
             const label = isPathOnly
               ? (passage.label || navName)
               : passage.label
