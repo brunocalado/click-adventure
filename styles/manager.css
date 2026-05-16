@@ -237,15 +237,22 @@
 }
 
 .click-adventure.manager .ca-player-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 2px;
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: rgba(255, 255, 255, 0.4);
-  padding: 0 10px 6px;
+  padding: 0 4px 6px 10px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   margin-bottom: 4px;
   flex-shrink: 0;
+}
+
+.click-adventure.manager .ca-player-panel-title-text {
+  flex: 1;
 }
 
 .click-adventure.manager .ca-player-group {
@@ -369,6 +376,24 @@
   color: var(--ca-state-locked-text, #e78c35);
 }
 .click-adventure.manager .ca-player-lock-btn:hover {
+  color: var(--ca-text-bright, #eee);
+}
+
+/* ── Bulk lock / unlock buttons in Players panel title ───────── */
+.click-adventure.manager .ca-bulk-lock-btn {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.3);
+  padding: 2px 4px;
+  border-radius: 3px;
+  transition: color 0.15s;
+  line-height: 1;
+  font-size: 10px;
+}
+
+.click-adventure.manager .ca-bulk-lock-btn:hover {
   color: var(--ca-text-bright, #eee);
 }
 

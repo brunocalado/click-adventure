@@ -527,6 +527,41 @@ export async function onSendAllToNode(app, targetNode, players) {
   patchOccupantAvatars(app);
 }
 
+// ---------------------------------------------------------------------------
+// Bulk lock / unlock
+// ---------------------------------------------------------------------------
+
+/**
+ * Locks all non-GM users that are currently online (active).
+ * Mirrors the per-user pattern in _fillPlayerList: lockUser → notifyLockChanged.
+ * @param {ManagerApp} app
+ * @returns {Promise<void>}
+ */
+export async function lockAllPlayers(app) {
+  const players = game.users.filter(u => !u.isGM && u.active);
+  for (const user of players) {
+    const nodeId = user.getFlag("click-adventure", "currentNodeId") ?? "";
+    await lockUser(user.id, nodeId);
+    globalThis.ClickAdventure._socket.notifyLockChanged(user.id);
+  }
+  patchOccupantAvatars(app);
+}
+
+/**
+ * Unlocks all non-GM users (online and offline).
+ * Unlocking an already-unlocked user is a no-op per unlockUser implementation.
+ * @param {ManagerApp} app
+ * @returns {Promise<void>}
+ */
+export async function unlockAllPlayers(app) {
+  const players = game.users.filter(u => !u.isGM);
+  for (const user of players) {
+    await unlockUser(user.id);
+    globalThis.ClickAdventure._socket.notifyLockChanged(user.id);
+  }
+  patchOccupantAvatars(app);
+}
+
 /**
  * Teleports a specific player to a target node.
  * Updates their currentNodeId flag and notifies their client via socket.

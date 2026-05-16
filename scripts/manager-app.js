@@ -27,7 +27,8 @@ import {
 import {
   buildOccupants, buildPlayerPanelData, patchOccupantAvatars, patchRequestsDrawer,
   approveRequest, onApproveAll, rejectRequest,
-  onSetActiveNode, onNodeContextMenu
+  onSetActiveNode, onNodeContextMenu,
+  lockAllPlayers, unlockAllPlayers
 } from "./manager-players.js";
 import {
   onAddNode, onImportFolder, onSyncScenes, onResetMacros,
@@ -408,6 +409,12 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
         clearSelection(this);
       });
     }
+
+    // Bulk lock/unlock buttons in the Players panel header (rendered once by HBS)
+    html.querySelector(".ca-bulk-lock-btn[data-action='lock-all']")
+      ?.addEventListener("click", () => lockAllPlayers(this));
+    html.querySelector(".ca-bulk-lock-btn[data-action='unlock-all']")
+      ?.addEventListener("click", () => unlockAllPlayers(this));
 
     // Ensure player panel rows have click/hover listeners immediately after
     // every render, including the initial Handlebars render.
