@@ -6,16 +6,47 @@ Click Adventure is a Foundry VTT module that lets you build point-and-click styl
 
 ## Features
 
-- **Visual Scene Graph** — Connect your scenes as nodes on a canvas, drawing directional links between them to define where players can go.
+### Navigation & Graph
+
+- **Visual Scene Graph** — Connect your scenes as nodes on a canvas, drawing directional links between them to define where players can go. Shift+click to multi-select nodes and drag them as a group; Ctrl+A selects all.
 - **Navigation HUD** — A floating button appears on screen for players in adventure scenes. Clicking it reveals arrows pointing to reachable destinations.
-- **Open & Gated Navigation** — In Open mode, players move freely. In Gated mode, players must request permission and the GM approves or rejects each move.
-- **GM Guide Mode** — The GM can navigate solo (only their own view moves) or act as a guide, pushing scene views to individual players or activating scenes globally.
-- **Per-Player Positions** — Each player tracks their own current location in the graph independently.
-- **Customizable HUD Button** — Choose the style (orb or custom image), color, and size of the navigation button.
-- **HUD Visibility Control** — Restrict the HUD to GM only, or show it to all players.
-- **Default Token Spawn Positions** — Capture per-player token positions so characters land in the right spot when navigating to a new scene.
-- **Player Autolock** — Optionally prevent players from moving until unlocked by the GM.
+- **Open & Gated Navigation** — In Open mode, players move freely. In Gated mode, players submit a travel request that the GM approves or rejects individually, with a bulk "Approve All" option.
+- **Per-Player Positions** — Each player tracks their own current location in the graph independently, shown live in the Manager's player panel.
 - **Scene Import from Folders** — Bulk-add scenes from a Foundry scene folder directly into the graph.
+
+### Links
+
+- **Five-Direction Link States** — Each link between nodes can be set to Bidirectional, Forward only, Backward only, Locked (visible but impassable, shows a hint to players), or Blocked (hidden from players entirely; GMs see it marked as secret).
+- **Multi-Passage Links** — A single link between two nodes can carry multiple named passages, each with its own direction state and display mode. Simple links cycle direction on click; multi-passage links open a dedicated editor.
+
+### Nodes
+
+- **Multi-Image Per Node** — Attach multiple background images to a node. The GM can switch between them live from the HUD, and the active image is synced to a managed background tile in the Foundry scene.
+- **Linked Scenes Per Node** — Associate multiple Foundry scenes with a single node and switch between them during play, useful for nodes that change their visual representation.
+- **Node Macros** — Attach macros to a node with configurable triggers (GM View, GM Activate, or either) and execution modes (Always or Once). Compendium macros are imported automatically. A Reset Macros button re-enables once-fired macros.
+- **Per-Node Autolock** — Override the global autolock setting on individual nodes: Inherit, Open (always unlock on arrival), or Locked (always lock on arrival).
+- **Node Context Menu** — Right-click any node in the Manager to set it as the active node, lock or unlock players at that location, or delete it.
+
+### GM Tools
+
+- **GM Guide Mode** — The GM can navigate Solo (only their own view moves) or act as a Guide, pushing scene views to individual players or activating scenes globally. Toggle between modes directly from the HUD.
+- **Player Panel** — The Manager displays all users — GM, online players, offline players — with their current node, lock state, and user color shown at a glance.
+- **Occupant Badges** — Nodes display color-coded badges showing which players are currently located there.
+- **Scene Sync Operations** — Bulk-create Foundry scenes for all nodes, or update existing scenes to sync their name, transition settings, and background tile with the current graph data.
+- **Managed Background Tiles** — The module automatically creates and updates a locked background tile in each scene to match the node's active image, without touching GM-placed tiles.
+
+### Player Experience
+
+- **Scene Transition Effects** — Choose from 13 animated transition effects (Fade, Swirl, Water Drop, Morph, Crosshatch, Wind, Waves, White Noise, Hologram, Hole, Hole Swirl, Glitch, Dots, or None) applied when navigating between scenes.
+- **Player Autolock** — Optionally prevent players from moving until unlocked by the GM. The lock state is saved and restored automatically when the game is paused and unpaused.
+- **Default Token Spawn Positions** — Capture per-player token positions so characters land in the right spot when navigating to a new scene.
+
+### Customization
+
+- **Customizable HUD Button** — Choose the shape (orb or square), color, optional custom image, and size of the navigation button, with a live preview.
+- **HUD Visibility Control** — Restrict the HUD to GM only, or show it to all players.
+- **Settings Panel** — A dedicated settings interface for transition type, HUD visibility, Guide Mode action (View or Activate), and token position capture.
+- **Instructions Panel** — A built-in help reference accessible directly from the Manager toolbar.
 
 ---
 
