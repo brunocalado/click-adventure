@@ -93,6 +93,23 @@
   color: var(--ca-text-locked-hv);
 }
 
+/* Secret destination — only shown to GM for "blocked" links */
+.click-adventure.nav-hud .ca-hud-dest-btn--secret {
+  border-color: rgba(168, 85, 247, 0.6);
+  color: #c084fc;
+  background: rgba(60, 20, 80, 0.7);
+}
+
+.click-adventure.nav-hud .ca-hud-dest-btn--secret i {
+  margin-right: 0.35em;
+}
+
+.click-adventure.nav-hud .ca-hud-dest-btn--secret:hover {
+  background: rgba(80, 30, 110, 0.85);
+  border-color: rgba(192, 132, 252, 0.85);
+  color: #e9d5ff;
+}
+
 /* Orb */
 .click-adventure.nav-hud .ca-hud-orb {
   order: 0;

@@ -168,10 +168,12 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
           // Each passage is listed as its own destination button (no dedup — distinct traversal options)
           for (const passage of link.passages) {
             const passDir = passage.direction ?? "both";
-            if (passDir === "blocked") continue;
+            // Non-GMs never see blocked passages; GMs see them as "secret"
+            if (passDir === "blocked" && !game.user.isGM) continue;
             let otherId = null;
 
             let passLocked = false;
+            let passSecret = false;
             if (passDir === "both") {
               if (link.sourceId === node.id)      otherId = link.targetId;
               else if (link.targetId === node.id) otherId = link.sourceId;
@@ -184,6 +186,11 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
               if (link.sourceId === node.id)      otherId = link.targetId;
               else if (link.targetId === node.id) otherId = link.sourceId;
               passLocked = true;
+            } else if (passDir === "blocked") {
+              // Only reached by GM — shown as secret (purple + mask icon), fully navigable
+              if (link.sourceId === node.id)      otherId = link.targetId;
+              else if (link.targetId === node.id) otherId = link.sourceId;
+              passSecret = true;
             }
 
             if (!otherId) continue;
@@ -196,12 +203,13 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
               : passage.label
                   ? `${navName} (${passage.label})`
                   : navName;
-            availableDestinations.push({ id: other.id, label, locked: passLocked });
+            availableDestinations.push({ id: other.id, label, locked: passLocked, secret: passSecret });
           }
         } else {
           // Single-passage: existing direction logic; dedup so the same node appears only once
           const dir = getEffectiveDirection(link);
-          if (dir === "blocked") continue;  // hidden — does not appear in HUD
+          // Non-GMs never see blocked links; GMs see them as "secret"
+          if (dir === "blocked" && !game.user.isGM) continue;
           let otherId = null;
 
           if (dir === "both") {
@@ -215,6 +223,10 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
             // Visible in HUD but not navigable — resolve otherId normally
             if (link.sourceId === node.id)      otherId = link.targetId;
             else if (link.targetId === node.id) otherId = link.sourceId;
+          } else if (dir === "blocked") {
+            // Only reached by GM — shown as secret (purple + mask icon), fully navigable
+            if (link.sourceId === node.id)      otherId = link.targetId;
+            else if (link.targetId === node.id) otherId = link.sourceId;
           }
 
           if (!otherId) continue;
@@ -222,7 +234,7 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
           if (other && !seen.has(other.id)) {
             seen.add(other.id);
             const navName = other.label || game.scenes.get(other.sceneId)?.name || other.id;
-            availableDestinations.push({ id: other.id, label: navName, locked: dir === "locked" });
+            availableDestinations.push({ id: other.id, label: navName, locked: dir === "locked", secret: dir === "blocked" });
           }
         }
       }
@@ -356,11 +368,11 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     html.querySelectorAll(".ca-hud-dest-btn").forEach(btn => {
       btn.addEventListener("click", () => {
-        if (btn.dataset.locked === "true") {
+        if (!game.user.isGM && btn.dataset.locked === "true") {
           ui.notifications.warn("This path is not accessible.");
           return;
         }
-        if (btn.dataset.autolocked === "true") {
+        if (!game.user.isGM && btn.dataset.autolocked === "true") {
           ui.notifications.warn("This path is locked. Wait for the GM to release you.");
           return;
         }
