@@ -86,6 +86,26 @@ export async function syncNodeTile(node) {
 }
 
 /**
+ * Persists a new activeImageIndex for a node and syncs its managed background tile.
+ * Extracted from NodeConfigApp._saveActiveIndex so the HUD can reuse it without
+ * instantiating the config panel.
+ *
+ * @param {string} nodeId - graph node id
+ * @param {number} index  - index into the node's images array
+ * @returns {Promise<void>}
+ */
+export async function setNodeActiveImageIndex(nodeId, index) {
+  const { sceneId, startNodeId, nodes, links } = getGraphData();
+  const updatedNodes = nodes.map(n => {
+    if (n.id !== nodeId) return n;
+    return { ...n, activeImageIndex: index };
+  });
+  await saveGraphData({ sceneId, startNodeId, nodes: updatedNodes, links });
+  const updatedNode = updatedNodes.find(n => n.id === nodeId);
+  if (updatedNode) await syncNodeTile(updatedNode);
+}
+
+/**
  * Ordered direction cycle used when the GM clicks a link to change its traversal mode.
  * Each key is the current state; the value is the next state in the cycle.
  * All 5 states are persisted in the graph data — none is display-only.

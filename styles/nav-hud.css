@@ -278,3 +278,84 @@
 .click-adventure.nav-hud .ca-hud-dest-btn--autolocked i {
   margin-right: 0.3em;
 }
+
+/* ── GM node switcher toggle button ───────────────────────────── */
+.click-adventure.nav-hud .ca-hud-ns-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 8px;
+  font-size: 11px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.55);
+  color: rgba(255, 255, 255, 0.65);
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease;
+  margin-bottom: 4px;
+  align-self: center;
+  pointer-events: all;
+}
+
+.click-adventure.nav-hud .ca-hud-ns-toggle-btn:hover {
+  background: rgba(0, 0, 0, 0.75);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* ── GM node switcher panel ────────────────────────────────────── */
+.click-adventure.nav-hud .ca-hud-node-switcher {
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  align-items: stretch;
+  padding: 8px;
+  background: var(--ca-bg-overlay);
+  border: 1px solid var(--ca-border-soft);
+  border-radius: var(--ca-radius-lg, 8px);
+  backdrop-filter: blur(6px);
+  min-width: 140px;
+  max-width: 200px;
+  order: 3;
+}
+
+.click-adventure.nav-hud .ca-hud-node-switcher--open {
+  display: flex;
+}
+
+.click-adventure.nav-hud .ca-hud-ns-section-title {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 4px 0;
+}
+
+.click-adventure.nav-hud .ca-hud-ns-item {
+  width: 100%;
+  padding: 5px 10px;
+  background: rgba(40, 60, 120, 0.7);
+  border: 1px solid rgba(100, 140, 220, 0.4);
+  border-radius: var(--ca-radius-lg, 8px);
+  color: var(--ca-text-primary);
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
+}
+
+.click-adventure.nav-hud .ca-hud-ns-item:hover {
+  background: rgba(60, 90, 180, 0.85);
+  border-color: rgba(140, 180, 255, 0.7);
+  color: var(--ca-text-bright);
+}
+
+.click-adventure.nav-hud .ca-hud-ns-item--active {
+  background: rgba(30, 60, 150, 0.9);
+  border-color: rgba(160, 200, 255, 0.75);
+  color: var(--ca-text-bright);
+}

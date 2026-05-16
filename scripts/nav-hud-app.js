@@ -8,7 +8,7 @@
  * Lifecycle hook: renderNavHudApp
  */
 
-import { isMultiPassage, getEffectiveDirection, getGraphData, fireActiveItemMacro } from "./node-utils.js";
+import { isMultiPassage, getEffectiveDirection, getGraphData, fireActiveItemMacro, setNodeActiveImageIndex } from "./node-utils.js";
 import { shouldLockOnArrival, isUserLocked } from "./autolock-utils.js";
 
 // ── 3D gradient helpers (private to this module) ─────────────────────────────
@@ -72,6 +72,8 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this._docMouseUp   = this._onDocMouseUp.bind(this);
     /** @type {boolean} — true only when the current mousedown originated on the orb */
     this._orbMouseDownActive = false;
+    /** @type {boolean} — tracks open state of the GM node switcher panel across re-renders */
+    this._nodeSwitcherOpen = false;
   }
 
 
@@ -249,6 +251,29 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     context.gmNavMode   = game.settings.get("click-adventure", "gmNavigationMode");
     context.isGuideMode = game.settings.get("click-adventure", "gmNavigationMode") === "guide";
 
+    // ── GM node switcher — images and linked scenes for the current node ──
+    if (game.user.isGM) {
+      const currentNode    = this._currentNode();
+      const images         = Array.isArray(currentNode?.images) ? currentNode.images : [];
+      const linkedScenes   = Array.isArray(currentNode?.linkedScenes) ? currentNode.linkedScenes : [];
+      const activeIdx      = currentNode?.activeImageIndex ?? 0;
+
+      context.nodeImages = images.map((img, i) => ({
+        index:    i,
+        label:    img.label || `Image ${i + 1}`,
+        isActive: i === activeIdx
+      }));
+      context.nodeLinkedScenes = linkedScenes.map((ls, i) => ({
+        index:     i,
+        sceneId:   ls.sceneId,
+        label:     ls.label || game.scenes.get(ls.sceneId)?.name || `Scene ${i + 1}`
+      }));
+      context.hasNodeSwitcher = images.length > 1 || linkedScenes.length > 0;
+    } else {
+      context.hasNodeSwitcher = false;
+    }
+    // ─────────────────────────────────────────────────────────────────────
+
     // Orb style — per-client
     const orbStyle  = game.settings.get("click-adventure", "orbStyle");
     const orbType   = orbStyle.type     ?? "orb";
@@ -356,6 +381,54 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
       this.render({ force: true });
     });
 
+    // ── GM node switcher ──────────────────────────────────────────────────
+    html.querySelector(".ca-hud-ns-toggle-btn")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      this._toggleNodeSwitcherDOM();
+    });
+
+    html.querySelectorAll("[data-action='switch-image']").forEach(btn => {
+      btn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const idx  = parseInt(btn.dataset.index, 10);
+        const node = this._currentNode();
+        if (!node) return;
+        await setNodeActiveImageIndex(node.id, idx);
+        this.render({ force: true });
+      });
+    });
+
+    html.querySelectorAll("[data-action='switch-linked-scene']").forEach(btn => {
+      btn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const sceneId = btn.dataset.sceneId;
+        const scene   = game.scenes.get(sceneId);
+        if (!scene) {
+          ui.notifications.error("Click Adventure: Linked scene not found. It may have been deleted.");
+          return;
+        }
+        const node = this._currentNode();
+
+        // GM: switch view locally
+        await scene.view();
+
+        // Players on this node: send via socket
+        if (node) {
+          for (const user of game.users) {
+            if (user.isGM || !user.active) continue;
+            if (user.getFlag("click-adventure", "currentNodeId") !== node.id) continue;
+            await globalThis.ClickAdventure._socket.viewSceneForUser(sceneId, user.id);
+          }
+        }
+      });
+    });
+
+    // Restore open state after re-render
+    if (this._nodeSwitcherOpen) {
+      html.querySelector(".ca-hud-node-switcher")?.classList.add("ca-hud-node-switcher--open");
+    }
+    // ─────────────────────────────────────────────────────────────────────
+
     const orb = html.querySelector(".ca-hud-orb");
     if (!orb) {
       console.warn("NavHudApp | .ca-hud-orb not found — interaction will not work.");
@@ -434,6 +507,17 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
   _closePanelDOM() {
     const panel = this.element?.querySelector(".ca-hud-destinations");
     panel?.classList.remove("ca-hud-destinations--open");
+  }
+
+  /**
+   * Toggles the GM node switcher panel open/closed via CSS class.
+   * Tracks state on the instance so it survives re-renders.
+   */
+  _toggleNodeSwitcherDOM() {
+    const panel = this.element?.querySelector(".ca-hud-node-switcher");
+    if (!panel) return;
+    this._nodeSwitcherOpen = !this._nodeSwitcherOpen;
+    panel.classList.toggle("ca-hud-node-switcher--open", this._nodeSwitcherOpen);
   }
 
   /**
