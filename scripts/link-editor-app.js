@@ -44,6 +44,13 @@ export class LinkEditorApp extends HandlebarsApplicationMixin(ApplicationV2) {
      * @type {Array<{label: string, direction: string}>|null}
      */
     this._pendingPassages = null;
+    /**
+     * How passage labels are shown to non-GM players: "full" = "Nav Name (Path Name)",
+     * "path-only" = just the path label.  GM always sees the full format.
+     * Seeded from link.displayMode on first _prepareContext.
+     * @type {"full"|"path-only"|null}
+     */
+    this._pendingDisplayMode = null;
   }
 
 
@@ -74,12 +81,17 @@ export class LinkEditorApp extends HandlebarsApplicationMixin(ApplicationV2) {
       this._pendingPassages = structuredClone(stored);
     }
 
+    if (!this._pendingDisplayMode) {
+      this._pendingDisplayMode = link.displayMode ?? "full";
+    }
+
     const srcNode = nodes.find(n => n.id === link.sourceId);
     const tgtNode = nodes.find(n => n.id === link.targetId);
     context.fromLabel  = srcNode?.label || link.sourceId;
     context.toLabel    = tgtNode?.label || link.targetId;
     // Inject numeric index so template data-index attributes are rendered correctly
-    context.passages   = this._pendingPassages.map((p, i) => ({ ...p, index: i }));
+    context.passages          = this._pendingPassages.map((p, i) => ({ ...p, index: i }));
+    context.displayModeIsPathOnly = this._pendingDisplayMode === "path-only";
     return context;
   }
 
@@ -132,6 +144,11 @@ export class LinkEditorApp extends HandlebarsApplicationMixin(ApplicationV2) {
       });
     });
 
+    html.querySelector(".ca-display-mode-toggle")?.addEventListener("click", () => {
+      this._pendingDisplayMode = this._pendingDisplayMode === "path-only" ? "full" : "path-only";
+      this.render({ force: true });
+    });
+
     html.querySelector(".ca-link-editor-save")?.addEventListener("click", () => this._onSave());
   }
 
@@ -142,9 +159,14 @@ export class LinkEditorApp extends HandlebarsApplicationMixin(ApplicationV2) {
    */
   async _onSave() {
     const { nodes, links } = getGraphData();
+    // Auto-fill any passage that was left without a name
+    const normalisedPassages = this._pendingPassages.map((p, i) => ({
+      ...p,
+      label: p.label.trim() || `Path ${i + 1}`
+    }));
     const updatedLinks = links.map((l, i) =>
       i === this._linkIndex
-        ? { ...l, passages: structuredClone(this._pendingPassages) }
+        ? { ...l, passages: structuredClone(normalisedPassages), displayMode: this._pendingDisplayMode }
         : l
     );
     await saveGraphData({ nodes, links: updatedLinks });

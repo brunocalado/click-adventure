@@ -18,6 +18,10 @@
   </ul>
   <div class="ca-link-editor-footer">
     <button class="ca-passage-add" type="button">+ Add passage</button>
+    <button class="ca-display-mode-toggle" type="button"
+            title="Toggle how passage names appear for players">
+      {{#if displayModeIsPathOnly}}Players: Path Name only{{else}}Players: Full Name{{/if}}
+    </button>
     <button class="ca-link-editor-save" type="button">Save</button>
   </div>
 </div>

@@ -189,9 +189,13 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
             if (!otherId) continue;
             const other = nodes.find(n => n.id === otherId);
             if (!other) continue;
-            const label = passage.label
-              ? `${other.label || other.id} (${passage.label})`
-              : (other.label || other.id);
+            const navName = other.label || game.scenes.get(other.sceneId)?.name || other.id;
+            const isPathOnly = !game.user.isGM && link.displayMode === "path-only";
+            const label = isPathOnly
+              ? (passage.label || navName)
+              : passage.label
+                  ? `${navName} (${passage.label})`
+                  : navName;
             availableDestinations.push({ id: other.id, label, locked: passLocked });
           }
         } else {
@@ -217,7 +221,8 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
           const other = nodes.find(n => n.id === otherId);
           if (other && !seen.has(other.id)) {
             seen.add(other.id);
-            availableDestinations.push({ id: other.id, label: other.label || other.id, locked: dir === "locked" });
+            const navName = other.label || game.scenes.get(other.sceneId)?.name || other.id;
+            availableDestinations.push({ id: other.id, label: navName, locked: dir === "locked" });
           }
         }
       }
