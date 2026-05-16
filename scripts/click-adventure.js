@@ -193,8 +193,8 @@ Hooks.on("init", () => {
 
   // Returns a Unicode glyph for a passage direction value.
   Handlebars.registerHelper("caDirectionIcon", dir => {
-    const icons = { both: "⟷", forward: "→", backward: "←", blocked: "✕" };
-    return icons[dir] ?? "⟷";
+    const icons = { both: "⟷", forward: "→", backward: "←", blocked: "✕", locked: "⊘" };
+    return icons[dir] ?? "?";
   });
 
   game.settings.register("click-adventure", "graph", {

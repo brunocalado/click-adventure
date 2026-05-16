@@ -110,6 +110,17 @@ export const DIRECTION_CYCLE = Object.freeze({
   locked:   "both",      // locked → free (cycle restarts)
 });
 
+/** Cycle used for individual passages inside a multi-passage link. "blocked" is excluded
+ *  because the "✕ Remove passage" button already serves that purpose more clearly.
+ *  both → forward → backward → locked → both
+ */
+export const PASSAGE_DIRECTION_CYCLE = Object.freeze({
+  both:     "forward",
+  forward:  "backward",
+  backward: "locked",
+  locked:   "both",
+});
+
 /**
  * Returns the current adventure graph as a plain object.
  * Converts DataModel instances to POJOs transparently so callers never need

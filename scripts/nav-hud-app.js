@@ -169,6 +169,7 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
             if (passDir === "blocked") continue;
             let otherId = null;
 
+            let passLocked = false;
             if (passDir === "both") {
               if (link.sourceId === node.id)      otherId = link.targetId;
               else if (link.targetId === node.id) otherId = link.sourceId;
@@ -176,6 +177,11 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
               otherId = link.targetId;
             } else if (passDir === "backward" && link.targetId === node.id) {
               otherId = link.sourceId;
+            } else if (passDir === "locked") {
+              // Visible in HUD but not navigable — mirrors single-passage "locked" behaviour
+              if (link.sourceId === node.id)      otherId = link.targetId;
+              else if (link.targetId === node.id) otherId = link.sourceId;
+              passLocked = true;
             }
 
             if (!otherId) continue;
@@ -184,7 +190,7 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
             const label = passage.label
               ? `${other.label || other.id} (${passage.label})`
               : (other.label || other.id);
-            availableDestinations.push({ id: other.id, label });
+            availableDestinations.push({ id: other.id, label, locked: passLocked });
           }
         } else {
           // Single-passage: existing direction logic; dedup so the same node appears only once
