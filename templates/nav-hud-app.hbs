@@ -38,15 +38,6 @@
       {{/if}}
     </button>
 
-    {{#if hasNodeSwitcher}}
-    <button
-      class="ca-hud-ns-toggle-btn"
-      type="button"
-      title="Switch node image or scene"
-    >
-      <i class="fa-solid fa-images"></i>
-    </button>
-    {{/if}}
     {{/if}}
 
     {{!-- Orb — shape (orb vs square) and content (image vs gradient) are independent --}}
@@ -61,6 +52,18 @@
              style="background: {{orbGradient}};"></div>
       {{/if}}
     </div>
+
+    {{#if isGM}}
+    {{#if hasNodeSwitcher}}
+    <button
+      class="ca-hud-ns-toggle-btn"
+      type="button"
+      title="Switch node image or scene"
+    >
+      <i class="fa-solid fa-images"></i> Media
+    </button>
+    {{/if}}
+    {{/if}}
   </div>
 
   {{#if isGM}}

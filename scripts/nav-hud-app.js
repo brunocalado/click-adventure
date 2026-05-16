@@ -268,7 +268,7 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
         sceneId:   ls.sceneId,
         label:     ls.label || game.scenes.get(ls.sceneId)?.name || `Scene ${i + 1}`
       }));
-      context.hasNodeSwitcher = images.length > 1 || linkedScenes.length > 0;
+      context.hasNodeSwitcher = images.length > 1 || (images.length > 0 && linkedScenes.length > 0);
     } else {
       context.hasNodeSwitcher = false;
     }
