@@ -94,7 +94,23 @@
     </ul>
 
     <h3>Multi-Passage Links</h3>
-    <p><kbd>Shift</kbd> + click any link to add multiple named passages between two nodes. Each passage has its own direction rule. Reducing to one passage restores simple link behaviour. Multi-passage links appear <strong style="color:#a855f7">purple</strong> with a thicker line.</p>
+    <p><kbd>Shift</kbd> + click any link to open the passage editor and add multiple named passages between two nodes. Each passage has its own direction rule. Reducing to one passage restores simple link behaviour. Multi-passage links appear <strong style="color:#a855f7">purple</strong> with a thicker line.</p>
+
+    <h3>Passage Editor</h3>
+    <p>Each passage row has four controls:</p>
+    <ul>
+      <li><strong>Name field</strong> — the path label shown to players (e.g. <em>Stairs</em>, <em>Dark Door</em>). Left blank, it is auto-filled as <em>Path 1</em>, <em>Path 2</em>, … on save</li>
+      <li><strong>F / P button</strong> — controls how the destination button is labelled in the player HUD:
+        <ul>
+          <li><strong>F (Full)</strong> — shows <em>Node Name (Path Name)</em>, e.g. <em>Room 3 (Elevator)</em></li>
+          <li><strong>P (Path only)</strong> — shows only the path name, e.g. <em>Elevator</em></li>
+        </ul>
+        The GM always sees the full format regardless of this setting.
+      </li>
+      <li><strong>Direction button</strong> — cycles the traversal direction for that passage (⟷ → ← ⊘)</li>
+      <li><strong>✕ button</strong> — removes the passage row</li>
+    </ul>
+    <p>Mix modes freely to craft any player-facing label list — for example: <em>Room 1 (Stairs)</em>, <em>Dark Door</em>, <em>Room 3 (Elevator)</em>.</p>
   </section>
 
   {{!-- Tab: Players --}}
