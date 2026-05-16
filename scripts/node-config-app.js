@@ -45,6 +45,17 @@ async function _resolveMacroFromDrop(event) {
   return macro;
 }
 
+const VIDEO_EXTENSIONS = new Set(["webm", "mp4"]);
+
+/**
+ * Returns true if the given src path points to a supported video format.
+ * @param {string} src
+ * @returns {boolean}
+ */
+function isVideoSrc(src) {
+  return VIDEO_EXTENSIONS.has(src?.split(".").pop()?.toLowerCase() ?? "");
+}
+
 const TRIGGER_OPTIONS = [
   { value: "gm-activate", label: "GM Activate → GM only"         },
   { value: "player-view", label: "Player View → Player only"     },
@@ -173,6 +184,7 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
       ...img,
       index:          i,
       isActive:       !linkedSceneInUse && i === activeIndex,
+      isVideo:        isVideoSrc(img.src),
       hasMacro:       !!img.macro,
       macroName:      img.macro ? (game.macros.get(img.macro.macroId)?.name ?? "(not found)") : null,
       triggerOptions: img.macro ? buildTriggerOptions(img.macro.trigger) : []
@@ -238,7 +250,7 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
       const FilePickerClass = foundry.applications.apps.FilePicker.implementation
         ?? foundry.applications.apps.FilePicker;
       new FilePickerClass({
-        type: "image",
+        type: "imagevideo",
         callback: (path) => {
           const images = this._getWorkingImages();
           images.push({ id: foundry.utils.randomID(), src: path, label: "Image " + (images.length + 1) });
@@ -669,7 +681,21 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
       thumb.addEventListener("mouseenter", () => {
         if (!src) return;
-        _previewTooltip.style.backgroundImage = `url("${src}")`;
+        const existingVideo = _previewTooltip.querySelector("video");
+        existingVideo?.remove();
+        if (isVideoSrc(src)) {
+          _previewTooltip.style.backgroundImage = "";
+          const vid = document.createElement("video");
+          vid.src = src;
+          vid.autoplay = true;
+          vid.loop = true;
+          vid.muted = true;
+          vid.playsInline = true;
+          vid.style.cssText = "width:100%;height:100%;object-fit:cover;display:block;";
+          _previewTooltip.appendChild(vid);
+        } else {
+          _previewTooltip.style.backgroundImage = `url("${src}")`;
+        }
         _previewTooltip.classList.add("ca-tooltip--visible");
       });
       thumb.addEventListener("mousemove", (e) => {
@@ -681,6 +707,8 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
       });
       thumb.addEventListener("mouseleave", () => {
         _previewTooltip.classList.remove("ca-tooltip--visible");
+        _previewTooltip.querySelector("video")?.remove();
+        _previewTooltip.style.backgroundImage = "";
       });
 
       thumb.addEventListener("click", () => {
@@ -688,7 +716,7 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const FilePickerClass = foundry.applications.apps.FilePicker.implementation
           ?? foundry.applications.apps.FilePicker;
         new FilePickerClass({
-          type: "image",
+          type: "imagevideo",
           current: src,
           callback: (path) => {
             const images = this._getWorkingImages();

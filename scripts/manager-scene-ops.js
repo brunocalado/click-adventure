@@ -55,7 +55,7 @@ export async function onAddNode(app) {
  * @returns {void}
  */
 export function onImportFolder(app) {
-  const IMAGE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "gif", "webp", "avif", "svg"]);
+  const IMAGE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "gif", "webp", "avif", "svg", "webm", "mp4"]);
 
   // Resolve the active FilePicker implementation (handles The Forge and other hosts)
   const FilePickerClass = foundry.applications.apps.FilePicker.implementation

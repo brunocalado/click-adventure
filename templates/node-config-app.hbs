@@ -23,20 +23,32 @@
   {{!-- TAB: Images --}}
   <div class="ca-nc-panel" data-panel="images">
     <div class="ca-images-header">
-      <button type="button" data-action="add-image">+ Add Image</button>
+      <button type="button" data-action="add-image">+ Add Media</button>
     </div>
     {{#if images.length}}
     <ul class="ca-images-list">
       {{#each images}}
       <li class="ca-image-item {{#if isActive}}ca-image-item--active{{/if}}">
         <div class="ca-image-left">
+          {{#if isVideo}}
+          <div class="ca-image-thumb ca-image-thumb--video"
+               data-src="{{src}}"
+               data-index="{{index}}"
+               role="button"
+               aria-label="Preview or replace: {{label}}"
+               title="Click to replace">
+            <video src="{{src}}" muted loop autoplay playsinline class="ca-thumb-video"></video>
+            <span class="ca-video-badge">&#9654; Video</span>
+          </div>
+          {{else}}
           <div class="ca-image-thumb"
                style="background-image: url('{{src}}');"
                data-src="{{src}}"
                data-index="{{index}}"
                role="button"
                aria-label="Preview or replace: {{label}}"
-               title="Click to replace image"></div>
+               title="Click to replace"></div>
+          {{/if}}
           <div class="ca-image-info">
             <span class="ca-image-nav-label">Navigation Name</span>
             <input type="text" class="ca-image-label-input" data-index="{{index}}"

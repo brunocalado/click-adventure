@@ -180,6 +180,34 @@
   cursor: pointer;
 }
 
+.click-adventure.node-config .ca-image-thumb--video {
+  position: relative;
+  overflow: hidden;
+  background-color: #111;
+}
+
+.click-adventure.node-config .ca-thumb-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+
+.click-adventure.node-config .ca-video-badge {
+  position: absolute;
+  bottom: 2px;
+  right: 3px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 1px 4px;
+  border-radius: 3px;
+  line-height: 1.4;
+  pointer-events: none;
+}
+
 /* Floating preview tooltip — positioned via JS and appended to document.body,
    so it cannot be scoped inside .click-adventure.node-config. */
 .ca-image-preview-tooltip {
