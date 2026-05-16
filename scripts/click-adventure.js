@@ -29,7 +29,9 @@ let _graphSceneIds = new Set();
  */
 function _buildSceneIdCache() {
   const { nodes } = getGraphData();
-  _graphSceneIds = new Set(nodes.map(n => n.sceneId).filter(Boolean));
+  const primary = nodes.map(n => n.sceneId);
+  const linked = nodes.flatMap(n => (n.linkedScenes ?? []).map(ls => ls.sceneId));
+  _graphSceneIds = new Set([...primary, ...linked].filter(Boolean));
 }
 
 /**
