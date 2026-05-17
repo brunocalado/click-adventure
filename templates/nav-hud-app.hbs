@@ -1,4 +1,15 @@
 <div class="ca-hud-root">
+  {{#if onlinePlayersInScene.length}}
+  <div class="ca-hud-players">
+    {{#each onlinePlayersInScene}}
+    <div class="ca-hud-player-badge" style="--ca-player-color: {{color}};" title="{{name}}">
+      <span class="ca-hud-player-dot"></span>
+      <span class="ca-hud-player-name">{{name}}</span>
+    </div>
+    {{/each}}
+  </div>
+  {{/if}}
+
   {{#if hasAnyDirection}}
   <div class="ca-hud-destinations {{#if isOpen}}ca-hud-destinations--open{{/if}}">
     {{#each availableDestinations}}

@@ -123,6 +123,14 @@ Hooks.on("updateSetting", (setting) => {
 });
 
 /**
+ * Re-render the HUD players panel when a user's flags change (e.g. navigation)
+ * or when a user connects/disconnects.
+ * Triggered by the native Foundry updateUser and userConnected hooks.
+ */
+Hooks.on("updateUser", () => globalThis.ClickAdventure?._hud?.render());
+Hooks.on("userConnected", () => globalThis.ClickAdventure?._hud?.render());
+
+/**
  * When the GM pauses the game: snapshot current lock state, then lock all players.
  * When the GM unpauses: restore the pre-pause lock state exactly.
  * Guard: only the GM can write world-scope settings.

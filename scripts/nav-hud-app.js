@@ -157,9 +157,9 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     const node = this._currentNode();
     const availableDestinations = [];
+    const { nodes, links } = getGraphData();
 
     if (node) {
-      const { nodes, links } = getGraphData();
       // seen deduplicates destinations that appear via multiple single-passage links
       const seen = new Set();
 
@@ -239,6 +239,23 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
         }
       }
     }
+
+    // ── Online non-GM players viewing the same scene ──────────────────────
+    const currentSceneId = node?.sceneId ?? null;
+    context.onlinePlayersInScene = currentSceneId
+      ? game.users
+          .filter(u => !u.isGM && u.active && u.id !== game.userId)
+          .map(u => {
+            const theirNodeId = u.getFlag("click-adventure", "currentNodeId");
+            const theirNode   = theirNodeId ? nodes.find(n => n.id === theirNodeId) : null;
+            if (theirNode?.sceneId !== currentSceneId) return null;
+            const rawName = u.character?.name ?? u.name;
+            const name = rawName.length > 18 ? rawName.slice(0, 18) + "…" : rawName;
+            return { name, color: u.color?.css ?? "#aaaaaa" };
+          })
+          .filter(Boolean)
+      : [];
+    // ─────────────────────────────────────────────────────────────────────
 
     // ── Mark the destination the user came from ──────────────────────────
     const previousNodeId = game.user.getFlag("click-adventure", "previousNodeId") ?? null;
