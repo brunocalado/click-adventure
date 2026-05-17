@@ -414,6 +414,29 @@
   margin: 0 2px;
 }
 
+/* ── Zoom reset overlay button (top-left of workspace) ──────── */
+.ca-zoom-reset {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 20;
+  padding: 2px 7px;
+  font-size: 11px;
+  line-height: 1.4;
+  background: var(--ca-bg-panel, #1e1e2e);
+  color: var(--ca-text-primary, #ccc);
+  border: 1px solid var(--ca-border, rgba(255,255,255,0.15));
+  border-radius: var(--ca-radius-sm, 4px);
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+  pointer-events: auto;
+}
+
+.ca-zoom-reset:hover {
+  opacity: 1;
+}
+
 /* ── Free Move toolbar toggle (mirrors Autolock pattern) ─────── */
 .click-adventure.manager .ca-free-move-toggle {
   border: 1px solid var(--ca-border-toolbar, rgba(255,255,255,0.12));

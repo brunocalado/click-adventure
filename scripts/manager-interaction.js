@@ -17,6 +17,22 @@ import { bezierOffset, renderLinks, NODE_W, NODE_H } from "./manager-graph.js";
  */
 export const CANVAS_SIZE = 8000;
 
+/** Zoom limits and step size for wheel-based zoom. */
+const ZOOM_MIN  = 0.5;
+const ZOOM_MAX  = 1.5;
+const ZOOM_STEP = 0.1;
+
+/**
+ * Applies the combined pan + zoom transform to the canvas element.
+ * Single source of truth so every code path produces an identical transform string.
+ * @param {HTMLElement} canvas
+ * @param {{ x: number, y: number }} pan
+ * @param {number} zoom
+ */
+function applyTransform(canvas, pan, zoom) {
+  canvas.style.transform = `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`;
+}
+
 // ---------------------------------------------------------------------------
 // Node interaction
 // ---------------------------------------------------------------------------
@@ -99,8 +115,9 @@ export function onAnchorMouseDown(app, e, anchor) {
   const wsRect = workspace.getBoundingClientRect();
   const anchorRect = anchor.getBoundingClientRect();
 
-  const startX = anchorRect.left + anchorRect.width  / 2 - wsRect.left - app._pan.x;
-  const startY = anchorRect.top  + anchorRect.height / 2 - wsRect.top  - app._pan.y;
+  const zoom = app._zoom ?? 1;
+  const startX = (anchorRect.left + anchorRect.width  / 2 - wsRect.left - app._pan.x) / zoom;
+  const startY = (anchorRect.top  + anchorRect.height / 2 - wsRect.top  - app._pan.y) / zoom;
 
   const svg = workspace.querySelector(".ca-links-layer");
   const srcAnchor = anchor.dataset.anchor;
@@ -139,18 +156,19 @@ export function onDocMouseMove(app, e) {
     if (!workspace) return;
     const wsW = workspace.clientWidth;
     const wsH = workspace.clientHeight;
+    const zoom = app._zoom ?? 1;
 
     const dx = e.clientX - app._panState.startX;
     const dy = e.clientY - app._panState.startY;
 
-    const newX = Math.min(0, Math.max(-(CANVAS_SIZE - wsW), app._panState.originX + dx));
-    const newY = Math.min(0, Math.max(-(CANVAS_SIZE - wsH), app._panState.originY + dy));
+    const newX = Math.min(0, Math.max(-(CANVAS_SIZE * zoom - wsW), app._panState.originX + dx));
+    const newY = Math.min(0, Math.max(-(CANVAS_SIZE * zoom - wsH), app._panState.originY + dy));
 
     app._pan.x = newX;
     app._pan.y = newY;
 
     const canvas = app.element?.querySelector(".ca-canvas");
-    if (canvas) canvas.style.transform = `translate(${newX}px, ${newY}px)`;
+    if (canvas) applyTransform(canvas, app._pan, zoom);
     return; // pan and drag are mutually exclusive
   }
 
@@ -161,9 +179,10 @@ export function onDocMouseMove(app, e) {
   if (app._dragState) {
     const { nodeEl, offsetX, offsetY, groupStartPositions } = app._dragState;
 
-    // Position of the primary dragged node
-    const rawX = e.clientX - wsRect.left - app._pan.x - offsetX;
-    const rawY = e.clientY - wsRect.top  - app._pan.y - offsetY;
+    // Position of the primary dragged node — divide by zoom to get canvas coords
+    const zoom = app._zoom ?? 1;
+    const rawX = (e.clientX - wsRect.left - app._pan.x - offsetX) / zoom;
+    const rawY = (e.clientY - wsRect.top  - app._pan.y - offsetY) / zoom;
     const clampedX = Math.max(0, Math.min(CANVAS_SIZE - NODE_W, Math.round(rawX)));
     const clampedY = Math.max(0, Math.min(CANVAS_SIZE - NODE_H, Math.round(rawY)));
     nodeEl.style.left = `${clampedX}px`;
@@ -191,8 +210,9 @@ export function onDocMouseMove(app, e) {
 
   if (app._linkState) {
     const { tempLine: tempPath, startX, startY, sourceAnchor } = app._linkState;
-    const mx = e.clientX - wsRect.left - app._pan.x;
-    const my = e.clientY - wsRect.top  - app._pan.y;
+    const linkZoom = app._zoom ?? 1;
+    const mx = (e.clientX - wsRect.left - app._pan.x) / linkZoom;
+    const my = (e.clientY - wsRect.top  - app._pan.y) / linkZoom;
     const c1 = bezierOffset(sourceAnchor);
     tempPath.setAttribute("d",
       `M ${startX},${startY} C ${startX + c1.dx},${startY + c1.dy} ${mx},${my} ${mx},${my}`
@@ -210,7 +230,7 @@ export function onDocMouseMove(app, e) {
 export async function onDocMouseUp(app, e) {
   if (app._panState) {
     app._panState = null;
-    game.settings.set("click-adventure", "managerPan", { x: app._pan.x, y: app._pan.y });
+    game.settings.set("click-adventure", "managerPan", { x: app._pan.x, y: app._pan.y, zoom: app._zoom ?? 1 });
     return;
   }
 
@@ -222,8 +242,9 @@ export async function onDocMouseUp(app, e) {
     const wsRect = workspace?.getBoundingClientRect();
     if (!wsRect) return;
 
-    const primaryX = Math.max(0, Math.min(CANVAS_SIZE - NODE_W, Math.round(e.clientX - wsRect.left - app._pan.x - offsetX)));
-    const primaryY = Math.max(0, Math.min(CANVAS_SIZE - NODE_H, Math.round(e.clientY - wsRect.top  - app._pan.y - offsetY)));
+    const dropZoom = app._zoom ?? 1;
+    const primaryX = Math.max(0, Math.min(CANVAS_SIZE - NODE_W, Math.round((e.clientX - wsRect.left - app._pan.x - offsetX) / dropZoom)));
+    const primaryY = Math.max(0, Math.min(CANVAS_SIZE - NODE_H, Math.round((e.clientY - wsRect.top  - app._pan.y - offsetY) / dropZoom)));
 
     if (groupStartPositions && groupStartPositions.size > 1) {
       // Batch save all nodes in the group
@@ -353,6 +374,72 @@ export function clearSelection(app) {
     el?.classList.remove("ca-node--selected");
   });
   app._selectedNodes.clear();
+}
+
+// ---------------------------------------------------------------------------
+// Zoom
+// ---------------------------------------------------------------------------
+
+/**
+ * Handles mouse wheel events on the workspace to zoom in/out toward the cursor.
+ * Keeps the canvas point under the pointer fixed while the rest scales around it.
+ * Triggered by the "wheel" event registered in ManagerApp._onRender.
+ * @param {WheelEvent} e
+ * @param {ManagerApp} app
+ */
+export function onWorkspaceWheel(e, app) {
+  e.preventDefault();
+
+  const workspace = e.currentTarget;
+  const canvas    = workspace.querySelector(".ca-canvas");
+  if (!canvas) return;
+  const wsRect = workspace.getBoundingClientRect();
+
+  // Mouse position relative to workspace top-left corner
+  const mx = e.clientX - wsRect.left;
+  const my = e.clientY - wsRect.top;
+
+  const oldZoom = app._zoom ?? 1;
+  const delta   = e.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP;
+  const newZoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, parseFloat((oldZoom + delta).toFixed(2))));
+
+  if (newZoom === oldZoom) return;
+
+  // Zoom-to-cursor: the canvas point under the mouse stays fixed
+  const ratio = newZoom / oldZoom;
+  const rawX  = mx - (mx - app._pan.x) * ratio;
+  const rawY  = my - (my - app._pan.y) * ratio;
+
+  // Clamp pan so the canvas never exposes empty space beyond its bounds
+  const wsW = workspace.clientWidth;
+  const wsH = workspace.clientHeight;
+  app._pan.x = Math.min(0, Math.max(-(CANVAS_SIZE * newZoom - wsW), rawX));
+  app._pan.y = Math.min(0, Math.max(-(CANVAS_SIZE * newZoom - wsH), rawY));
+  app._zoom  = newZoom;
+
+  applyTransform(canvas, app._pan, app._zoom);
+  game.settings.set("click-adventure", "managerPan", { x: app._pan.x, y: app._pan.y, zoom: app._zoom });
+}
+
+/**
+ * Resets zoom to 1:1 and re-clamps pan within the default canvas bounds.
+ * Triggered by the ".ca-zoom-reset" button click registered in ManagerApp._onRender.
+ * @param {ManagerApp} app
+ */
+export function onZoomReset(app) {
+  const workspace = app.element?.querySelector(".ca-workspace");
+  const canvas    = workspace?.querySelector(".ca-canvas");
+  if (!canvas) return;
+
+  app._zoom = 1;
+
+  const wsW = workspace.clientWidth;
+  const wsH = workspace.clientHeight;
+  app._pan.x = Math.min(0, Math.max(-(CANVAS_SIZE - wsW), app._pan.x));
+  app._pan.y = Math.min(0, Math.max(-(CANVAS_SIZE - wsH), app._pan.y));
+
+  applyTransform(canvas, app._pan, app._zoom);
+  game.settings.set("click-adventure", "managerPan", { x: app._pan.x, y: app._pan.y, zoom: 1 });
 }
 
 /**

@@ -22,6 +22,7 @@ import {
   CANVAS_SIZE,
   onNodeMouseDown, onAnchorMouseDown, onNodeDblClick,
   onDocMouseMove, onDocMouseUp,
+  onWorkspaceWheel, onZoomReset,
   clearSelection
 } from "./manager-interaction.js";
 import {
@@ -106,12 +107,15 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this._onUserConnectedHook = undefined;
 
     /**
-     * Current pan offset of the canvas.
+     * Current pan offset and zoom level of the canvas.
+     * Persisted together in the "managerPan" client setting.
      * @type {{ x: number, y: number }}
      */
-    // Restore pan from client setting so position survives close/reopen
+    // Restore pan and zoom from client setting so position survives close/reopen
     const savedPan = game.settings.get("click-adventure", "managerPan");
-    this._pan = { x: savedPan?.x ?? 0, y: savedPan?.y ?? 0 };
+    this._pan  = { x: savedPan?.x ?? 0, y: savedPan?.y ?? 0 };
+    /** @type {number} — current zoom level; clamped to [0.5, 1.5] by wheel handler. */
+    this._zoom = savedPan?.zoom ?? 1;
 
     /**
      * Active pan drag state.
@@ -324,10 +328,10 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       });
     }
 
-    // Apply saved pan offset to canvas
+    // Apply saved pan + zoom to canvas
     const canvas = html.querySelector(".ca-canvas");
     if (canvas) {
-      canvas.style.transform = `translate(${this._pan.x}px, ${this._pan.y}px)`;
+      canvas.style.transform = `translate(${this._pan.x}px, ${this._pan.y}px) scale(${this._zoom})`;
     }
 
     renderLinks(this);
@@ -399,7 +403,12 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
         if (e.button !== 0) return;
         clearSelection(this);
       });
+
+      // Zoom toward cursor on wheel; { passive: false } required to call preventDefault.
+      workspace.addEventListener("wheel", e => onWorkspaceWheel(e, this), { passive: false });
     }
+
+    html.querySelector(".ca-zoom-reset")?.addEventListener("click", () => onZoomReset(this));
 
     // Bulk lock/unlock buttons in the Players panel header (rendered once by HBS)
     html.querySelector(".ca-bulk-lock-btn[data-action='lock-all']")

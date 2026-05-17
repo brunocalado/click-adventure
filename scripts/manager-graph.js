@@ -39,21 +39,24 @@ export function bezierOffset(side, tension = 80) {
 }
 
 /**
- * Returns the workspace-relative center of a named anchor dot on a node.
+ * Returns the canvas-space center of a named anchor dot on a node.
  * Reads live DOM position so it stays accurate during drags.
+ * The zoom factor must be provided so screen coords are correctly converted to canvas coords
+ * when the canvas has a CSS scale transform applied.
  * @param {HTMLElement} nodeEl — the .ca-node element
  * @param {string} side       — "top" | "right" | "bottom" | "left"
  * @param {DOMRect} wsRect    — workspace getBoundingClientRect()
  * @param {{ x: number, y: number }} pan — current pan offset
+ * @param {number} zoom       — current zoom level (default 1)
  * @returns {{ x: number, y: number }}
  */
-export function anchorPoint(nodeEl, side, wsRect, pan) {
+export function anchorPoint(nodeEl, side, wsRect, pan, zoom = 1) {
   const dot = nodeEl.querySelector(`.ca-anchor[data-anchor="${side}"]`);
   if (dot) {
     const r = dot.getBoundingClientRect();
     return {
-      x: r.left + r.width  / 2 - wsRect.left - pan.x,
-      y: r.top  + r.height / 2 - wsRect.top  - pan.y
+      x: (r.left + r.width  / 2 - wsRect.left - pan.x) / zoom,
+      y: (r.top  + r.height / 2 - wsRect.top  - pan.y) / zoom
     };
   }
   // Fallback when the anchor dot is not in the DOM
@@ -124,6 +127,7 @@ export function renderLinks(app) {
   svg.querySelectorAll(".ca-link, .ca-link-hit, .ca-link-direction, .ca-link-direction-arrow").forEach(el => el.remove());
 
   const wsRect = workspace.getBoundingClientRect();
+  const zoom = app._zoom ?? 1;
 
   for (let i = 0; i < links.length; i++) {
     const link = links[i];
@@ -133,8 +137,8 @@ export function renderLinks(app) {
 
     const sourceAnchor = link.sourceAnchor ?? "right";
     const targetAnchor = link.targetAnchor ?? "left";
-    const p1 = anchorPoint(srcEl, sourceAnchor, wsRect, app._pan);
-    const p2 = anchorPoint(tgtEl, targetAnchor, wsRect, app._pan);
+    const p1 = anchorPoint(srcEl, sourceAnchor, wsRect, app._pan, zoom);
+    const p2 = anchorPoint(tgtEl, targetAnchor, wsRect, app._pan, zoom);
     const c1 = bezierOffset(sourceAnchor);
     const c2 = bezierOffset(targetAnchor);
     // Cubic Bézier: M start C cp1 cp2 end
