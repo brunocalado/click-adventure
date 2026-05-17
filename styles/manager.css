@@ -244,9 +244,9 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.75);
   padding: 0 4px 6px 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   margin-bottom: 4px;
   flex-shrink: 0;
 }
@@ -264,8 +264,16 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.65);
   padding: 6px 10px 2px;
+}
+
+.click-adventure.manager .ca-player-group--online .ca-player-group-label {
+  color: #4ade80;
+}
+
+.click-adventure.manager .ca-player-group--offline .ca-player-group-label {
+  color: #f87171;
 }
 
 .click-adventure.manager .ca-player-group--gm {
@@ -288,7 +296,7 @@
 
 .click-adventure.manager .ca-player-row--empty {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.5);
   font-style: italic;
   padding: 3px 10px;
 }
@@ -366,7 +374,7 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--ca-text-muted, #aaa);
+  color: rgba(255, 255, 255, 0.65);
   padding: 2px 4px;
   border-radius: 3px;
   transition: color 0.15s;
@@ -385,7 +393,7 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.65);
   padding: 2px 4px;
   border-radius: 3px;
   transition: color 0.15s;
