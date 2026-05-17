@@ -8,7 +8,6 @@
 
    @manifest:
      .ca-node .ca-node-buttons .ca-view-scene-btn   Force 18x18 sizing over Foundry button defaults
-     .ca-node .ca-node-buttons .ca-set-active-btn   Force 18x18 sizing over Foundry button defaults
      .click-adventure a.button:focus, button:focus, select:focus   Suppress Foundry's orange focus ring (foundry2.css:4004) for all module windows
      .click-adventure.settings .window-content      Zero Foundry padding; opaque bg
      .click-adventure.nav-hud                       Free-floating ApplicationV2 (no chrome)
@@ -17,8 +16,7 @@
 /* Foundry assigns a default min-width/padding to all <button> elements. The
    tiny node icons need to override that to fit the 18x18 slot. */
 .ca-node .ca-node-buttons .ca-view-scene-btn,
-.ca-node .ca-node-buttons .ca-activate-scene-btn,
-.ca-node .ca-node-buttons .ca-set-active-btn {
+.ca-node .ca-node-buttons .ca-activate-scene-btn {
   width: var(--ca-node-btn-size) !important;
   height: var(--ca-node-btn-size) !important;
   min-width: var(--ca-node-btn-size) !important;

@@ -19,8 +19,6 @@
      .ca-node-buttons                      Stacked button cluster (top-right corner)
      .ca-view-scene-btn                    Open scene button (icon)
      .ca-view-scene-btn:disabled           Dim when no scene linked
-     .ca-set-active-btn                    Toggle this node as active
-     .ca-set-active-btn--active            Visual confirmation it is active
      .ca-anchor                            Drag-handle dot (small circle on a node edge)
      .ca-anchor-{top|right|bottom|left}    Position variants — center sits on the edge
      .ca-node-occupants                    Stack of player-name labels above the card
@@ -149,8 +147,7 @@
 
 /* Shared base for both node-card buttons. */
 .click-adventure.manager .ca-view-scene-btn,
-.click-adventure.manager .ca-activate-scene-btn,
-.click-adventure.manager .ca-set-active-btn {
+.click-adventure.manager .ca-activate-scene-btn {
   width: var(--ca-node-btn-size);
   height: var(--ca-node-btn-size);
   min-width: var(--ca-node-btn-size);
@@ -186,21 +183,8 @@
 }
 
 .click-adventure.manager .ca-view-scene-btn svg,
-.click-adventure.manager .ca-activate-scene-btn svg,
-.click-adventure.manager .ca-set-active-btn svg {
+.click-adventure.manager .ca-activate-scene-btn svg {
   pointer-events: none;
-}
-
-.click-adventure.manager .ca-set-active-btn:hover {
-  color: var(--ca-state-open);
-  background: rgba(20, 40, 90, 0.85);
-  border-color: rgba(100, 170, 255, 0.55);
-}
-
-.click-adventure.manager .ca-set-active-btn--active {
-  color: var(--ca-state-open);
-  background: var(--ca-state-open-tint);
-  border-color: rgba(34, 197, 94, 0.5);
 }
 
 /* Anchor dots */

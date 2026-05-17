@@ -396,6 +396,7 @@ export async function onSetActiveNode(app, nodeId) {
   if (!nodeId) return;
   await game.user.setFlag("click-adventure", "currentNodeId", nodeId);
   app.render({ force: true });
+  globalThis.ClickAdventure._hud?.render({ force: true });
 }
 
 // ---------------------------------------------------------------------------

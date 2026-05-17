@@ -27,7 +27,7 @@ import {
 import {
   buildOccupants, buildPlayerPanelData, patchOccupantAvatars, patchRequestsDrawer,
   approveRequest, onApproveAll, rejectRequest,
-  onSetActiveNode, onNodeContextMenu,
+  onNodeContextMenu,
   lockAllPlayers, unlockAllPlayers
 } from "./manager-players.js";
 import {
@@ -154,7 +154,6 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
     const { nodes, links, startNodeId } = getGraphData();
-    const activeNodeId = game.user.getFlag("click-adventure", "currentNodeId") ?? "";
     const occupants = buildOccupants();
     context.nodes = nodes.map(n => ({
       ...n,
@@ -163,7 +162,6 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }));
     context.links = links;
     context.startNodeId = startNodeId ?? "";
-    context.activeNodeId = activeNodeId;
     context.hasAnyScene = nodes.some(n => n.sceneId && game.scenes.get(n.sceneId));
 
     // Count once-macros that have already fired across all nodes
@@ -264,13 +262,6 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       });
     });
 
-    html.querySelectorAll(".ca-set-active-btn").forEach(btn => {
-      btn.addEventListener("mousedown", e => e.stopPropagation());
-      btn.addEventListener("click", e => {
-        e.stopPropagation();
-        onSetActiveNode(this, btn.dataset.nodeId);
-      });
-    });
 
     html.querySelector(".ca-add-node")?.addEventListener("click", () => onAddNode(this));
     html.querySelector(".ca-import-folder")?.addEventListener("click", () => onImportFolder(this));
