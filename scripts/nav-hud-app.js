@@ -401,6 +401,7 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     // ── GM node switcher ──────────────────────────────────────────────────
     html.querySelector(".ca-hud-ns-toggle-btn")?.addEventListener("click", (e) => {
       e.stopPropagation();
+      this._closePanelDOM();
       this._toggleNodeSwitcherDOM();
     });
 
@@ -515,6 +516,7 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
   _togglePanelDOM() {
     const panel = this.element?.querySelector(".ca-hud-destinations");
     if (!panel) return;
+    this._closeNodeSwitcherDOM();
     panel.classList.toggle("ca-hud-destinations--open");
   }
 
@@ -524,6 +526,15 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
   _closePanelDOM() {
     const panel = this.element?.querySelector(".ca-hud-destinations");
     panel?.classList.remove("ca-hud-destinations--open");
+  }
+
+  /**
+   * Closes the GM node switcher panel.
+   */
+  _closeNodeSwitcherDOM() {
+    const panel = this.element?.querySelector(".ca-hud-node-switcher");
+    panel?.classList.remove("ca-hud-node-switcher--open");
+    this._nodeSwitcherOpen = false;
   }
 
   /**
