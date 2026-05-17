@@ -84,6 +84,8 @@ export class LinkEditorApp extends HandlebarsApplicationMixin(ApplicationV2) {
       index: i,
       displayModeIsPathOnly: (p.displayMode ?? "full") === "path-only"
     }));
+    // True when the link is already promoted to multi-passage (either by forceMulti or 2+ passages)
+    context.isMulti = link.forceMulti === true || (link.passages?.length ?? 0) > 1;
     return context;
   }
 
@@ -146,10 +148,12 @@ export class LinkEditorApp extends HandlebarsApplicationMixin(ApplicationV2) {
     });
 
     html.querySelector(".ca-link-editor-save")?.addEventListener("click", () => this._onSave());
+    html.querySelector(".ca-convert-to-single")?.addEventListener("click", () => this._onConvertToSingle());
   }
 
   /**
-   * Persists the pending passages array to the graph setting, then refreshes all
+   * Persists the pending passages array to the graph setting, sets forceMulti so the link
+   * behaves as multi-passage even when only one passage remains, then refreshes all
    * open Click Adventure apps and closes this editor.
    * @returns {Promise<void>}
    */
@@ -162,7 +166,30 @@ export class LinkEditorApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }));
     const updatedLinks = links.map((l, i) =>
       i === this._linkIndex
-        ? { ...l, passages: structuredClone(normalisedPassages) }
+        ? { ...l, passages: structuredClone(normalisedPassages), forceMulti: true }
+        : l
+    );
+    await saveGraphData({ nodes, links: updatedLinks });
+
+    const manager = foundry.applications.instances.get("manager-app");
+    if (manager?.rendered) manager.render({ force: true });
+    const hud = globalThis.ClickAdventure?._hud;
+    if (hud?.rendered) hud.render({ force: true });
+
+    this.close();
+  }
+
+  /**
+   * Reverts the link to single-passage mode: keeps only the first passage and clears forceMulti.
+   * Called when the user clicks "Convert to single" in the editor footer.
+   * @returns {Promise<void>}
+   */
+  async _onConvertToSingle() {
+    const { nodes, links } = getGraphData();
+    const first = this._pendingPassages[0] ?? { label: "", direction: "both" };
+    const updatedLinks = links.map((l, i) =>
+      i === this._linkIndex
+        ? { ...l, passages: [{ ...first }], forceMulti: false }
         : l
     );
     await saveGraphData({ nodes, links: updatedLinks });

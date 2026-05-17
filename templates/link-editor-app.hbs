@@ -22,6 +22,9 @@
   </ul>
   <div class="ca-link-editor-footer">
     <button class="ca-passage-add" type="button">+ Add passage</button>
+    {{#if isMulti}}
+    <button class="ca-convert-to-single" type="button" title="Remove all passages except the first and revert to single-passage mode">Convert to single</button>
+    {{/if}}
     <button class="ca-link-editor-save" type="button">Save</button>
   </div>
 </div>

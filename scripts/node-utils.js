@@ -23,14 +23,15 @@ export function getNodeActiveImage(node) {
 }
 
 /**
- * Returns true when a link carries more than one passage.
+ * Returns true when a link carries more than one passage, or when the link was explicitly
+ * promoted to multi-passage mode via the editor (forceMulti flag set on save).
  * Multi-passage links open the LinkEditorApp instead of cycling direction on click.
  *
  * @param {object} link
  * @returns {boolean}
  */
 export function isMultiPassage(link) {
-  return (link.passages?.length ?? 0) > 1;
+  return link.forceMulti === true || (link.passages?.length ?? 0) > 1;
 }
 
 /**
