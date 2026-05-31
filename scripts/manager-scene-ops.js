@@ -6,6 +6,7 @@
  * access `app.element`, `app._pan`, and trigger renders.
  */
 
+import { MODULE_ID } from "./constants.js";
 import { getNodeActiveImage, getGraphData, saveGraphData, fireActiveItemMacro, fireNodeMacros } from "./node-utils.js";
 import { onSetActiveNode } from "./manager-players.js";
 import { buildSceneData } from "./scene-template.js";
@@ -190,7 +191,7 @@ export async function createSceneForNode(node, folderId) {
   const activeImgForNav = node.images?.[node.activeImageIndex ?? 0] ?? node.images?.[0] ?? null;
   sceneData.navName = activeImgForNav?.label?.trim() || "";
 
-  const rawTransition = game.settings.get("click-adventure", "transitionType");
+  const rawTransition = game.settings.get(MODULE_ID,"transitionType");
   sceneData.transition.type = rawTransition === "null" ? null : rawTransition;
 
   // Rebuild tiles[0] as a new object to avoid mutating the shared template reference
@@ -203,7 +204,7 @@ export async function createSceneForNode(node, folderId) {
         src: activeImage ?? baseTile.texture.src
       },
       locked: true,
-      flags: { "click-adventure": { managed: true } }
+      flags: { [MODULE_ID]: { managed: true } }
     }
   ];
 
@@ -245,7 +246,7 @@ export async function onSyncScenes(app) {
 
     const scene = game.scenes.get(node.sceneId);
 
-    const rawTransitionSync = game.settings.get("click-adventure", "transitionType");
+    const rawTransitionSync = game.settings.get(MODULE_ID,"transitionType");
     const transitionTypeSync = rawTransitionSync === "null" ? null : rawTransitionSync;
     const activeImgForNav = node.images?.[node.activeImageIndex ?? 0] ?? node.images?.[0] ?? null;
     const navNameSync = activeImgForNav?.label?.trim() || "";
@@ -258,7 +259,7 @@ export async function onSyncScenes(app) {
                      ?? node.images?.[0]?.src
                      ?? null;
 
-    const tile = scene.tiles.find(t => t.getFlag("click-adventure", "managed"));
+    const tile = scene.tiles.find(t => t.getFlag(MODULE_ID, "managed"));
 
     if (activeImage) {
       if (!tile) {
@@ -267,7 +268,7 @@ export async function onSyncScenes(app) {
           ...tileTemplate,
           texture: { ...tileTemplate.texture, src: activeImage },
           locked: true,
-          flags: { "click-adventure": { managed: true } }
+          flags: { [MODULE_ID]: { managed: true } }
         }]);
       } else if (tile.texture.src !== activeImage) {
         await tile.update({ texture: { src: activeImage } });
@@ -312,7 +313,7 @@ export async function onResetGraph(app) {
   // Clear all users' position flags in a single batch — sequential await loops are prohibited
   const userUpdates = game.users.map(u => ({
     _id: u.id,
-    flags: { "click-adventure": { "currentNodeId": null } }
+    flags: { [MODULE_ID]: { currentNodeId: null } }
   }));
   await User.updateDocuments(userUpdates);
 

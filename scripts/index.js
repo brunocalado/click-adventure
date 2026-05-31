@@ -4,7 +4,10 @@
  * Import order: data models and utilities first, then applications, then main init.
  */
 
-export { AdventureDataModel }     from "./adventure-data-model.js";
+export { MODULE_ID }                  from "./constants.js";
+export { AdventureDataModel }         from "./adventure-data-model.js";
+export { AdventureCollectionDataModel } from "./adventure-collection-model.js";
+export { GroupManagerApp }            from "./group-manager-app.js";
 export { ManagerApp }             from "./manager-app.js";
 export { NodeConfigApp }          from "./node-config-app.js";
 export { NavHudApp }              from "./nav-hud-app.js";

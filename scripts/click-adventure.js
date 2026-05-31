@@ -8,9 +8,12 @@
  *   ClickAdventure.Manager()
  */
 
+import { MODULE_ID } from "./constants.js";
 import { AdventureDataModel } from "./adventure-data-model.js";
+import { AdventureCollectionDataModel } from "./adventure-collection-model.js";
 import { ManagerApp } from "./manager-app.js";
 import { NavHudApp } from "./nav-hud-app.js";
+import { GroupManagerApp } from "./group-manager-app.js";
 import { AdventureSocketManager } from "./socket-manager.js";
 import { getGraphData } from "./node-utils.js";
 import { HudStyleApp } from "./hud-style-app.js";
@@ -53,10 +56,10 @@ function _isGraphScene(sceneId) {
  */
 Hooks.on("canvasReady", () => {
   const scene = canvas.scene;
-  const byFlag = scene?.flags?.["click-adventure"]?.isAdventureScene === true;
+  const byFlag = scene?.flags?.[MODULE_ID]?.isAdventureScene === true;
   const byGraph = _isGraphScene(scene?.id);
 
-  const hudVisibility = game.settings.get("click-adventure", "hudVisibility");
+  const hudVisibility = game.settings.get(MODULE_ID,"hudVisibility");
   const canSeeHud = game.user.isGM || hudVisibility === "all";
 
   if ((byFlag || byGraph) && canSeeHud) {
@@ -74,21 +77,19 @@ Hooks.on("canvasReady", () => {
  * view is already a graph scene (canvasReady won't fire again).
  */
 Hooks.on("updateSetting", (setting) => {
-  if (setting.key !== "click-adventure.graph") return;
+  if (setting.key !== `${MODULE_ID}.graphs`) return;
   _buildSceneIdCache();
   const scene = canvas?.scene;
   if (!scene) return;
 
-  const hudVisibility = game.settings.get("click-adventure", "hudVisibility");
+  const hudVisibility = game.settings.get(MODULE_ID, "hudVisibility");
   const canSeeHud = game.user.isGM || hudVisibility === "all";
 
   const belongs = _graphSceneIds.has(scene.id);
 
   if (belongs && canSeeHud && !globalThis.ClickAdventure._hud?.rendered) {
-    // HUD is not open yet but this scene is now part of the graph — open it.
     ClickAdventure.HUD();
   } else if (globalThis.ClickAdventure._hud?.rendered) {
-    // HUD is already open — re-render so the destination list reflects the new graph.
     globalThis.ClickAdventure._hud.render({ force: true });
   }
 });
@@ -101,7 +102,7 @@ Hooks.on("updateSetting", (setting) => {
 Hooks.on("updateSetting", (setting) => {
   if (setting.key !== "click-adventure.hudVisibility") return;
 
-  const hudVisibility = game.settings.get("click-adventure", "hudVisibility");
+  const hudVisibility = game.settings.get(MODULE_ID,"hudVisibility");
   const canSeeHud = game.user.isGM || hudVisibility === "all";
 
   if (!canSeeHud && globalThis.ClickAdventure._hud?.rendered) {
@@ -109,7 +110,7 @@ Hooks.on("updateSetting", (setting) => {
   } else if (canSeeHud && !globalThis.ClickAdventure._hud?.rendered) {
     const scene = canvas?.scene;
     if (!scene) return;
-    const byFlag = scene?.flags?.["click-adventure"]?.isAdventureScene === true;
+    const byFlag = scene?.flags?.[MODULE_ID]?.isAdventureScene === true;
     const byGraph = _isGraphScene(scene?.id);
     if (byFlag || byGraph) ClickAdventure.HUD();
   }
@@ -143,15 +144,15 @@ Hooks.on("pauseGame", async (paused) => {
 
   if (paused) {
     // Save current lockedUsers state before locking everyone
-    const snapshot = game.settings.get("click-adventure", "lockedUsers") ?? [];
-    await game.settings.set("click-adventure", "_pauseSnapshot", [...snapshot]);
+    const snapshot = game.settings.get(MODULE_ID,"lockedUsers") ?? [];
+    await game.settings.set(MODULE_ID,"_pauseSnapshot", [...snapshot]);
     await lockAllUsers();
   } else {
     // Restore pre-pause lock state
-    const snapshot = game.settings.get("click-adventure", "_pauseSnapshot") ?? [];
+    const snapshot = game.settings.get(MODULE_ID,"_pauseSnapshot") ?? [];
     await restoreLockedUsers(snapshot);
     // Clear the snapshot — it's no longer needed
-    await game.settings.set("click-adventure", "_pauseSnapshot", []);
+    await game.settings.set(MODULE_ID,"_pauseSnapshot", []);
   }
 });
 
@@ -169,19 +170,19 @@ Hooks.on("ready", async () => {
   // Clear stale pause snapshot if the world reloaded without a proper unpause.
   // Prevents an old snapshot from being applied when someone unpauses in a new session.
   if (!game.paused && game.user.isGM) {
-    await game.settings.set("click-adventure", "_pauseSnapshot", []);
+    await game.settings.set(MODULE_ID, "_pauseSnapshot", []);
   }
 
   const { startNodeId, nodes } = getGraphData();
-  const existing = game.user.getFlag("click-adventure", "currentNodeId");
+  const existing = game.user.getFlag(MODULE_ID,"currentNodeId");
 
   // Seed position on first visit (no flag set yet)
   if (!existing && startNodeId) {
-    await game.user.setFlag("click-adventure", "currentNodeId", startNodeId);
+    await game.user.setFlag(MODULE_ID,"currentNodeId", startNodeId);
   }
 
   // Resolve the node the user is currently at (after potential seed above)
-  const currentNodeId = game.user.getFlag("click-adventure", "currentNodeId");
+  const currentNodeId = game.user.getFlag(MODULE_ID,"currentNodeId");
   if (!currentNodeId) return;
 
   const node = nodes.find(n => n.id === currentNodeId);
@@ -207,15 +208,26 @@ Hooks.on("init", () => {
     return icons[dir] ?? "?";
   });
 
-  game.settings.register("click-adventure", "graph", {
-    name: "Adventure Graph",
+  // Legacy single-graph setting — kept registered so existing data is never orphaned.
+  // The ready hook migrates it into `graphs` on first load if needed.
+  game.settings.register(MODULE_ID, "graph", {
+    name: "Adventure Graph (legacy)",
     scope: "world",
     config: false,
     type: AdventureDataModel,
     default: { sceneId: "", startNodeId: "", nodes: [], links: [] }
   });
 
-  game.settings.register("click-adventure", "navigationMode", {
+  // Multi-graph collection — the single source of truth from this version onwards.
+  game.settings.register(MODULE_ID, "graphs", {
+    name: "Adventure Graphs",
+    scope: "world",
+    config: false,
+    type: AdventureCollectionDataModel,
+    default: { activeGraphId: "", graphs: [] }
+  });
+
+  game.settings.register(MODULE_ID,"navigationMode", {
     name: "Navigation Mode",
     hint: "Open: players navigate freely. Gated: players must request GM approval.",
     scope: "world",
@@ -225,7 +237,7 @@ Hooks.on("init", () => {
     choices: { open: "Open Navigation", gated: "Gated Navigation" }
   });
 
-  game.settings.register("click-adventure", "managerPan", {
+  game.settings.register(MODULE_ID,"managerPan", {
     name: "Manager Pan Position",
     scope: "client",
     config: false,
@@ -233,7 +245,7 @@ Hooks.on("init", () => {
     default: { x: 0, y: 0 }
   });
 
-  game.settings.register("click-adventure", "transitionType", {
+  game.settings.register(MODULE_ID,"transitionType", {
     name: "Scene Transition Type",
     scope: "world",
     config: false,
@@ -241,7 +253,7 @@ Hooks.on("init", () => {
     default: "null"
   });
 
-  game.settings.register("click-adventure", "gmNavigationMode", {
+  game.settings.register(MODULE_ID,"gmNavigationMode", {
     name: "GM Navigation Mode",
     scope: "world",
     config: false,
@@ -250,7 +262,7 @@ Hooks.on("init", () => {
     choices: { solo: "Solo", guide: "Guide" }
   });
 
-  game.settings.register("click-adventure", "guideModeAction", {
+  game.settings.register(MODULE_ID,"guideModeAction", {
     name: "Guide Mode Action",
     hint: "View: sends each player to the scene individually. Activate: activates the scene globally (Foundry handles view for all connected users).",
     scope: "world",
@@ -260,7 +272,7 @@ Hooks.on("init", () => {
     choices: { view: "View (per-player)", activate: "Activate (global)" }
   });
 
-  game.settings.register("click-adventure", "hudVisibility", {
+  game.settings.register(MODULE_ID,"hudVisibility", {
     name: "HUD Visibility",
     hint: "Controls who sees the navigation HUD.",
     scope: "world",
@@ -270,7 +282,7 @@ Hooks.on("init", () => {
     choices: { all: "All players", "gm-only": "GM only" }
   });
 
-  game.settings.register("click-adventure", "orbStyle", {
+  game.settings.register(MODULE_ID,"orbStyle", {
     name: "HUD Button Style",
     hint: "Visual appearance of the navigation HUD button. Configured by the GM; applies to all players.",
     scope: "world",
@@ -279,7 +291,7 @@ Hooks.on("init", () => {
     default: { type: "orb", size: 1, color: "#3355aa", orbImage: "" }
   });
 
-  game.settings.register("click-adventure", "defaultTokenPositions", {
+  game.settings.register(MODULE_ID,"defaultTokenPositions", {
     name: "Default Token Positions",
     hint: "Stores per-user default token spawn coordinates. Managed via the Settings panel in the Manager.",
     scope: "world",
@@ -288,7 +300,7 @@ Hooks.on("init", () => {
     default: {}
   });
 
-  game.settings.register("click-adventure", "useDefaultTokenPositions", {
+  game.settings.register(MODULE_ID,"useDefaultTokenPositions", {
     name: "Use Default Token Positions",
     hint: "When enabled, teleported tokens spawn at the captured positions instead of scene center.",
     scope: "world",
@@ -297,14 +309,14 @@ Hooks.on("init", () => {
     default: false
   });
 
-  game.settings.register("click-adventure", "autolockDefault", {
+  game.settings.register(MODULE_ID,"autolockDefault", {
     scope: "world",
     config: false,
     type: Boolean,
     default: false
   });
 
-  game.settings.register("click-adventure", "lockedUsers", {
+  game.settings.register(MODULE_ID,"lockedUsers", {
     scope: "world",
     config: false,
     type: Array,
@@ -312,7 +324,7 @@ Hooks.on("init", () => {
     // Stored as: [{ userId: string, nodeId: string }, ...]
   });
 
-  game.settings.register("click-adventure", "_pauseSnapshot", {
+  game.settings.register(MODULE_ID,"_pauseSnapshot", {
     scope: "world",
     config: false,
     type: Array,
@@ -321,7 +333,7 @@ Hooks.on("init", () => {
     // Restored verbatim on unpause to preserve manual locks set before pausing.
   });
 
-  game.settings.registerMenu("click-adventure", "orbStyleMenu", {
+  game.settings.registerMenu(MODULE_ID,"orbStyleMenu", {
     name: "HUD Button Style",
     label: "Customize HUD Button Style…",
     hint: "Configure the visual appearance of the navigation HUD button. Only the GM can change this; changes apply to all players.",
@@ -374,36 +386,66 @@ Hooks.on("init", () => {
     /** @type {NavHudApp|null} — active HUD instance. */
     _hud: null,
 
+    /**
+     * Opens the group manager window, or brings the existing one to front.
+     * @returns {GroupManagerApp}
+     */
+    Groups: () => {
+      if (globalThis.ClickAdventure._groups?.rendered) {
+        globalThis.ClickAdventure._groups.render();
+        return globalThis.ClickAdventure._groups;
+      }
+      const app = new GroupManagerApp();
+      globalThis.ClickAdventure._groups = app;
+      app.render(true);
+      return app;
+    },
+
+    /** @type {GroupManagerApp|null} — active group manager instance. */
+    _groups: null,
+
     /** @type {AdventureSocketManager} — socket handler instance */
     _socket: socketManager
   };
 });
 
 /**
- * Inject a "Click Adventure" button into the Scene Directory sidebar header.
- * The button opens (or brings to front) the scene-graph Manager.
+ * Inject "Groups" and "Click Adventure" buttons into the Scene Directory sidebar header.
+ * Both sit in a flex row below the native action buttons, matching the style of
+ * other multi-button directory headers across Foundry modules.
  * Guard against double-injection with a sentinel class check.
- * Restricted to GM users only, since the Manager is a GM-only tool.
+ * Restricted to GM users only.
  */
 Hooks.on("renderSceneDirectory", (_app, html) => {
   if (!game.user.isGM) return;
   if (html.querySelector(".click-adventure-sidebar-btn")) return;
 
-  const header = html.querySelector(".directory-header");
-  if (!header) return;
-
-  const btn = document.createElement("button");
-  btn.type = "button";
-  btn.className = "click-adventure-sidebar-btn";
-  btn.innerHTML = '<i class="fas fa-map-signs"></i> Click Adventure';
-  btn.addEventListener("click", () => ClickAdventure.Manager());
-
-  // Insert after the native action buttons (Create Scene / Create Folder) so
-  // the button sits between those and the search bar, regardless of the search
-  // element's tag or class name in v14.
   const actionButtons =
-    header.querySelector(".action-buttons") ??
-    header.querySelector(".header-actions");
-  const anchor = actionButtons ? actionButtons.nextSibling : null;
-  header.insertBefore(btn, anchor);
+    html.querySelector(".header-actions") ??
+    html.querySelector(".action-buttons");
+  if (!actionButtons) return;
+
+  // Flex row that fills the same width as the native Foundry button rows above.
+  const row = document.createElement("div");
+  row.classList.add("flexrow");
+  row.style.cssText = "gap:5px;margin-top:0;width:100%;";
+
+  const managerBtn = document.createElement("button");
+  managerBtn.type = "button";
+  managerBtn.className = "click-adventure-sidebar-btn";
+  managerBtn.style.flex = "1";
+  managerBtn.innerHTML = '<i class="fas fa-map-signs"></i> Click Adventure';
+  managerBtn.addEventListener("click", () => ClickAdventure.Manager());
+
+  const groupsBtn = document.createElement("button");
+  groupsBtn.type = "button";
+  groupsBtn.className = "click-adventure-groups-btn";
+  groupsBtn.style.flex = "1";
+  groupsBtn.innerHTML = '<i class="fas fa-layer-group"></i> Groups';
+  groupsBtn.addEventListener("click", () => ClickAdventure.Groups());
+
+  // Click Adventure left, Groups right.
+  row.appendChild(managerBtn);
+  row.appendChild(groupsBtn);
+  actionButtons.appendChild(row);
 });

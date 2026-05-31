@@ -5,6 +5,7 @@
  * node-config-app, nav-hud-app, and the module entry point.
  */
 
+import { MODULE_ID } from "./constants.js";
 import { buildSceneData } from "./scene-template.js";
 
 /**
@@ -67,7 +68,7 @@ export async function syncNodeTile(node) {
   const rawImage = getNodeActiveImage(node);
   const activeImage = rawImage || null;
 
-  const tile = scene.tiles.find(t => t.getFlag("click-adventure", "managed"));
+  const tile = scene.tiles.find(t => t.getFlag(MODULE_ID, "managed"));
 
   if (activeImage) {
     if (!tile) {
@@ -76,7 +77,7 @@ export async function syncNodeTile(node) {
         ...baseTile,
         texture: { ...baseTile.texture, src: activeImage },
         locked: true,
-        flags: { "click-adventure": { managed: true } }
+        flags: { [MODULE_ID]: { managed: true } }
       }]);
     } else if (tile.texture.src !== activeImage) {
       await tile.update({ texture: { src: activeImage } });
@@ -143,33 +144,62 @@ export const PASSAGE_DIRECTION_CYCLE = Object.freeze({
 });
 
 /**
- * Returns the current adventure graph as a plain object.
- * Converts DataModel instances to POJOs transparently so callers never need
- * to handle the toObject() unwrap pattern themselves.
+ * Returns the active adventure graph as a plain object.
+ * Reads from the multi-graph collection (`click-adventure.graphs`) and resolves
+ * the active entry by `activeGraphId`. Falls back to the first graph if the id
+ * is not found (guards against stale ids after a delete).
  *
  * @returns {{ sceneId: string, startNodeId: string, nodes: object[], links: object[] }}
  */
 export function getGraphData() {
-  const graph = game.settings.get("click-adventure", "graph");
-  const raw = typeof graph?.toObject === "function" ? graph.toObject() : (graph ?? {});
+  const col = game.settings.get(MODULE_ID, "graphs");
+  const raw = typeof col?.toObject === "function" ? col.toObject() : (col ?? {});
+  const active = (raw.graphs ?? []).find(g => g.id === raw.activeGraphId)
+    ?? raw.graphs?.[0]
+    ?? {};
   return {
-    sceneId:     raw.sceneId     ?? "",
-    startNodeId: raw.startNodeId ?? "",
-    nodes:       raw.nodes       ?? [],
-    links:       raw.links       ?? []
+    sceneId:     "",
+    startNodeId: active.startNodeId ?? "",
+    nodes:       active.nodes       ?? [],
+    links:       active.links       ?? []
   };
 }
 
 /**
- * Merges a partial patch into the stored graph and persists it.
- * Reads the current stored value first so callers only need to supply changed fields.
+ * Merges a partial patch into the active graph and persists the collection.
+ * Only the active graph entry is modified; all other groups remain unchanged.
  *
- * @param {Partial<{ sceneId: string, startNodeId: string, nodes: object[], links: object[] }>} patch
+ * If no groups exist yet (fresh world), a "Default" group is created automatically
+ * so that the very first save (node add, folder import, sync, etc.) is never lost.
+ *
+ * @param {Partial<{ startNodeId: string, nodes: object[], links: object[] }>} patch
  * @returns {Promise<void>}
  */
 export async function saveGraphData(patch) {
-  const current = getGraphData();
-  await game.settings.set("click-adventure", "graph", { ...current, ...patch });
+  const col = game.settings.get(MODULE_ID, "graphs");
+  const raw = typeof col?.toObject === "function" ? col.toObject() : (col ?? {});
+
+  let graphs        = raw.graphs        ?? [];
+  let activeGraphId = raw.activeGraphId ?? "";
+
+  // Auto-provision a Default group on the very first write so data is never silently dropped.
+  if (graphs.length === 0) {
+    const defaultGroup = {
+      id:          foundry.utils.randomID(),
+      name:        "Default",
+      startNodeId: "",
+      nodes:       [],
+      links:       []
+    };
+    graphs        = [defaultGroup];
+    activeGraphId = defaultGroup.id;
+  }
+
+  const updatedGraphs = graphs.map(g =>
+    g.id === activeGraphId ? { ...g, ...patch } : g
+  );
+
+  await game.settings.set(MODULE_ID, "graphs", { activeGraphId, graphs: updatedGraphs });
 }
 
 /**

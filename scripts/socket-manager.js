@@ -21,6 +21,7 @@
  *   so the emitter calls scene.view() directly before emitting.
  */
 
+import { MODULE_ID } from "./constants.js";
 import { getGraphData, fireActiveItemMacro } from "./node-utils.js";
 import { lockUser, unlockUser } from "./autolock-utils.js";
 
@@ -68,6 +69,9 @@ export class AdventureSocketManager {
           break;
         case "LOCK_CHANGED":
           this._handleLockChanged(payload);
+          break;
+        case "ACTIVATE_GRAPH":
+          this._handleActivateGraph(payload);
           break;
         default:
           console.warn(`AdventureSocketManager | Unknown message type: ${type}`);
@@ -239,11 +243,11 @@ export class AdventureSocketManager {
 
     // Resolve spawn position BEFORE deleting the origin token (order is critical).
     const proto = actor.prototypeToken.toObject();
-    const useDefaultPos = game.settings.get("click-adventure", "useDefaultTokenPositions");
+    const useDefaultPos = game.settings.get(MODULE_ID,"useDefaultTokenPositions");
 
     // Saved position (only when toggle is on).
     const savedPos = useDefaultPos
-      ? (game.settings.get("click-adventure", "defaultTokenPositions") ?? {})[user.id] ?? null
+      ? (game.settings.get(MODULE_ID,"defaultTokenPositions") ?? {})[user.id] ?? null
       : null;
 
     // Origin position: where the token was in the previous scene (only when toggle is off).
@@ -352,7 +356,7 @@ export class AdventureSocketManager {
       if (scene) await scene.view();
     }
 
-    await game.user.setFlag("click-adventure", "currentNodeId", toNodeId);
+    await game.user.setFlag(MODULE_ID,"currentNodeId", toNodeId);
 
     if (toNodeId) {
       const { nodes } = getGraphData();
@@ -393,6 +397,29 @@ export class AdventureSocketManager {
    */
   notifyLockChanged(userId) {
     this._emit("LOCK_CHANGED", { userId });
+  }
+
+  /**
+   * Broadcasts to all clients that the active graph has changed.
+   * Called by GroupManagerApp after persisting the new activeGraphId.
+   * @param {string} graphId
+   */
+  activateGraph(graphId) {
+    this._emit("ACTIVATE_GRAPH", { graphId });
+  }
+
+  /**
+   * Received by all clients when the active graph changes.
+   * Re-renders the HUD and Manager so they reflect the new active graph.
+   * Triggered by socket message type ACTIVATE_GRAPH.
+   * @param {{ graphId: string }} _payload
+   */
+  _handleActivateGraph(_payload = {}) {
+    const hud = globalThis.ClickAdventure._hud;
+    if (hud?.rendered) hud.render({ force: true });
+
+    const manager = foundry.applications.instances.get("manager-app");
+    if (manager?.rendered) manager.render({ force: true });
   }
 
   /**

@@ -1,0 +1,49 @@
+<div class="ca-gm-panel">
+
+  {{#if isGM}}
+
+  {{#if groups.length}}
+  <ul class="ca-gm-list">
+    {{#each groups}}
+    <li class="ca-gm-row {{#if isActive}}ca-gm-row--active{{/if}}">
+      <span class="ca-gm-icon">
+        {{#if isActive}}
+          <i class="fas fa-map-marked-alt"></i>
+        {{else}}
+          <i class="fas fa-map"></i>
+        {{/if}}
+      </span>
+      <span class="ca-gm-name" title="{{name}}">{{name}}</span>
+      {{#if isActive}}
+        <span class="ca-gm-badge">Active</span>
+      {{else}}
+        <button class="ca-gm-activate-btn" type="button"
+                data-action="activateGroup" data-group-id="{{id}}"
+                title="Set as active group and move all players to its start node">
+          Activate
+        </button>
+      {{/if}}
+      <button class="ca-gm-delete-btn" type="button"
+              data-action="deleteGroup" data-group-id="{{id}}"
+              title="{{#if canDelete}}Delete this group{{else}}Cannot delete the active group or the last group{{/if}}"
+              {{#unless canDelete}}disabled{{/unless}}>
+        <i class="fas fa-trash-alt"></i>
+      </button>
+    </li>
+    {{/each}}
+  </ul>
+  {{else}}
+  <p class="ca-gm-empty">No groups yet. Create one below to get started.</p>
+  {{/if}}
+
+  <div class="ca-gm-footer">
+    <button class="ca-gm-new-btn" type="button" data-action="newGroup">
+      <i class="fas fa-plus"></i> New Group
+    </button>
+  </div>
+
+  {{else}}
+  <p class="ca-gm-empty">Only the GM can manage adventure groups.</p>
+  {{/if}}
+
+</div>
