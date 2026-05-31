@@ -425,27 +425,18 @@ Hooks.on("renderSceneDirectory", (_app, html) => {
     html.querySelector(".action-buttons");
   if (!actionButtons) return;
 
-  // Flex row that fills the same width as the native Foundry button rows above.
-  const row = document.createElement("div");
-  row.classList.add("flexrow");
-  row.style.cssText = "gap:5px;margin-top:0;width:100%;";
-
   const managerBtn = document.createElement("button");
   managerBtn.type = "button";
   managerBtn.className = "click-adventure-sidebar-btn";
-  managerBtn.style.flex = "1";
-  managerBtn.innerHTML = '<i class="fas fa-map-signs"></i> Click Adventure';
+  managerBtn.innerHTML = '<i class="fas fa-map-signs"></i> <span>Click Adventure</span>';
   managerBtn.addEventListener("click", () => ClickAdventure.Manager());
 
   const groupsBtn = document.createElement("button");
   groupsBtn.type = "button";
   groupsBtn.className = "click-adventure-groups-btn";
-  groupsBtn.style.flex = "1";
-  groupsBtn.innerHTML = '<i class="fas fa-layer-group"></i> Groups';
+  groupsBtn.innerHTML = '<i class="fas fa-layer-group"></i> <span>Groups</span>';
   groupsBtn.addEventListener("click", () => ClickAdventure.Groups());
 
-  // Click Adventure left, Groups right.
-  row.appendChild(managerBtn);
-  row.appendChild(groupsBtn);
-  actionButtons.appendChild(row);
+  actionButtons.appendChild(managerBtn);
+  actionButtons.appendChild(groupsBtn);
 });

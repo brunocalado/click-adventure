@@ -350,10 +350,10 @@
   min-width: 0;
 }
 
-/* ── Scenes directory sidebar button ─────────────────────────── */
-.click-adventure-sidebar-btn {
-  width: calc(100% - 16px);
-  margin: 0px 8px 0;
+/* ── Scenes directory sidebar buttons ────────────────────────── */
+.click-adventure-sidebar-btn,
+.click-adventure-groups-btn {
+  flex: 1;
 }
 
 /* ── Autolock toolbar toggle ──────────────────────────────────── */
