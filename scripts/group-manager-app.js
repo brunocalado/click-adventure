@@ -28,6 +28,7 @@ export class GroupManagerApp extends foundry.applications.api.HandlebarsApplicat
     position: { width: 480, height: "auto" },
     actions: {
       activateGroup: GroupManagerApp.prototype._onActivateGroup,
+      renameGroup:   GroupManagerApp.prototype._onRenameGroup,
       deleteGroup:   GroupManagerApp.prototype._onDeleteGroup,
       newGroup:      GroupManagerApp.prototype._onNewGroup
     }
@@ -198,6 +199,56 @@ export class GroupManagerApp extends foundry.applications.api.HandlebarsApplicat
     await game.settings.set(MODULE_ID, "graphs", {
       ...raw,
       graphs: [...(raw.graphs ?? []), newGroup]
+    });
+
+    this.render({ force: true });
+  }
+
+  /**
+   * Opens a prompt dialog to rename an existing group. Name is capped at 120 characters.
+   * Called via data-action="renameGroup" data-group-id="<id>".
+   *
+   * @param {PointerEvent} _event
+   * @param {HTMLElement}  target
+   * @returns {Promise<void>}
+   */
+  async _onRenameGroup(_event, target) {
+    if (!game.user.isGM) return;
+    const groupId = target.dataset.groupId;
+    if (!groupId) return;
+
+    const col = game.settings.get(MODULE_ID, "graphs");
+    const raw = typeof col?.toObject === "function" ? col.toObject() : (col ?? {});
+    const graphs = raw.graphs ?? [];
+    const group = graphs.find(g => g.id === groupId);
+    if (!group) return;
+
+    let name;
+    try {
+      name = await foundry.applications.api.DialogV2.prompt({
+        window: { title: "Rename Group" },
+        content: `
+          <div class="form-group">
+            <label>Group Name</label>
+            <div class="form-fields">
+              <input type="text" name="groupName" maxlength="120"
+                     value="${foundry.utils.escapeHTML(group.name)}" autofocus />
+            </div>
+          </div>`,
+        ok: {
+          label: "Rename",
+          icon: "fas fa-pencil",
+          callback: (_ev, btn) => btn.form.elements.groupName.value.trim() || null
+        }
+      });
+    } catch (_e) {
+      return;
+    }
+    if (!name || name === group.name) return;
+
+    await game.settings.set(MODULE_ID, "graphs", {
+      ...raw,
+      graphs: graphs.map(g => g.id === groupId ? { ...g, name } : g)
     });
 
     this.render({ force: true });

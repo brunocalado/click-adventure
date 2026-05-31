@@ -392,7 +392,7 @@ Hooks.on("init", () => {
      */
     Groups: () => {
       if (globalThis.ClickAdventure._groups?.rendered) {
-        globalThis.ClickAdventure._groups.render();
+        globalThis.ClickAdventure._groups.bringToFront();
         return globalThis.ClickAdventure._groups;
       }
       const app = new GroupManagerApp();

@@ -23,6 +23,11 @@
           Activate
         </button>
       {{/if}}
+      <button class="ca-gm-rename-btn" type="button"
+              data-action="renameGroup" data-group-id="{{id}}"
+              title="Rename this group">
+        <i class="fas fa-pencil"></i>
+      </button>
       <button class="ca-gm-delete-btn" type="button"
               data-action="deleteGroup" data-group-id="{{id}}"
               title="{{#if canDelete}}Delete this group{{else}}Cannot delete the active group or the last group{{/if}}"
