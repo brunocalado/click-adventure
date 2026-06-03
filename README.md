@@ -72,6 +72,7 @@ To open the navigation HUD manually:
 ClickAdventure.HUD();
 ```
 
+This will allow to create groups.
 ```js
 ClickAdventure.Groups();
 ```
