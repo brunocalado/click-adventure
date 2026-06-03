@@ -176,15 +176,18 @@ export class AdventureIOApp extends HandlebarsApplicationMixin(ApplicationV2) {
       graphs:                selected.map(g => this._serializeGraph(g))
     };
 
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement("a");
-    a.href     = url;
-    a.download = `click-adventure-${Date.now()}.json`;
+    const filename = `click-adventure-export-${Date.now()}.json`;
+    const file     = new File([JSON.stringify(payload, null, 2)], filename, { type: "text/plain" });
+    const url      = URL.createObjectURL(file);
+    const a        = document.createElement("a");
+    a.href         = url;
+    a.download     = filename;
+    a.style.display = "none";
     document.body.appendChild(a);
-    a.click();
+    // bubbles:false prevents Foundry's document-level click handlers from intercepting.
+    a.dispatchEvent(new MouseEvent("click", { bubbles: false, cancelable: true }));
     document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
 
     ui.notifications.info(`Click Adventure: Exported ${selected.length} group(s).`);
   }
