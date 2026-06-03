@@ -2,7 +2,7 @@
   "id": "click-adventure",
   "title": "Click Adventure",
   "description": "Point-and-click adventure game module.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "compatibility": {
     "minimum": "14",
     "verified": "14"
@@ -25,9 +25,12 @@
     "styles/hud-style.css",
     "styles/group-manager.css"
   ],
+  
   "authors": [
     {
-      "name": "Mestre Digital"
+      "name": "Mestre Digital",
+      "url": "http://youtube.com/@mestredigital",
+      "flags": {}
     }
   ],
   
