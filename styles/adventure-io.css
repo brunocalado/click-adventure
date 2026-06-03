@@ -1,0 +1,213 @@
+/* Reset Foundry's default window-content padding for this window only. */
+#adventure-io-app .window-content {
+  padding: 0;
+  overflow: hidden;
+}
+
+/* @section: adventure-io-app
+   @scope: AdventureIOApp export/import window
+*/
+
+.click-adventure.adventure-io .ca-io-help-row {
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px 16px 0;
+}
+
+.click-adventure.adventure-io .ca-io-help-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  background: var(--ca-bg-toolbar);
+  border: 1px solid var(--ca-border-toolbar);
+  border-radius: var(--ca-radius-pill);
+  color: var(--ca-text-muted);
+  font-size: 10px;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.click-adventure.adventure-io .ca-io-help-btn:hover {
+  background: var(--ca-bg-toolbar-hover);
+  border-color: var(--ca-border-toolbar-hv);
+  color: var(--ca-text-bright);
+  text-decoration: none;
+}
+
+.click-adventure.adventure-io .ca-io-wrap {
+  display: flex;
+  flex-direction: column;
+  background: var(--ca-bg-panel);
+  color: var(--ca-text-primary);
+}
+
+.click-adventure.adventure-io .ca-io-section {
+  padding: 12px 16px;
+}
+
+.click-adventure.adventure-io .ca-io-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ca-text-section);
+  margin-bottom: 8px;
+}
+
+.click-adventure.adventure-io .ca-io-hint {
+  font-size: 11px;
+  color: var(--ca-text-muted);
+  margin: 0 0 8px;
+  line-height: 1.45;
+}
+
+.click-adventure.adventure-io .ca-io-hint--warning {
+  color: var(--ca-state-warning);
+}
+
+.click-adventure.adventure-io .ca-io-empty {
+  font-size: 11px;
+  color: var(--ca-text-subtle);
+  font-style: italic;
+  margin: 0;
+}
+
+.click-adventure.adventure-io .ca-io-divider {
+  border: none;
+  border-top: 1px solid var(--ca-border-divider);
+  margin: 0;
+}
+
+/* Graph list */
+
+.click-adventure.adventure-io .ca-io-graph-list {
+  list-style: none;
+  margin: 0 0 10px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.click-adventure.adventure-io .ca-io-graph-item {
+  background: var(--ca-bg-toolbar);
+  border: 1px solid var(--ca-border-faint);
+  border-radius: var(--ca-radius-md);
+  padding: 6px 8px;
+  transition: border-color 0.12s;
+}
+
+.click-adventure.adventure-io .ca-io-graph-item:hover {
+  border-color: var(--ca-border-soft);
+}
+
+.click-adventure.adventure-io .ca-io-graph-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.click-adventure.adventure-io .ca-io-graph-name {
+  flex: 1;
+  font-size: 12px;
+  color: var(--ca-text-primary);
+}
+
+.click-adventure.adventure-io .ca-io-graph-meta {
+  font-size: 10px;
+  color: var(--ca-text-subtle);
+}
+
+/* Action row */
+
+.click-adventure.adventure-io .ca-io-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.click-adventure.adventure-io .ca-io-select-btns {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+
+.click-adventure.adventure-io .ca-io-small-btn {
+  padding: 3px 8px;
+  background: var(--ca-bg-toolbar);
+  border: 1px solid var(--ca-border-toolbar);
+  border-radius: var(--ca-radius-md);
+  color: var(--ca-text-muted);
+  font-size: 10px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.click-adventure.adventure-io .ca-io-small-btn:hover {
+  background: var(--ca-bg-toolbar-hover);
+  color: var(--ca-text-bright);
+}
+
+.click-adventure.adventure-io .ca-io-primary-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  background: rgba(60, 90, 180, 0.5);
+  border: 1px solid rgba(140, 180, 255, 0.6);
+  border-radius: var(--ca-radius-md);
+  color: var(--ca-text-bright);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.click-adventure.adventure-io .ca-io-primary-btn:hover {
+  background: rgba(80, 110, 200, 0.7);
+}
+
+.click-adventure.adventure-io .ca-io-cancel-btn {
+  padding: 5px 12px;
+  background: var(--ca-bg-toolbar);
+  border: 1px solid var(--ca-border-toolbar);
+  border-radius: var(--ca-radius-md);
+  color: var(--ca-text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.click-adventure.adventure-io .ca-io-cancel-btn:hover {
+  background: var(--ca-bg-toolbar-hover);
+  color: var(--ca-text-bright);
+}
+
+/* File input — hide native element, style the label as a dashed drop-zone button */
+
+.click-adventure.adventure-io .ca-io-file-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 16px;
+  background: var(--ca-bg-toolbar);
+  border: 1px dashed var(--ca-border-toolbar);
+  border-radius: var(--ca-radius-md);
+  color: var(--ca-text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.click-adventure.adventure-io .ca-io-file-label:hover {
+  background: var(--ca-bg-toolbar-hover);
+  border-color: var(--ca-border-toolbar-hv);
+  color: var(--ca-text-bright);
+}
+
+.click-adventure.adventure-io .ca-io-file-input {
+  display: none;
+}

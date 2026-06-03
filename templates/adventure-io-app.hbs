@@ -1,0 +1,83 @@
+<div class="ca-io-wrap">
+
+  {{!-- ── Help ────────────────────────────────────────────────────────────── --}}
+  <div class="ca-io-help-row">
+    <a class="ca-io-help-btn"
+       href="https://github.com/brunocalado/click-adventure/wiki/Building-a-Distributable-Adventure-Module-for-Click-Adventure"
+       target="_blank" rel="noopener noreferrer">
+      <i class="fas fa-book"></i> Module Building Guide
+    </a>
+  </div>
+
+  {{!-- ── Export ──────────────────────────────────────────────────────────── --}}
+  <div class="ca-io-section">
+    <div class="ca-io-section-title">Export</div>
+
+    {{#if graphs.length}}
+      <p class="ca-io-hint">Select the groups to include in the export file.</p>
+      <ul class="ca-io-graph-list">
+        {{#each graphs}}
+          <li class="ca-io-graph-item">
+            <label class="ca-io-graph-label">
+              <input type="checkbox" class="ca-io-export-check" data-graph-id="{{id}}" checked>
+              <span class="ca-io-graph-name">{{name}}</span>
+              <span class="ca-io-graph-meta">{{nodeCount}} nodes · {{linkCount}} links</span>
+            </label>
+          </li>
+        {{/each}}
+      </ul>
+      <div class="ca-io-actions">
+        <div class="ca-io-select-btns">
+          <button type="button" data-action="export-select-all"   class="ca-io-small-btn">All</button>
+          <button type="button" data-action="export-deselect-all" class="ca-io-small-btn">None</button>
+        </div>
+        <button type="button" data-action="export" class="ca-io-primary-btn">
+          <i class="fas fa-download"></i> Export
+        </button>
+      </div>
+    {{else}}
+      <p class="ca-io-empty">No adventure groups found. Create some nodes first.</p>
+    {{/if}}
+  </div>
+
+  <hr class="ca-io-divider">
+
+  {{!-- ── Import ──────────────────────────────────────────────────────────── --}}
+  <div class="ca-io-section">
+    <div class="ca-io-section-title">Import</div>
+
+    {{#if importGraphs}}
+      <p class="ca-io-hint">
+        File: <strong>{{importFileName}}</strong> — select groups to import.
+      </p>
+      <p class="ca-io-hint ca-io-hint--warning">
+        Scenes are created automatically. Macros resolve by UUID, then by name.
+        Linked scenes are matched by name in this world.
+      </p>
+      <ul class="ca-io-graph-list">
+        {{#each importGraphs}}
+          <li class="ca-io-graph-item">
+            <label class="ca-io-graph-label">
+              <input type="checkbox" class="ca-io-import-check" data-index="{{index}}" checked>
+              <span class="ca-io-graph-name">{{name}}</span>
+              <span class="ca-io-graph-meta">{{nodeCount}} nodes · {{linkCount}} links</span>
+            </label>
+          </li>
+        {{/each}}
+      </ul>
+      <div class="ca-io-actions">
+        <button type="button" data-action="import-cancel" class="ca-io-cancel-btn">Cancel</button>
+        <button type="button" data-action="import" class="ca-io-primary-btn">
+          <i class="fas fa-upload"></i> Import
+        </button>
+      </div>
+    {{else}}
+      <p class="ca-io-hint">Import an adventure JSON file to add groups to this world.</p>
+      <label class="ca-io-file-label">
+        <i class="fas fa-folder-open"></i> Choose file…
+        <input type="file" class="ca-io-file-input" accept=".json">
+      </label>
+    {{/if}}
+  </div>
+
+</div>

@@ -23,7 +23,8 @@
     "styles/context-menu.css",
     "styles/settings-panel.css",
     "styles/hud-style.css",
-    "styles/group-manager.css"
+    "styles/group-manager.css",
+    "styles/adventure-io.css"
   ],
   
   "authors": [

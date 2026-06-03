@@ -17,6 +17,7 @@ import { GroupManagerApp } from "./group-manager-app.js";
 import { AdventureSocketManager } from "./socket-manager.js";
 import { getGraphData } from "./node-utils.js";
 import { HudStyleApp } from "./hud-style-app.js";
+import { AdventureIOApp } from "./adventure-io-app.js";
 import { lockAllUsers, restoreLockedUsers } from "./autolock-utils.js";
 
 /**
@@ -333,12 +334,21 @@ Hooks.on("init", () => {
     // Restored verbatim on unpause to preserve manual locks set before pausing.
   });
 
-  game.settings.registerMenu(MODULE_ID,"orbStyleMenu", {
+  game.settings.registerMenu(MODULE_ID, "orbStyleMenu", {
     name: "HUD Button Style",
     label: "Customize HUD Button Style…",
     hint: "Configure the visual appearance of the navigation HUD button. Only the GM can change this; changes apply to all players.",
     icon: "fa-regular fa-circle",
     type: HudStyleApp,
+    restricted: true
+  });
+
+  game.settings.registerMenu(MODULE_ID, "adventureIOMenu", {
+    name: "Export / Import Adventure",
+    label: "Export / Import…",
+    hint: "Export adventure groups to a JSON file, or import groups from a previously exported file into this world.",
+    icon: "fa-solid fa-file-export",
+    type: AdventureIOApp,
     restricted: true
   });
 

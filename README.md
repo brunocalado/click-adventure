@@ -79,6 +79,11 @@ ClickAdventure.Groups();
 
 ---
 
+## Building a Distributable Adventure Module for Click Adventure
+
+[WIKI](https://github.com/brunocalado/click-adventure/wiki/Building-a-Distributable-Adventure-Module-for-Click-Adventure).
+
+
 ## Manual Installation
 
 1. Open Foundry VTT and go to **Add-on Modules**.
