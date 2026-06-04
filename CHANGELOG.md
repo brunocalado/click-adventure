@@ -1,3 +1,8 @@
+# 0.0.6
+
+## [Added]
+- Rubber-band selection (drag a rectangle on the canvas background to select multiple nodes at once); Shift+drag adds to the existing selection instead of replacing it.
+
 # 0.0.5
 
 ## [Changed]

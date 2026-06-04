@@ -149,7 +149,7 @@ export function onAnchorMouseDown(app, e, anchor) {
  * @param {MouseEvent} e
  */
 export function onDocMouseMove(app, e) {
-  if (!app._dragState && !app._linkState && !app._panState) return;
+  if (!app._dragState && !app._linkState && !app._panState && !app._selectState) return;
 
   if (app._panState) {
     const workspace = app.element?.querySelector(".ca-workspace");
@@ -175,6 +175,39 @@ export function onDocMouseMove(app, e) {
   const workspace = app.element?.querySelector(".ca-workspace");
   if (!workspace) return;
   const wsRect = workspace.getBoundingClientRect();
+
+  if (app._selectState) {
+    const curX  = e.clientX - wsRect.left;
+    const curY  = e.clientY - wsRect.top;
+    const startX = app._selectState.startClientX - wsRect.left;
+    const startY = app._selectState.startClientY - wsRect.top;
+
+    // Activate the rect only after crossing the drag threshold (5 px).
+    if (!app._selectState.active) {
+      const dx = Math.abs(e.clientX - app._selectState.startClientX);
+      const dy = Math.abs(e.clientY - app._selectState.startClientY);
+      if (dx <= 5 && dy <= 5) return;
+
+      app._selectState.active = true;
+      workspace.classList.add("ca-workspace--selecting");
+
+      const rectEl = document.createElement("div");
+      rectEl.className = "ca-select-rect";
+      workspace.appendChild(rectEl);
+      app._selectState.rectEl = rectEl;
+    }
+
+    const left   = Math.min(startX, curX);
+    const top    = Math.min(startY, curY);
+    const width  = Math.abs(curX  - startX);
+    const height = Math.abs(curY  - startY);
+    const { style } = app._selectState.rectEl;
+    style.left   = `${left}px`;
+    style.top    = `${top}px`;
+    style.width  = `${width}px`;
+    style.height = `${height}px`;
+    return;
+  }
 
   if (app._dragState) {
     const { nodeEl, offsetX, offsetY, groupStartPositions } = app._dragState;
@@ -231,6 +264,48 @@ export async function onDocMouseUp(app, e) {
   if (app._panState) {
     app._panState = null;
     game.settings.set("click-adventure", "managerPan", { x: app._pan.x, y: app._pan.y, zoom: app._zoom ?? 1 });
+    return;
+  }
+
+  if (app._selectState) {
+    const { active, rectEl, startClientX, startClientY } = app._selectState;
+    app._selectState = null;
+
+    const workspace = app.element?.querySelector(".ca-workspace");
+    workspace?.classList.remove("ca-workspace--selecting");
+
+    if (!active) {
+      // Pure click on the background (no drag) — clear selection.
+      clearSelection(app);
+      return;
+    }
+
+    rectEl?.remove();
+    if (!workspace) return;
+
+    const wsRect    = workspace.getBoundingClientRect();
+    const zoom      = app._zoom ?? 1;
+    // Convert the selection rectangle corners from workspace-relative screen coords
+    // to canvas coords so we can test against node positions stored in canvas space.
+    const canvasX1  = (Math.min(startClientX, e.clientX) - wsRect.left  - app._pan.x) / zoom;
+    const canvasY1  = (Math.min(startClientY, e.clientY) - wsRect.top   - app._pan.y) / zoom;
+    const canvasX2  = (Math.max(startClientX, e.clientX) - wsRect.left  - app._pan.x) / zoom;
+    const canvasY2  = (Math.max(startClientY, e.clientY) - wsRect.top   - app._pan.y) / zoom;
+
+    // Shift held: add to existing selection; otherwise replace it.
+    if (!e.shiftKey) clearSelection(app);
+
+    workspace.querySelectorAll(".ca-node").forEach(nodeEl => {
+      // Read current position from inline style set by drag; fall back to 0.
+      const nodeX = parseInt(nodeEl.style.left, 10) || 0;
+      const nodeY = parseInt(nodeEl.style.top,  10) || 0;
+      const overlaps = nodeX < canvasX2 && nodeX + NODE_W > canvasX1 &&
+                       nodeY < canvasY2 && nodeY + NODE_H > canvasY1;
+      if (overlaps) {
+        app._selectedNodes.add(nodeEl.dataset.nodeId);
+        nodeEl.classList.add("ca-node--selected");
+      }
+    });
     return;
   }
 

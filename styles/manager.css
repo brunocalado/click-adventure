@@ -452,3 +452,17 @@
   color: #d96060;
   border-color: #d96060;
 }
+
+/* ── Rubber-band selection rectangle ─────────────────────────── */
+.click-adventure .ca-select-rect {
+  position: absolute;
+  border: 1px solid rgba(120, 180, 255, 0.85);
+  background: rgba(100, 160, 255, 0.08);
+  pointer-events: none;
+  z-index: 30;
+  box-sizing: border-box;
+}
+
+.click-adventure .ca-workspace--selecting {
+  cursor: crosshair;
+}

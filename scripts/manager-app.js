@@ -124,6 +124,13 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this._panState = null;
 
     /**
+     * Active rubber-band selection state.
+     * Set on left-click drag on the canvas background; cleared in onDocMouseUp.
+     * @type {{ startClientX: number, startClientY: number, rectEl: HTMLElement|null, active: boolean }|null}
+     */
+    this._selectState = null;
+
+    /**
      * Set of node IDs currently selected for group move.
      * @type {Set<string>}
      */
@@ -373,19 +380,38 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       });
     });
 
-    // Pan: mousedown on workspace background (not on a node or button)
+    // Pan (right-click) and rubber-band selection (left-click drag) on the workspace background.
+    // Node mousedown calls stopPropagation, so this never fires for node clicks.
+    // The SVG links layer is also included in the background check since empty SVG area
+    // may retain pointer events depending on the browser's hit-testing.
     const workspace = html.querySelector(".ca-workspace");
     if (workspace) {
       workspace.addEventListener("mousedown", e => {
-        if (e.target !== workspace && !e.target.classList.contains("ca-canvas")) return;
-        if (e.button !== 2) return;  // pan only on right-click
-        e.preventDefault();
-        this._panState = {
-          startX: e.clientX,
-          startY: e.clientY,
-          originX: this._pan.x,
-          originY: this._pan.y
-        };
+        const onBackground = e.target === workspace
+          || e.target.classList.contains("ca-canvas")
+          || e.target.classList.contains("ca-links-layer");
+        if (!onBackground) return;
+
+        if (e.button === 2) {
+          // Right-click → pan
+          e.preventDefault();
+          this._panState = {
+            startX: e.clientX,
+            startY: e.clientY,
+            originX: this._pan.x,
+            originY: this._pan.y
+          };
+        } else if (e.button === 0) {
+          // Left-click → begin rubber-band; activated after the 5 px drag threshold.
+          // Clear-selection (pure click, no drag) is handled in onDocMouseUp.
+          e.preventDefault();
+          this._selectState = {
+            startClientX: e.clientX,
+            startClientY: e.clientY,
+            rectEl: null,
+            active: false
+          };
+        }
       });
 
       // Suppress the native browser context menu on the canvas background so
@@ -395,13 +421,6 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
         if (e.target === workspace || e.target.classList.contains("ca-canvas")) {
           e.preventDefault();
         }
-      });
-
-      // Left-click on the canvas background (no drag) clears node selection.
-      workspace.addEventListener("click", e => {
-        if (e.target !== workspace && !e.target.classList.contains("ca-canvas")) return;
-        if (e.button !== 0) return;
-        clearSelection(this);
       });
 
       // Zoom toward cursor on wheel; { passive: false } required to call preventDefault.
@@ -433,8 +452,9 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     document.removeEventListener("mousemove", this._docMouseMove);
     document.removeEventListener("mouseup", this._docMouseUp);
     document.removeEventListener("keydown", this._docKeyDown);
-    this._dragState = null;
-    this._linkState = null;
+    this._dragState   = null;
+    this._linkState   = null;
+    this._selectState = null;
     this._instructionsApp?.close();
     this._instructionsApp = null;
     this._settingsApp?.close();
