@@ -518,6 +518,59 @@ export function onZoomReset(app) {
 }
 
 /**
+ * Zooms and pans to fit all nodes within the visible workspace.
+ * Computes the bounding box of every node, picks the largest zoom that keeps
+ * the whole group visible (clamped to ZOOM_MIN..ZOOM_MAX), then centres the
+ * pan on the bounding box.
+ * Triggered by the ".ca-zoom-all" button click registered in ManagerApp._onRender.
+ * @param {ManagerApp} app
+ */
+export function onZoomAll(app) {
+  const workspace = app.element?.querySelector(".ca-workspace");
+  const canvas    = workspace?.querySelector(".ca-canvas");
+  if (!canvas) return;
+
+  const { nodes } = getGraphData();
+  if (!nodes.length) return;
+
+  /** Canvas-space padding added around the bounding box on each side. */
+  const PADDING = 60;
+
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const n of nodes) {
+    minX = Math.min(minX, n.x);
+    minY = Math.min(minY, n.y);
+    maxX = Math.max(maxX, n.x + NODE_W);
+    maxY = Math.max(maxY, n.y + NODE_H);
+  }
+
+  const contentW = maxX - minX;
+  const contentH = maxY - minY;
+  const centerX  = minX + contentW / 2;
+  const centerY  = minY + contentH / 2;
+
+  const wsW = workspace.clientWidth;
+  const wsH = workspace.clientHeight;
+
+  const fitZoom = Math.min(
+    wsW / (contentW + PADDING * 2),
+    wsH / (contentH + PADDING * 2)
+  );
+  const zoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, parseFloat(fitZoom.toFixed(2))));
+
+  // Place the bounding-box centre at the workspace centre
+  const rawPanX = wsW / 2 - centerX * zoom;
+  const rawPanY = wsH / 2 - centerY * zoom;
+
+  app._pan.x = Math.min(0, Math.max(-(CANVAS_SIZE * zoom - wsW), rawPanX));
+  app._pan.y = Math.min(0, Math.max(-(CANVAS_SIZE * zoom - wsH), rawPanY));
+  app._zoom  = zoom;
+
+  applyTransform(canvas, app._pan, app._zoom);
+  game.settings.set("click-adventure", "managerPan", { x: app._pan.x, y: app._pan.y, zoom: app._zoom });
+}
+
+/**
  * Snapshots the current left/top pixel position of every selected node element.
  * Returns a Map<nodeId, {x, y}> read directly from inline styles set by drag.
  * Falls back to the data-model position if the inline style is not yet set.

@@ -414,12 +414,19 @@
   margin: 0 2px;
 }
 
-/* ── Zoom reset overlay button (top-left of workspace) ──────── */
-.ca-zoom-reset {
+/* ── Zoom controls overlay (top-left of workspace) ───────────── */
+.ca-zoom-controls {
   position: absolute;
   top: 8px;
   left: 8px;
   z-index: 20;
+  display: flex;
+  gap: 4px;
+  pointer-events: auto;
+}
+
+.ca-zoom-reset,
+.ca-zoom-all {
   padding: 2px 7px;
   font-size: 11px;
   line-height: 1.4;
@@ -430,10 +437,10 @@
   cursor: pointer;
   opacity: 0.7;
   transition: opacity 0.15s;
-  pointer-events: auto;
 }
 
-.ca-zoom-reset:hover {
+.ca-zoom-reset:hover,
+.ca-zoom-all:hover {
   opacity: 1;
 }
 

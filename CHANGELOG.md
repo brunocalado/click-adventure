@@ -2,6 +2,7 @@
 
 ## [Added]
 - Rubber-band selection (drag a rectangle on the canvas background to select multiple nodes at once); Shift+drag adds to the existing selection instead of replacing it.
+- Zoom All button (next to the 100% button) — fits all nodes into the current view at the largest zoom level that keeps the entire graph visible; helpful when the canvas is panned away from all nodes.
 
 ## [Changed]
 - Zoom reset button label changed from "1:1" to "100%".

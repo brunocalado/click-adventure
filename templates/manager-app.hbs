@@ -154,7 +154,10 @@
 
     {{!-- WORKSPACE --}}
     <div class="ca-workspace">
-    <button type="button" class="ca-zoom-reset" title="Reset zoom (100%)">100%</button>
+    <div class="ca-zoom-controls">
+      <button type="button" class="ca-zoom-reset" title="Reset zoom (100%)">100%</button>
+      <button type="button" class="ca-zoom-all" title="Zoom to fit all nodes">Zoom All</button>
+    </div>
     <div class="ca-canvas">
     <svg class="ca-links-layer" xmlns="http://www.w3.org/2000/svg" width="8000" height="8000"></svg>
     {{#each nodes}}

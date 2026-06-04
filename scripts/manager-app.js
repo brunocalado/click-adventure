@@ -22,7 +22,7 @@ import {
   CANVAS_SIZE,
   onNodeMouseDown, onAnchorMouseDown, onNodeDblClick,
   onDocMouseMove, onDocMouseUp,
-  onWorkspaceWheel, onZoomReset,
+  onWorkspaceWheel, onZoomReset, onZoomAll,
   clearSelection
 } from "./manager-interaction.js";
 import {
@@ -428,6 +428,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     html.querySelector(".ca-zoom-reset")?.addEventListener("click", () => onZoomReset(this));
+    html.querySelector(".ca-zoom-all")?.addEventListener("click", () => onZoomAll(this));
 
     // Bulk lock/unlock buttons in the Players panel header (rendered once by HBS)
     html.querySelector(".ca-bulk-lock-btn[data-action='lock-all']")
