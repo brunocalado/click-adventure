@@ -2,8 +2,10 @@
 
   {{!-- Tab bar --}}
   <nav class="ca-instr-tabs" role="tablist">
-    <button class="ca-instr-tab-btn {{#if (eq activeTab 'controls')}}ca-instr-tab-btn--active{{/if}}"
-            data-tab="controls" role="tab" aria-selected="{{eq activeTab 'controls'}}">Controls</button>
+    <button class="ca-instr-tab-btn {{#if (eq activeTab 'toolbar')}}ca-instr-tab-btn--active{{/if}}"
+            data-tab="toolbar" role="tab" aria-selected="{{eq activeTab 'toolbar'}}">Toolbar</button>
+    <button class="ca-instr-tab-btn {{#if (eq activeTab 'canvas')}}ca-instr-tab-btn--active{{/if}}"
+            data-tab="canvas" role="tab" aria-selected="{{eq activeTab 'canvas'}}">Canvas</button>
     <button class="ca-instr-tab-btn {{#if (eq activeTab 'nodes')}}ca-instr-tab-btn--active{{/if}}"
             data-tab="nodes" role="tab" aria-selected="{{eq activeTab 'nodes'}}">Nodes</button>
     <button class="ca-instr-tab-btn {{#if (eq activeTab 'links')}}ca-instr-tab-btn--active{{/if}}"
@@ -12,32 +14,54 @@
             data-tab="players" role="tab" aria-selected="{{eq activeTab 'players'}}">Players</button>
   </nav>
 
-  {{!-- Tab: Controls --}}
-  <section class="ca-instr-panel {{#if (eq activeTab 'controls')}}ca-instr-panel--active{{/if}}" data-panel="controls" role="tabpanel">
-    <h3>Toolbar</h3>
+  {{!-- Tab: Toolbar --}}
+  <section class="ca-instr-panel {{#if (eq activeTab 'toolbar')}}ca-instr-panel--active{{/if}}" data-panel="toolbar" role="tabpanel">
+    <h3>Build</h3>
     <ul>
-      <li><strong>Reset Macros</strong> — resets all "Once" macros so they can fire again on the next visit; the button shows the count of pending resets</li>
+      <li><strong>+</strong> — add a new blank scene node</li>
+      <li><strong>Import</strong> — bulk-create nodes from every scene in a folder</li>
+      <li><strong>Create Scenes / Update Scenes</strong> — when nodes have no scenes yet the button reads <em>Create Scenes</em> and makes one Foundry scene per node; once scenes exist it reads <em>Update Scenes</em> and re-syncs every node scene with current data</li>
     </ul>
 
-    <h3>Canvas</h3>
+    <h3>Navigation</h3>
+    <ul>
+      <li><strong>Free Move: ON / OFF</strong> — ON lets players navigate freely; OFF makes every move a request the GM must approve</li>
+      <li><strong>Requests</strong> — opens the navigation-request drawer; shows a count badge while requests are pending</li>
+      <li><strong>Autolock: ON / OFF</strong> — when ON, any node set to <em>Inherit</em> locks players upon arrival</li>
+    </ul>
+
+    <h3>Utilities</h3>
+    <ul>
+      <li><strong>Reset Macros (n)</strong> — resets all "Once" macros so they can fire again; the count shows pending resets and the button is disabled when there are none</li>
+      <li><strong>⚙ Settings</strong> — opens module settings</li>
+      <li><strong>Instructions</strong> — opens this help window</li>
+    </ul>
+  </section>
+
+  {{!-- Tab: Canvas --}}
+  <section class="ca-instr-panel {{#if (eq activeTab 'canvas')}}ca-instr-panel--active{{/if}}" data-panel="canvas" role="tabpanel">
+    <h3>View</h3>
     <ul>
       <li><kbd>Right-click</kbd> + drag on background — pan the canvas</li>
-      <li><kbd>Left-click</kbd> on background — clear node selection</li>
+      <li><kbd>Mouse wheel</kbd> — zoom in / out toward the cursor</li>
+      <li><strong>1:1 button</strong> (top-left of the workspace) — reset zoom to 100%</li>
     </ul>
 
-    <h3>Node Selection</h3>
+    <h3>Selection</h3>
     <ul>
-      <li><kbd>Shift</kbd> + click a node — add to / remove from selection</li>
+      <li><kbd>Left-click</kbd> on background — clear the current selection</li>
+      <li><kbd>Shift</kbd> + click a node — add to / remove from the selection</li>
       <li><kbd>Ctrl</kbd> + <kbd>A</kbd> — select all nodes</li>
-      <li>Drag any selected node — moves all selected nodes together</li>
-      <li>Click background or unselected node — clears selection</li>
+      <li>Drag a selected node — moves the whole selection together</li>
+      <li>Drag an unselected node — moves only that node</li>
     </ul>
 
-    <h3>Single Node</h3>
+    <h3>Node Actions</h3>
     <ul>
-      <li>Drag a node — reposition</li>
-      <li>Double-click a node — open node settings</li>
-      <li>Right-click a node — context menu (teleport, set start, delete…)</li>
+      <li><strong>Double-click</strong> a node — open its configuration window</li>
+      <li><strong>Right-click</strong> a node — teleport menu (only appears while at least one player is online): <em>Send all here</em>, or send an individual player; players already there are marked <em>here</em></li>
+      <li><strong>Eye button</strong> (on the node) — View Scene: changes only the GM's view</li>
+      <li><strong>Play button</strong> (on the node) — Activate Scene: switches the active scene for everyone. Both buttons are disabled until the node has a scene</li>
     </ul>
   </section>
 
@@ -45,19 +69,20 @@
   <section class="ca-instr-panel {{#if (eq activeTab 'nodes')}}ca-instr-panel--active{{/if}}" data-panel="nodes" role="tabpanel">
     <h3>Creating Nodes</h3>
     <ul>
-      <li>Use <strong>Add Node</strong> in the toolbar to create a blank node</li>
-      <li>Use <strong>Import Folder</strong> to bulk-create nodes from a scene folder</li>
-      <li>Use <strong>Sync Scenes</strong> to add missing scenes as nodes</li>
+      <li><strong>+</strong> — create a single blank node</li>
+      <li><strong>Import</strong> — bulk-create nodes from a scene folder</li>
+      <li><strong>Create / Update Scenes</strong> — generate or re-sync the Foundry scene behind each node</li>
     </ul>
 
-    <h3>Node Settings</h3>
+    <h3>Node Configuration</h3>
+    <p>Double-click a node to open its window. A <strong>Default Scene Name</strong> field sits above four tabs:</p>
     <ul>
-      <li>Double-click a node to open its config window</li>
-      <li><strong>Images tab</strong> — add multiple images; each image can have its own macro trigger</li>
-      <li><strong>Scenes tab</strong> — link an external Foundry scene to the node; each scene can have a macro trigger</li>
-      <li><strong>Macros tab</strong> — add node-level macros that fire on arrival; set trigger (GM View / Activate) and mode (Always / Once)</li>
-      <li><strong>Settings tab</strong> — set per-node Autolock: <em>Open</em> (never lock), <em>Locked</em> (always lock), or <em>Inherit</em> (follow global toggle)</li>
+      <li><strong>Images</strong> — <em>+ Add Media</em> adds images or videos; each entry has a Navigation Name, a <em>Set Default</em> button (picks the media shown on the node), <em>Remove Entry</em>, and a macro drop-zone (drop a macro, then Run / Open / Remove and choose its trigger)</li>
+      <li><strong>Linked Scenes</strong> — drag a Foundry scene onto the drop-zone to link it; each linked scene has a label, <em>Set Default</em>, <em>Remove Entry</em>, and its own macro drop-zone</li>
+      <li><strong>Macros</strong> — drop node-level macros that fire on arrival; per macro set a trigger (<em>GM View</em>, <em>GM Activate</em>, <em>GM View or Activate</em>) and a mode (<em>Always</em> / <em>Once</em>). A fired "Once" macro shows an <em>Executed</em> badge with a <em>Reset</em> button</li>
+      <li><strong>Settings</strong> — <em>Set as Start</em> marks this node as the start point for all players (one per adventure); <em>Auto-Lock</em> chooses <em>Open</em>, <em>Inherit</em>, or <em>Locked</em></li>
     </ul>
+    <p>The footer holds <strong>Save</strong> and <strong>Delete Node</strong>.</p>
 
     <h3>Visual Indicators</h3>
     <ul>
@@ -65,7 +90,7 @@
       <li><strong>★ Star icon</strong> — this is the start node for new players</li>
       <li><strong>Purple outline + wobble</strong> — node is selected for group move</li>
       <li><strong>Amber outline</strong> — highlighted from the player panel</li>
-      <li><strong>Player avatars above node</strong> — players currently in that scene</li>
+      <li><strong>Occupant badge + avatars</strong> — players currently in that node</li>
     </ul>
   </section>
 
@@ -75,13 +100,14 @@
     <ul>
       <li>Drag from an anchor dot (edge of a node) to another node — creates a link</li>
       <li>Drop on the node body or on a specific anchor dot</li>
+      <li>Hold <kbd>Shift</kbd> while dropping — opens the passage editor immediately</li>
     </ul>
 
     <h3>Interacting with Links</h3>
     <ul>
       <li>Click a link — cycle direction (single-passage links only)</li>
       <li><kbd>Shift</kbd> + click a link — open the passage editor</li>
-      <li>Right-click a link — delete</li>
+      <li>Right-click a link — delete (with confirmation)</li>
     </ul>
 
     <h3>Direction Types</h3>
@@ -92,9 +118,10 @@
       <li><strong style="color:#a855f7">✕ Blocked</strong> — purple — hidden from players; cannot be traversed</li>
       <li><strong style="color:#ef4444">⊘ Locked</strong> — red — visible to players but not traversable (hints at a locked passage)</li>
     </ul>
+    <p>Clicking a single-passage link cycles through them in order: Both → Forward → Backward → Blocked → Locked.</p>
 
     <h3>Multi-Passage Links</h3>
-    <p><kbd>Shift</kbd> + click any link to open the passage editor and add multiple named passages between two nodes. Each passage has its own direction rule. Reducing to one passage restores simple link behaviour. Multi-passage links appear <strong style="color:#a855f7">purple</strong> with a thicker line.</p>
+    <p><kbd>Shift</kbd> + click any link to open the passage editor and add multiple named passages between two nodes. Each passage has its own direction rule. Multi-passage links appear <strong style="color:#a855f7">purple</strong> with a thicker line and a ⊕ marker.</p>
 
     <h3>Passage Editor</h3>
     <p>Each passage row has four controls:</p>
@@ -107,43 +134,53 @@
         </ul>
         The GM always sees the full format regardless of this setting.
       </li>
-      <li><strong>Direction button</strong> — cycles the traversal direction for that passage (⟷ → ← ⊘)</li>
+      <li><strong>Direction button</strong> — cycles the traversal direction for that passage</li>
       <li><strong>✕ button</strong> — removes the passage row</li>
     </ul>
-    <p>Mix modes freely to craft any player-facing label list — for example: <em>Room 1 (Stairs)</em>, <em>Dark Door</em>, <em>Room 3 (Elevator)</em>.</p>
+    <p>The footer offers <strong>+ Add passage</strong>, <strong>Save</strong>, and — on a multi-passage link — <strong>Convert to single</strong>, which keeps only the first passage and restores simple link behaviour.</p>
   </section>
 
   {{!-- Tab: Players --}}
   <section class="ca-instr-panel {{#if (eq activeTab 'players')}}ca-instr-panel--active{{/if}}" data-panel="players" role="tabpanel">
+    <h3>Player Panel</h3>
+    <ul>
+      <li>Players are grouped into <strong>Game Master</strong>, <strong>Online</strong>, and <strong>Offline</strong></li>
+      <li>Hover a player row — highlights their current node on the canvas</li>
+      <li>Hover a node — highlights the rows of players in that node</li>
+      <li>Click a player row — centers the canvas on that player's node</li>
+      <li><strong>Lock button</strong> on each row — locks or unlocks that single player</li>
+      <li><strong>Lock All / Unlock All</strong> (panel header icons) — toggle every player at once</li>
+    </ul>
+
+    <h3>Teleporting</h3>
+    <ul>
+      <li>Right-click a node to open the teleport menu (only while a player is online)</li>
+      <li><strong>Send all here</strong> — moves every online player to that node</li>
+      <li>Pick a single player — moves just them; players already there are marked <em>here</em></li>
+    </ul>
+
     <h3>Autolock</h3>
     <ul>
-      <li>When <strong>Autolock</strong> is ON (toolbar toggle), players are locked upon arriving at a node</li>
-      <li>Locked players cannot request navigation — the GM must send them manually</li>
-      <li>Per-node setting (node Settings tab) can override the global toggle: <em>Open</em>, <em>Locked</em>, or <em>Inherit</em></li>
+      <li><strong>Autolock</strong> ON (toolbar) locks players on arrival at any node set to <em>Inherit</em></li>
+      <li>Per-node override (node Settings tab): <em>Open</em>, <em>Locked</em>, or <em>Inherit</em></li>
+      <li>Locked players cannot request navigation — the GM must send or unlock them</li>
     </ul>
 
     <h3>Pause &amp; Lock</h3>
     <ul>
-      <li>Pausing the game (Foundry pause button) <strong>automatically locks all players</strong> — they cannot navigate while paused</li>
-      <li>Unpausing <strong>restores each player's previous lock state</strong> — manually locked players remain locked; free players regain movement</li>
+      <li>Pausing the game (Foundry pause button) <strong>locks all players</strong> — none can navigate while paused</li>
+      <li>Unpausing <strong>restores each player's previous lock state</strong> — manually locked players stay locked; free players regain movement</li>
     </ul>
 
     <h3>Navigation Modes</h3>
     <ul>
-      <li><strong>Free Move On</strong> — players move freely without GM approval</li>
-      <li><strong>Free Move Off</strong> — each move sends a request the GM approves or rejects</li>
+      <li><strong>Free Move ON</strong> — players move freely without GM approval</li>
+      <li><strong>Free Move OFF</strong> — each move sends a request the GM approves or rejects</li>
     </ul>
 
-    <h3>Player Panel</h3>
+    <h3>Navigation Requests (Free Move OFF)</h3>
     <ul>
-      <li>Hover over a player row — highlights their current node on the canvas</li>
-      <li>Hover over a node — highlights the player row for occupants of that node</li>
-      <li>Click a player row — teleport that player to a chosen node (context menu)</li>
-    </ul>
-
-    <h3>Navigation Requests (Free Move Off)</h3>
-    <ul>
-      <li>Pending requests appear in the drawer (bell icon in toolbar)</li>
+      <li>Pending requests appear in the drawer (Requests button in the toolbar)</li>
       <li>Approve or reject individual requests, or approve all at once</li>
       <li>A new request from the same player overwrites their previous one</li>
     </ul>

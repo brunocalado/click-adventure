@@ -28,7 +28,7 @@ export class InstructionsApp extends HandlebarsApplicationMixin(ApplicationV2) {
   constructor(options = {}) {
     super(options);
     /** @type {string} — ID of the currently active tab */
-    this._activeTab = "controls";
+    this._activeTab = "toolbar";
   }
 
   /** @override */
