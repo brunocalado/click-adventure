@@ -3,6 +3,9 @@
 ## [Added]
 - Rubber-band selection (drag a rectangle on the canvas background to select multiple nodes at once); Shift+drag adds to the existing selection instead of replacing it.
 
+## [Changed]
+- Zoom reset button label changed from "1:1" to "100%".
+
 # 0.0.5
 
 ## [Changed]
