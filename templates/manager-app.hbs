@@ -167,7 +167,13 @@
 
       {{!-- Image — flush no topo, border-radius superior via CSS --}}
       {{#if imageSrc}}
-      <div class="ca-node-image" style="background-image: url('{{imageSrc}}');"></div>
+        {{#if isVideo}}
+        <div class="ca-node-image ca-node-image--video">
+          <video src="{{imageSrc}}" muted loop autoplay playsinline></video>
+        </div>
+        {{else}}
+        <div class="ca-node-image" style="background-image: url('{{imageSrc}}');"></div>
+        {{/if}}
       {{else}}
       <div class="ca-node-image ca-node-image--empty"></div>
       {{/if}}

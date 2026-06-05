@@ -17,6 +17,12 @@ import { InstructionsApp } from "./instructions-app.js";
 import { SettingsApp } from "./settings-app.js";
 import { getNodeActiveImage, getGraphData } from "./node-utils.js";
 
+const _VIDEO_EXT = new Set(["webm", "mp4"]);
+/** @param {string} src @returns {boolean} */
+function isVideoSrc(src) {
+  return _VIDEO_EXT.has(src?.split(".").pop()?.toLowerCase() ?? "");
+}
+
 import { renderLinks } from "./manager-graph.js";
 import {
   CANVAS_SIZE,
@@ -166,11 +172,15 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const context = await super._prepareContext(options);
     const { nodes, links, startNodeId } = getGraphData();
     const occupants = buildOccupants();
-    context.nodes = nodes.map(n => ({
-      ...n,
-      imageSrc: getNodeActiveImage(n),
-      occupants: occupants.get(n.id) ?? []
-    }));
+    context.nodes = nodes.map(n => {
+      const imageSrc = getNodeActiveImage(n);
+      return {
+        ...n,
+        imageSrc,
+        isVideo: isVideoSrc(imageSrc),
+        occupants: occupants.get(n.id) ?? []
+      };
+    });
     context.links = links;
     context.startNodeId = startNodeId ?? "";
     context.hasAnyScene = nodes.some(n => n.sceneId && game.scenes.get(n.sceneId));

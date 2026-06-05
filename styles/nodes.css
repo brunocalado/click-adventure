@@ -84,6 +84,20 @@
   border-bottom: 1px dashed rgba(74, 111, 165, 0.5);
 }
 
+/* Video thumbnail inside the node card. */
+.click-adventure.manager .ca-node-image--video {
+  padding: 0;
+  overflow: hidden;
+
+  video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
+  }
+}
+
 /* Label area — fills the remaining height with centered text. */
 .click-adventure.manager .ca-node-label-area {
   flex: 1;

@@ -5,6 +5,9 @@
 - New adventure groups now default to "New Group 1", "New Group 2", etc., with automatic number incrementing to avoid duplicates.
 - Pressing "Activate" on an adventure group now also opens the Scene Graph manager window.
 
+## [Fixed]
+- Videos now display animated in the manager workspace (previously only showed as a static placeholder; they already worked in the node config tooltip).
+
 
 
 # 0.0.6
