@@ -2,6 +2,8 @@
 
 Click Adventure is a Foundry VTT module that lets you build point-and-click style navigation for your tabletop adventures. Instead of jumping between scenes manually, you connect your scenes into a visual map — and your players explore them by clicking directional arrows on a floating HUD, just like classic adventure games. It is designed for narrative-heavy sessions where the journey through locations is part of the story.
 
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-Donate-red?style=for-the-badge&logo=buy-me-a-coffee)](https://buymeacoffee.com/mestredigital)
+
 ---
 
 ## Features
