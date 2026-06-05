@@ -2,6 +2,8 @@
 
 ## [Changed]
 - Folder import now automatically zooms and pans to fit all imported nodes within the visible view, eliminating the need to manually press "Zoom All" after importing.
+- New adventure groups now default to "New Group 1", "New Group 2", etc., with automatic number incrementing to avoid duplicates.
+- Pressing "Activate" on an adventure group now also opens the Scene Graph manager window.
 
 
 

@@ -110,6 +110,7 @@ export class GroupManagerApp extends foundry.applications.api.HandlebarsApplicat
     globalThis.ClickAdventure._socket.activateGraph(groupId);
 
     this.render({ force: true });
+    globalThis.ClickAdventure.Manager();
   }
 
   /**
@@ -152,8 +153,8 @@ export class GroupManagerApp extends foundry.applications.api.HandlebarsApplicat
   }
 
   /**
-   * Opens a prompt dialog and creates a new empty group with the given name.
-   * Called via data-action="newGroup".
+   * Opens a prompt dialog pre-filled with the next available "New Group N" name
+   * and creates a new empty group. Called via data-action="newGroup".
    *
    * @param {PointerEvent} _event
    * @param {HTMLElement}  _target
@@ -161,6 +162,19 @@ export class GroupManagerApp extends foundry.applications.api.HandlebarsApplicat
    */
   async _onNewGroup(_event, _target) {
     if (!game.user.isGM) return;
+
+    const col = game.settings.get(MODULE_ID, "graphs");
+    const raw = typeof col?.toObject === "function" ? col.toObject() : (col ?? {});
+
+    // Find the lowest unused "New Group N" number.
+    const usedNums = new Set(
+      (raw.graphs ?? [])
+        .map(g => { const m = /^New Group (\d+)$/.exec(g.name); return m ? +m[1] : null; })
+        .filter(n => n !== null)
+    );
+    let n = 1;
+    while (usedNums.has(n)) n++;
+    const defaultName = `New Group ${n}`;
 
     let name;
     try {
@@ -170,13 +184,14 @@ export class GroupManagerApp extends foundry.applications.api.HandlebarsApplicat
           <div class="form-group">
             <label>Group Name</label>
             <div class="form-fields">
-              <input type="text" name="groupName" placeholder="e.g. Act 2" autofocus />
+              <input type="text" name="groupName" maxlength="120"
+                     value="${foundry.utils.escapeHTML(defaultName)}" autofocus />
             </div>
           </div>`,
         ok: {
           label: "Create",
           icon: "fas fa-plus",
-          callback: (_ev, btn) => btn.form.elements.groupName.value.trim() || null
+          callback: (_ev, btn) => btn.form.elements.groupName.value.trim() || defaultName
         }
       });
     } catch (_e) {
@@ -184,9 +199,6 @@ export class GroupManagerApp extends foundry.applications.api.HandlebarsApplicat
       return;
     }
     if (!name) return;
-
-    const col = game.settings.get(MODULE_ID, "graphs");
-    const raw = typeof col?.toObject === "function" ? col.toObject() : (col ?? {});
 
     const newGroup = {
       id:          foundry.utils.randomID(),
@@ -253,4 +265,5 @@ export class GroupManagerApp extends foundry.applications.api.HandlebarsApplicat
 
     this.render({ force: true });
   }
+
 }
