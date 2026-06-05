@@ -184,6 +184,7 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     context.links = links;
     context.startNodeId = startNodeId ?? "";
     context.hasAnyScene = nodes.some(n => n.sceneId && game.scenes.get(n.sceneId));
+    context.nodesWithoutScene = nodes.filter(n => !n.sceneId || !game.scenes.get(n.sceneId)).length;
 
     // Count once-macros that have already fired across all nodes
     context.resetMacrosCount = context.nodes.reduce((total, node) => {

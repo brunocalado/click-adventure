@@ -144,6 +144,19 @@
   color: #ccddf0;
 }
 
+.ca-sync-scenes--alert {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.55);
+  color: var(--ca-state-warning);
+  font-weight: 600;
+}
+
+.ca-sync-scenes--alert:hover {
+  background: rgba(245, 158, 11, 0.25);
+  border-color: var(--ca-state-warning);
+  color: #fcd34d;
+}
+
 .ca-instructions-btn {
   box-sizing: border-box;
   height: var(--ca-toolbar-h);

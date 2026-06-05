@@ -3,6 +3,7 @@
 ## [Added]
 - Preview eye icons next to destination names in the navigation HUD. Hover to see a tooltip with the destination's current image or video, helping GMs navigate without opening the manager.
 - Preview eye icons in the Media switcher panel (Images and Linked Scenes lists) with the same hover tooltip behavior.
+- Alert indicator on the "Create Scenes" / "Update Scenes" button showing the count of nodes missing Foundry scenes. The button highlights in amber when there are unmapped nodes, displaying (X) to indicate how many scenes need to be created or updated.
 
 ## [Changed]
 - Folder import now automatically zooms and pans to fit all imported nodes within the visible view, eliminating the need to manually press "Zoom All" after importing.
