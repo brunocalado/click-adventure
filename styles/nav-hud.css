@@ -66,12 +66,66 @@
   color: var(--ca-text-primary);
   font-size: 12px;
   cursor: pointer;
-  text-align: center;
+  text-align: left;
   transition: background 0.15s, border-color 0.15s;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
   box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.click-adventure.nav-hud .ca-hud-dest-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.click-adventure.nav-hud .ca-hud-preview-eye {
+  flex-shrink: 0;
+  font-size: 11px;
+  opacity: 0.35;
+  color: inherit;
+  line-height: 1;
+  transition: opacity 0.15s, color 0.15s;
+  cursor: default;
+  pointer-events: all;
+}
+
+.click-adventure.nav-hud .ca-hud-dest-btn:hover .ca-hud-preview-eye,
+.click-adventure.nav-hud .ca-hud-ns-item:hover .ca-hud-preview-eye {
+  opacity: 1;
+  color: var(--ca-text-bright);
+}
+
+/* Preview popup — fixed overlay, populated by JS */
+.click-adventure.nav-hud .ca-hud-preview-popup {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  display: none;
+  background: rgba(0, 0, 0, 0.88);
+  border: 1px solid var(--ca-border-soft);
+  border-radius: 6px;
+  padding: 4px;
+  backdrop-filter: blur(8px);
+
+  img,
+  video {
+    display: block;
+    max-width: 200px;
+    max-height: 150px;
+    border-radius: 4px;
+    object-fit: cover;
+  }
+}
+
+.click-adventure.nav-hud .ca-hud-preview-popup--visible {
+  display: block;
 }
 
 .click-adventure.nav-hud .ca-hud-dest-btn:hover {
@@ -363,8 +417,11 @@
   transition: background 0.15s, border-color 0.15s;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
   box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
 }
 
 .click-adventure.nav-hud .ca-hud-ns-item:hover {

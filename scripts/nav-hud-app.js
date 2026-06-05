@@ -276,6 +276,17 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
     // ─────────────────────────────────────────────────────────────────────
 
+    // ── Add preview image for each destination ────────────────────────────
+    for (const dest of availableDestinations) {
+      const destNode  = nodes.find(n => n.id === dest.id);
+      const destImgs  = Array.isArray(destNode?.images) ? destNode.images : [];
+      const destImg   = destImgs[destNode?.activeImageIndex ?? 0] ?? null;
+      const destSrc   = destImg?.src ?? null;
+      dest.previewSrc = destSrc;
+      dest.isVideo    = destSrc ? /\.(webm|mp4|ogg|ogv|mov)$/i.test(destSrc) : false;
+    }
+    // ─────────────────────────────────────────────────────────────────────
+
     context.availableDestinations = availableDestinations;
     context.hasAnyDirection = availableDestinations.length > 0;
     // isOpen is managed via DOM class toggle — default false on each render
@@ -292,16 +303,25 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
       const linkedScenes   = Array.isArray(currentNode?.linkedScenes) ? currentNode.linkedScenes : [];
       const activeIdx      = currentNode?.activeImageIndex ?? 0;
 
-      context.nodeImages = images.map((img, i) => ({
-        index:    i,
-        label:    img.label || `Image ${i + 1}`,
-        isActive: i === activeIdx
-      }));
-      context.nodeLinkedScenes = linkedScenes.map((ls, i) => ({
-        index:     i,
-        sceneId:   ls.sceneId,
-        label:     ls.label || game.scenes.get(ls.sceneId)?.name || `Scene ${i + 1}`
-      }));
+      context.nodeImages = images.map((img, i) => {
+        const src = img.src ?? null;
+        return {
+          index:    i,
+          label:    img.label || `Image ${i + 1}`,
+          src,
+          isVideo:  src ? /\.(webm|mp4|ogg|ogv|mov)$/i.test(src) : false,
+          isActive: i === activeIdx
+        };
+      });
+      context.nodeLinkedScenes = linkedScenes.map((ls, i) => {
+        const scene = game.scenes.get(ls.sceneId);
+        return {
+          index:      i,
+          sceneId:    ls.sceneId,
+          label:      ls.label || scene?.name || `Scene ${i + 1}`,
+          previewSrc: scene?.thumbnail ?? null
+        };
+      });
       context.hasNodeSwitcher = images.length > 1 || (images.length > 0 && linkedScenes.length > 0);
     } else {
       context.hasNodeSwitcher = false;
@@ -384,7 +404,8 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const html = this.element;
 
     html.querySelectorAll(".ca-hud-dest-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", (e) => {
+        if (e.target.closest(".ca-hud-preview-eye")) return;
         if (!game.user.isGM && btn.dataset.locked === "true") {
           ui.notifications.warn("This path is not accessible.");
           return;
@@ -402,6 +423,44 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
         }
       });
     });
+
+    // ── Preview eye tooltips ──────────────────────────────────────────────
+    const popup = html.querySelector(".ca-hud-preview-popup");
+    if (popup) {
+      html.querySelectorAll(".ca-hud-preview-eye").forEach(eye => {
+        eye.addEventListener("mouseenter", e => {
+          e.stopPropagation();
+          const src = eye.dataset.previewSrc;
+          if (!src) return;
+          popup.innerHTML = "";
+          if (eye.dataset.isVideo === "true") {
+            const video = document.createElement("video");
+            video.src = src;
+            video.muted = true;
+            video.loop = true;
+            video.autoplay = true;
+            video.playsInline = true;
+            popup.appendChild(video);
+          } else {
+            const img = document.createElement("img");
+            img.src = src;
+            popup.appendChild(img);
+          }
+          const eyeRect = eye.getBoundingClientRect();
+          const popupW  = 216;
+          let left = eyeRect.right + 8;
+          if (left + popupW > window.innerWidth) left = eyeRect.left - popupW - 8;
+          popup.style.left = `${Math.max(0, left)}px`;
+          popup.style.top  = `${eyeRect.top}px`;
+          popup.classList.add("ca-hud-preview-popup--visible");
+        });
+        eye.addEventListener("mouseleave", () => {
+          popup.classList.remove("ca-hud-preview-popup--visible");
+          popup.innerHTML = "";
+        });
+      });
+    }
+    // ─────────────────────────────────────────────────────────────────────
 
     html.querySelector(".ca-hud-manager-btn")?.addEventListener("click", (e) => {
       e.stopPropagation();

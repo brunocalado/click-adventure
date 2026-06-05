@@ -19,9 +19,16 @@
             data-autolocked="{{#if autolocked}}true{{else}}false{{/if}}"
             data-secret="{{#if secret}}true{{else}}false{{/if}}"
             type="button">
-      {{#if secret}}<i class="fa-solid fa-mask"></i>{{/if}}
-      {{#if autolocked}}<i class="fa-solid fa-lock"></i>{{/if}}
-      {{#if isOrigin}}<span class="ca-hud-origin-icon" title="You came from here">↩</span>{{/if}}{{label}}
+      <span class="ca-hud-dest-text">
+        {{#if secret}}<i class="fa-solid fa-mask"></i>{{/if}}
+        {{#if autolocked}}<i class="fa-solid fa-lock"></i>{{/if}}
+        {{#if isOrigin}}<span class="ca-hud-origin-icon" title="You came from here">↩</span>{{/if}}{{label}}
+      </span>
+      {{#if previewSrc}}
+      <span class="ca-hud-preview-eye" data-preview-src="{{previewSrc}}" data-is-video="{{isVideo}}">
+        <i class="fa-solid fa-eye"></i>
+      </span>
+      {{/if}}
     </button>
     {{/each}}
   </div>
@@ -91,7 +98,12 @@
       data-index="{{index}}"
       type="button"
     >
-      {{#if isActive}}<i class="fa-solid fa-star"></i>{{/if}} {{label}}
+      <span class="ca-hud-dest-text">{{#if isActive}}<i class="fa-solid fa-star"></i>{{/if}} {{label}}</span>
+      {{#if src}}
+      <span class="ca-hud-preview-eye" data-preview-src="{{src}}" data-is-video="{{isVideo}}">
+        <i class="fa-solid fa-eye"></i>
+      </span>
+      {{/if}}
     </button>
     {{/each}}
     {{/if}}
@@ -105,12 +117,19 @@
       data-scene-id="{{sceneId}}"
       type="button"
     >
-      <i class="fa-solid fa-map"></i> {{label}}
+      <span class="ca-hud-dest-text"><i class="fa-solid fa-map"></i> {{label}}</span>
+      {{#if previewSrc}}
+      <span class="ca-hud-preview-eye" data-preview-src="{{previewSrc}}" data-is-video="false">
+        <i class="fa-solid fa-eye"></i>
+      </span>
+      {{/if}}
     </button>
     {{/each}}
     {{/if}}
   </div>
   {{/if}}
   {{/if}}
+
+  <div class="ca-hud-preview-popup"></div>
 
 </div>
