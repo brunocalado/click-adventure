@@ -11,6 +11,7 @@ import { getNodeActiveImage, getGraphData, saveGraphData, fireActiveItemMacro, f
 import { onSetActiveNode } from "./manager-players.js";
 import { buildSceneData } from "./scene-template.js";
 import { NODE_W, NODE_H } from "./manager-graph.js";
+import { onZoomAll } from "./manager-interaction.js";
 
 // ---------------------------------------------------------------------------
 // Node creation
@@ -125,7 +126,8 @@ export function onImportFolder(app) {
       const newStartNodeId = nodes.length === 0 ? newNodes[0].id : startNodeId;
       await saveGraphData({ sceneId, startNodeId: newStartNodeId, nodes: [...nodes, ...newNodes], links });
 
-      app.render({ force: true });
+      await app.render({ force: true });
+      onZoomAll(app);
       ui.notifications.info(`Click Adventure: Imported ${newNodes.length} node(s).`);
     }
   });

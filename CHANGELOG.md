@@ -1,3 +1,10 @@
+# 0.0.7
+
+## [Changed]
+- Folder import now automatically zooms and pans to fit all imported nodes within the visible view, eliminating the need to manually press "Zoom All" after importing.
+
+
+
 # 0.0.6
 
 ## [Added]
