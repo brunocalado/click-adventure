@@ -43,20 +43,7 @@
     </button>
     <span class="ca-toolbar-sep"></span>
     <button class="ca-settings-btn" type="button" aria-label="Settings" title="Settings">
-      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-           fill="none" stroke="currentColor" stroke-width="2"
-           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <circle cx="12" cy="12" r="3"/>
-        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06
-                 a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09
-                 A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83
-                 l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09
-                 A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83
-                 l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09
-                 a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83
-                 l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09
-                 a1.65 1.65 0 0 0-1.51 1z"/>
-      </svg>
+      <i class="fa-solid fa-gear" aria-hidden="true"></i>
     </button>
     <button class="ca-instructions-btn" type="button">Instructions</button>
   </div>
@@ -188,20 +175,12 @@
         <button class="ca-view-scene-btn" data-node-id="{{id}}" data-scene-id="{{sceneId}}"
                 type="button" title="View Scene"
                 {{#unless sceneId}}disabled{{/unless}}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
-               fill="none" stroke="currentColor" stroke-width="2.5"
-               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-            <circle cx="12" cy="12" r="3"/>
-          </svg>
+          <i class="fa-solid fa-eye" aria-hidden="true"></i>
         </button>
         <button class="ca-activate-scene-btn" data-node-id="{{id}}" data-scene-id="{{sceneId}}"
                 type="button" title="Activate Scene"
                 {{#unless sceneId}}disabled{{/unless}}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
-               fill="currentColor" aria-hidden="true">
-            <polygon points="5,3 19,12 5,21"/>
-          </svg>
+          <i class="fa-solid fa-play" aria-hidden="true"></i>
         </button>
 
       </div>
@@ -210,10 +189,7 @@
       <div class="ca-node-top-left">
         {{#if (eq id ../startNodeId)}}
         <span class="ca-start-icon" title="Start point">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-               fill="currentColor" aria-hidden="true">
-            <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
-          </svg>
+          <i class="fa-solid fa-star" aria-hidden="true"></i>
         </span>
         {{/if}}
 
