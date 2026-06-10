@@ -25,6 +25,14 @@
       </div>
     </div>
     <p class="ca-settings-hint">Controls which users see the navigation HUD. The GM always sees it regardless of this setting.</p>
+    <div class="ca-settings-row">
+      <label class="ca-settings-label">Show Player Locations</label>
+      <button class="ca-toggle-btn {{#if showPlayerWhisper}}ca-toggle-btn--active{{/if}}"
+              type="button" data-setting="showPlayerWhisper">
+        {{#if showPlayerWhisper}}Enabled{{else}}Disabled{{/if}}
+      </button>
+    </div>
+    <p class="ca-settings-hint">When enabled, players see other connected players in their HUD and can preview the node image of where each player is.</p>
   </div>
 
   <div class="ca-settings-section">

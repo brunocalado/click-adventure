@@ -1,3 +1,11 @@
+# 0.0.9
+
+## [Added]
+- Players now see all other connected non-GM players listed in their navigation HUD, regardless of which scene each player is in. Hovering the eye icon next to a player's name shows a tooltip preview of the node image for where that player currently is.
+- New world setting **Show Player Locations** (`showPlayerWhisper`) — toggle the player list feature on or off.
+
+
+
 # 0.0.7
 
 ## [Added]

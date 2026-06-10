@@ -97,7 +97,8 @@
 }
 
 .click-adventure.nav-hud .ca-hud-dest-btn:hover .ca-hud-preview-eye,
-.click-adventure.nav-hud .ca-hud-ns-item:hover .ca-hud-preview-eye {
+.click-adventure.nav-hud .ca-hud-ns-item:hover .ca-hud-preview-eye,
+.click-adventure.nav-hud .ca-hud-player-badge:hover .ca-hud-preview-eye {
   opacity: 1;
   color: var(--ca-text-bright);
 }

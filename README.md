@@ -42,6 +42,7 @@ Click Adventure is a Foundry VTT module that lets you build point-and-click styl
 - **Scene Transition Effects** — Choose from 13 animated transition effects (Fade, Swirl, Water Drop, Morph, Crosshatch, Wind, Waves, White Noise, Hologram, Hole, Hole Swirl, Glitch, Dots, or None) applied when navigating between scenes.
 - **Player Autolock** — Optionally prevent players from moving until unlocked by the GM. The lock state is saved and restored automatically when the game is paused and unpaused.
 - **Default Token Spawn Positions** — Capture per-player token positions so characters land in the right spot when navigating to a new scene.
+- **Player Location Whisper** — Players can see all other connected players listed in their HUD. Hovering the eye icon next to a name shows a tooltip preview of the node image where that player currently is, even if they are in a different scene. Can be disabled via the Show Player Locations setting.
 
 ### Customization
 

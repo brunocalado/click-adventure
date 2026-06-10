@@ -283,6 +283,15 @@ Hooks.on("init", () => {
     choices: { all: "All players", "gm-only": "GM only" }
   });
 
+  game.settings.register(MODULE_ID, "showPlayerWhisper", {
+    name: "Show Player Locations",
+    hint: "Allows players to see other connected players and preview the node image of where they are.",
+    scope: "world",
+    config: false,
+    type: Boolean,
+    default: true
+  });
+
   game.settings.register(MODULE_ID,"orbStyle", {
     name: "HUD Button Style",
     hint: "Visual appearance of the navigation HUD button. Configured by the GM; applies to all players.",

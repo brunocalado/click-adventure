@@ -66,6 +66,7 @@ export class SettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
     ];
 
     context.useDefaultTokenPositions = game.settings.get("click-adventure", "useDefaultTokenPositions");
+    context.showPlayerWhisper = game.settings.get("click-adventure", "showPlayerWhisper");
 
     return context;
   }
@@ -103,15 +104,16 @@ export class SettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
       });
     });
 
-    // Toggle button (Use saved positions)
-    this.element.querySelector(".ca-toggle-btn")
-      ?.addEventListener("click", async function () {
-        const current = game.settings.get("click-adventure", "useDefaultTokenPositions");
-        const next    = !current;
-        await game.settings.set("click-adventure", "useDefaultTokenPositions", next);
+    // Toggle buttons — generic handler for any boolean setting using data-setting
+    this.element.querySelectorAll(".ca-toggle-btn[data-setting]").forEach(btn => {
+      btn.addEventListener("click", async function () {
+        const setting = this.dataset.setting;
+        const next    = !game.settings.get("click-adventure", setting);
+        await game.settings.set("click-adventure", setting, next);
         this.classList.toggle("ca-toggle-btn--active", next);
         this.textContent = next ? "Enabled" : "Disabled";
       });
+    });
 
     this.element.querySelector(".ca-capture-token-pos")
       ?.addEventListener("click", async () => {

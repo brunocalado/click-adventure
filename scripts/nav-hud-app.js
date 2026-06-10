@@ -240,9 +240,11 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
       }
     }
 
-    // ── Online non-GM players viewing the same scene ──────────────────────
+    // ── Online players panel ──────────────────────────────────────────────
     const currentSceneId = node?.sceneId ?? null;
-    context.onlinePlayersInScene = currentSceneId
+
+    // GM: only players currently in the same scene/node
+    context.onlinePlayersInScene = (game.user.isGM && currentSceneId)
       ? game.users
           .filter(u => !u.isGM && u.active && u.id !== game.userId)
           .map(u => {
@@ -254,6 +256,27 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
             return { name, color: u.color?.css ?? "#aaaaaa" };
           })
           .filter(Boolean)
+      : [];
+
+    // Players: all other connected non-GM users with a preview of their current node image
+    const showPlayerWhisper = game.settings.get("click-adventure", "showPlayerWhisper");
+    context.onlineAllPlayers = (!game.user.isGM && showPlayerWhisper)
+      ? game.users
+          .filter(u => !u.isGM && u.active && u.id !== game.userId)
+          .map(u => {
+            const theirNodeId = u.getFlag("click-adventure", "currentNodeId");
+            const theirNode   = theirNodeId ? nodes.find(n => n.id === theirNodeId) : null;
+            const rawName = u.character?.name ?? u.name;
+            const name = rawName.length > 18 ? rawName.slice(0, 18) + "…" : rawName;
+            const theirImgs = Array.isArray(theirNode?.images) ? theirNode.images : [];
+            const theirSrc  = theirImgs[theirNode?.activeImageIndex ?? 0]?.src ?? null;
+            return {
+              name,
+              color: u.color?.css ?? "#aaaaaa",
+              previewSrc: theirSrc,
+              isVideo: theirSrc ? /\.(webm|mp4|ogg|ogv|mov)$/i.test(theirSrc) : false
+            };
+          })
       : [];
     // ─────────────────────────────────────────────────────────────────────
 

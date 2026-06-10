@@ -1,4 +1,5 @@
 <div class="ca-hud-root">
+  {{#if isGM}}
   {{#if onlinePlayersInScene.length}}
   <div class="ca-hud-players">
     {{#each onlinePlayersInScene}}
@@ -8,6 +9,23 @@
     </div>
     {{/each}}
   </div>
+  {{/if}}
+  {{else}}
+  {{#if onlineAllPlayers.length}}
+  <div class="ca-hud-players">
+    {{#each onlineAllPlayers}}
+    <div class="ca-hud-player-badge" style="--ca-player-color: {{color}};" title="{{name}}">
+      <span class="ca-hud-player-dot"></span>
+      <span class="ca-hud-player-name">{{name}}</span>
+      {{#if previewSrc}}
+      <span class="ca-hud-preview-eye" data-preview-src="{{previewSrc}}" data-is-video="{{isVideo}}">
+        <i class="fa-solid fa-eye"></i>
+      </span>
+      {{/if}}
+    </div>
+    {{/each}}
+  </div>
+  {{/if}}
   {{/if}}
 
   {{#if hasAnyDirection}}
