@@ -15,7 +15,7 @@
 
 import { InstructionsApp } from "./instructions-app.js";
 import { SettingsApp } from "./settings-app.js";
-import { getNodeActiveImage, getGraphData } from "./node-utils.js";
+import { getNodeActiveImage, getGraphData, isMultiPassage, getEffectiveDirection } from "./node-utils.js";
 
 const _VIDEO_EXT = new Set(["webm", "mp4"]);
 /** @param {string} src @returns {boolean} */
@@ -156,6 +156,102 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
   /** @see patchRequestsDrawer in manager-players.js */
   _patchRequestsDrawer() { patchRequestsDrawer(this); }
 
+  /**
+   * Launches a Visual Polls navigation vote for all online non-GM players.
+   * Builds the option list from the navigable links on the GM's current node,
+   * using the same direction rules as the player HUD (blocked and locked excluded).
+   * No-ops if visual-polls is not active or the GM has no current node set.
+   * @returns {Promise<void>}
+   */
+  async _launchNavigationPoll() {
+    if (!globalThis.VisualPolls) {
+      ui.notifications.warn("Click Adventure: visual-polls module is not available.");
+      return;
+    }
+
+    const gmNodeId = game.user.getFlag("click-adventure", "currentNodeId");
+    if (!gmNodeId) {
+      ui.notifications.warn("Click Adventure: Set your current node position first.");
+      return;
+    }
+
+    const { nodes, links } = getGraphData();
+    const gmNode = nodes.find(n => n.id === gmNodeId);
+    if (!gmNode) {
+      ui.notifications.warn("Click Adventure: Current node not found in graph.");
+      return;
+    }
+
+    const seen = new Set();
+    const options = [];
+
+    for (const link of links) {
+      if (isMultiPassage(link)) {
+        for (const passage of link.passages) {
+          const dir = passage.direction ?? "both";
+          if (dir === "blocked" || dir === "locked") continue;
+          let otherId = null;
+          if (dir === "both") {
+            if (link.sourceId === gmNodeId)      otherId = link.targetId;
+            else if (link.targetId === gmNodeId) otherId = link.sourceId;
+          } else if (dir === "forward" && link.sourceId === gmNodeId) {
+            otherId = link.targetId;
+          } else if (dir === "backward" && link.targetId === gmNodeId) {
+            otherId = link.sourceId;
+          }
+          if (!otherId) continue;
+          const other = nodes.find(n => n.id === otherId);
+          if (!other) continue;
+          const navName = other.label || game.scenes.get(other.sceneId)?.name || other.id;
+          const text = passage.label ? `${navName} (${passage.label})` : navName;
+          const imgs = Array.isArray(other.images) ? other.images : [];
+          const imgSrc = imgs[other.activeImageIndex ?? 0]?.src ?? null;
+          const option = { text };
+          if (imgSrc) option.image = imgSrc;
+          options.push(option);
+        }
+      } else {
+        const dir = getEffectiveDirection(link);
+        if (dir === "blocked" || dir === "locked") continue;
+        let otherId = null;
+        if (dir === "both") {
+          if (link.sourceId === gmNodeId)      otherId = link.targetId;
+          else if (link.targetId === gmNodeId) otherId = link.sourceId;
+        } else if (dir === "forward" && link.sourceId === gmNodeId) {
+          otherId = link.targetId;
+        } else if (dir === "backward" && link.targetId === gmNodeId) {
+          otherId = link.sourceId;
+        }
+        if (!otherId || seen.has(otherId)) continue;
+        const other = nodes.find(n => n.id === otherId);
+        if (!other) continue;
+        seen.add(otherId);
+        const text = other.label || game.scenes.get(other.sceneId)?.name || other.id;
+        const imgs = Array.isArray(other.images) ? other.images : [];
+        const imgSrc = imgs[other.activeImageIndex ?? 0]?.src ?? null;
+        const option = { text };
+        if (imgSrc) option.image = imgSrc;
+        options.push(option);
+      }
+    }
+
+    if (options.length < 2) {
+      ui.notifications.warn("Click Adventure: At least 2 navigable destinations are needed to create a poll.");
+      return;
+    }
+
+    const targetUserIds = game.users
+      .filter(u => !u.isGM && u.active)
+      .map(u => u.id);
+
+    const nodeLabel = gmNode.label || gmNodeId;
+    await globalThis.VisualPolls.startPoll({
+      question: `[${nodeLabel}] Where does the group want to go?`,
+      options,
+      targetUserIds
+    });
+  }
+
   // ---------------------------------------------------------------------------
   // Lifecycle
   // ---------------------------------------------------------------------------
@@ -195,8 +291,9 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }, 0);
 
     const getLabel = id => nodes.find(n => n.id === id)?.label || id;
-    context.navigationMode   = game.settings.get("click-adventure", "navigationMode");
-    context.autolockDefault  = game.settings.get("click-adventure", "autolockDefault");
+    context.navigationMode    = game.settings.get("click-adventure", "navigationMode");
+    context.autolockDefault   = game.settings.get("click-adventure", "autolockDefault");
+    context.visualPollsActive = game.modules.get("visual-polls")?.active ?? false;
     context.requestCount     = this._navRequests.size;
     context.drawerOpen     = this._drawerOpen;
     context.requests       = [...this._navRequests.values()]
@@ -437,6 +534,8 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
       // Zoom toward cursor on wheel; { passive: false } required to call preventDefault.
       workspace.addEventListener("wheel", e => onWorkspaceWheel(e, this), { passive: false });
     }
+
+    html.querySelector(".ca-poll-btn")?.addEventListener("click", () => this._launchNavigationPoll());
 
     html.querySelector(".ca-zoom-reset")?.addEventListener("click", () => onZoomReset(this));
     html.querySelector(".ca-zoom-all")?.addEventListener("click", () => onZoomAll(this));

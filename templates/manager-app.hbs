@@ -33,6 +33,15 @@
       Autolock: {{#if autolockDefault}}ON{{else}}OFF{{/if}}
     </button>
 
+    {{!-- Visual Polls integration — only shown when the visual-polls module is active --}}
+    {{#if visualPollsActive}}
+    <span class="ca-toolbar-sep"></span>
+    <button class="ca-poll-btn ca-toolbar-pill" type="button"
+            title="Launch a navigation poll for all online players based on the GM's current node">
+      <i class="fa-solid fa-square-poll-horizontal" aria-hidden="true"></i> Poll
+    </button>
+    {{/if}}
+
     {{!-- Spacer pushes Reset and Instructions to the far right --}}
     <span class="ca-toolbar-spacer"></span>
 

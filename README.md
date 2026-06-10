@@ -36,6 +36,7 @@ Click Adventure is a Foundry VTT module that lets you build point-and-click styl
 - **Occupant Badges** — Nodes display color-coded badges showing which players are currently located there.
 - **Scene Sync Operations** — Bulk-create Foundry scenes for all nodes, or update existing scenes to sync their name, transition settings, and background tile with the current graph data.
 - **Managed Background Tiles** — The module automatically creates and updates a locked background tile in each scene to match the node's active image, without touching GM-placed tiles.
+- **Visual Polls Integration** — When the [Visual Polls](https://github.com/brunocalado/visual-polls) module is active, a **Poll** button appears in the Manager toolbar. Clicking it opens a navigation vote for all online players: the options are the navigable destinations available from the GM's current node, with destination images used as thumbnails. Blocked and locked links are excluded.
 
 ### Player Experience
 
