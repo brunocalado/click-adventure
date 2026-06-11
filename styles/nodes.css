@@ -123,13 +123,14 @@
   letter-spacing: 0.01em;
 }
 
-/* Wrapper top-left: holds start star and occupant badge side by side. */
+/* Wrapper top-left: holds start star, occupant badge, and camera icon stacked vertically. */
 .click-adventure.manager .ca-node-top-left {
   position: absolute;
   top: 4px;
   left: 4px;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
   gap: 3px;
   z-index: var(--ca-z-node-buttons);
   pointer-events: none;
@@ -145,6 +146,19 @@
 
 .click-adventure.manager .ca-start-icon svg {
   pointer-events: none;
+}
+
+/* Camera Room indicator icon — pill badge matching the occupant badge style. */
+.click-adventure.manager .ca-camera-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 45, 35, 0.82);
+  border: 1px solid rgba(20, 180, 140, 0.55);
+  border-radius: 10px;
+  padding: 1px 5px;
+  font-size: 10px;
+  color: rgba(20, 210, 160, 0.95);
 }
 
 /* Two identical buttons stacked in the top-right corner. */

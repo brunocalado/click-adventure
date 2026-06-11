@@ -201,6 +201,12 @@
         </span>
         {{/if}}
 
+        {{#if isCameraRoom}}
+        <span class="ca-camera-icon" title="Camera Room">
+          <i class="fa-solid fa-camera" aria-hidden="true"></i>
+        </span>
+        {{/if}}
+
         {{#if occupants.length}}
         <div class="ca-node-occupant-badge">
           <i class="fa-solid fa-people-group"></i>
