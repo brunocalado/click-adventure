@@ -109,7 +109,7 @@
       type="button"
       title="View linked rooms through cameras"
     >
-      <i class="fa-solid fa-camera"></i> Cameras
+      <i class="fa-solid fa-camera"></i> {{peekButtonLabel}}
     </button>
     {{/if}}
   </div>
@@ -160,7 +160,15 @@
 
   {{#if hasPeekPanel}}
   <div class="ca-hud-peek-panel">
-    <div class="ca-hud-ns-section-title"><i class="fa-solid fa-camera"></i> Peek</div>
+    <div class="ca-hud-ns-section-title"><i class="fa-solid fa-camera"></i> {{peekButtonLabel}}</div>
+    <button
+      class="ca-hud-ns-item"
+      data-action="peek-restore"
+      type="button"
+      title="Restore the normal view of your current room"
+    >
+      <span class="ca-hud-dest-text"><i class="fa-solid fa-rotate-left"></i> Restore View</span>
+    </button>
     {{#each peekableNodes}}
     <button
       class="ca-hud-ns-item {{#if isActive}}ca-hud-ns-item--active{{/if}}"

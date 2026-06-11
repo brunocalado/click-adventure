@@ -1,3 +1,12 @@
+# 0.1.2
+
+## [Added]
+- **Camera Room — Restore View button:** the peek panel in the player HUD now includes a **Restore View** button at the top. Clicking it cancels any active peek and returns the background tile to the player's own room without navigating.
+- **Camera Room — custom button label:** a **Button Label** text field now appears in the node Settings tab when Camera is ON. The text entered here is used as the label on the HUD button and peek panel header for that room (defaults to *Cameras* when left blank). Allows renaming the feature per-node (e.g. *Monitors*, *Scrying Pool*).
+
+## [Changed]
+- Instructions window: camera room documentation moved from the Links tab into a dedicated **Camera Room** tab covering setup, peek link creation, HUD behavior, the Restore View button, and the custom label option.
+
 # 0.1.1
 
 ## [Added]

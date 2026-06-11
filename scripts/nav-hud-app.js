@@ -353,8 +353,9 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
         });
       }
     }
-    context.peekableNodes = peekableNodes;
-    context.hasPeekPanel  = peekableNodes.length > 0;
+    context.peekableNodes   = peekableNodes;
+    context.hasPeekPanel    = peekableNodes.length > 0;
+    context.peekButtonLabel = node?.cameraLabel?.trim() || "Cameras";
     // ─────────────────────────────────────────────────────────────────────
 
     context.isGM        = game.user.isGM;
@@ -637,6 +638,14 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
           }
         }
       });
+    });
+
+    html.querySelector("[data-action='peek-restore']")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      this._restorePeekTexture();
+      this._peekActiveNodeId = null;
+      html.querySelectorAll("[data-action='peek-room']")
+        .forEach(b => b.classList.remove("ca-hud-ns-item--active"));
     });
 
     if (this._peekPanelOpen) {

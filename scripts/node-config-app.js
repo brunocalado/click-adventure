@@ -151,6 +151,8 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this._pendingAutolockMode = null;
     /** @type {boolean|null} */
     this._pendingIsCameraRoom = null;
+    /** @type {string|null} */
+    this._pendingCameraLabel = null;
   }
 
 
@@ -217,6 +219,7 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     context.autolockMode = this._pendingAutolockMode ?? node.autolockMode ?? "inherit";
     context.isCameraRoom = this._pendingIsCameraRoom ?? node.isCameraRoom ?? false;
+    context.cameraLabel  = this._pendingCameraLabel  ?? node.cameraLabel  ?? "";
 
     return context;
   }
@@ -643,14 +646,15 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
       const node = nodes.find(n => n.id === this.nodeId);
       const current = this._pendingIsCameraRoom ?? node?.isCameraRoom ?? false;
       this._pendingIsCameraRoom = !current;
-      const btn = html.querySelector("[data-action='toggle-camera-room']");
-      if (btn) {
-        btn.classList.toggle("ca-toggle-camera-room--active", this._pendingIsCameraRoom);
-        btn.innerHTML = `<i class="fa-solid fa-camera"></i> ${this._pendingIsCameraRoom ? "Camera: ON" : "Camera: OFF"}`;
-        btn.title = this._pendingIsCameraRoom
-          ? "Camera Room enabled — click to disable"
-          : "Camera Room disabled — click to enable";
-      }
+      // Re-render so the conditional camera label input appears or disappears
+      this.render({ force: true });
+    });
+
+    html.querySelector(".ca-camera-label-input")?.addEventListener("change", (e) => {
+      this._pendingCameraLabel = e.target.value.trim();
+    });
+    html.querySelector(".ca-camera-label-input")?.addEventListener("input", (e) => {
+      this._pendingCameraLabel = e.target.value;
     });
     // ────────────────────────────────────────────────────────────────────
 
@@ -849,11 +853,13 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const activeIndex = this._pendingActiveIndex ?? 0;
     const linkedScenes = this._getWorkingLinkedScenes();
     const nodeMacros = this._getWorkingNodeMacros();
-    const autolockMode = this._pendingAutolockMode ?? (nodes.find(n => n.id === this.nodeId)?.autolockMode ?? "inherit");
-    const isCameraRoom = this._pendingIsCameraRoom ?? (nodes.find(n => n.id === this.nodeId)?.isCameraRoom ?? false);
+    const persistedNode = nodes.find(n => n.id === this.nodeId);
+    const autolockMode = this._pendingAutolockMode ?? (persistedNode?.autolockMode ?? "inherit");
+    const isCameraRoom = this._pendingIsCameraRoom ?? (persistedNode?.isCameraRoom ?? false);
+    const cameraLabel  = this._pendingCameraLabel  ?? (persistedNode?.cameraLabel  ?? "");
     const updatedNodes = nodes.map(n => {
       if (n.id !== this.nodeId) return n;
-      return { ...n, label, images, activeImageIndex: activeIndex, linkedScenes, nodeMacros, autolockMode, isCameraRoom, imageSrc: undefined };
+      return { ...n, label, images, activeImageIndex: activeIndex, linkedScenes, nodeMacros, autolockMode, isCameraRoom, cameraLabel, imageSrc: undefined };
     });
     await saveGraphData({ sceneId, startNodeId, nodes: updatedNodes, links });
 
@@ -888,6 +894,7 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this._pendingNodeMacros = null;
     this._pendingAutolockMode = null;
     this._pendingIsCameraRoom = null;
+    this._pendingCameraLabel = null;
 
     const manager = foundry.applications.instances.get("manager-app");
     if (manager?.rendered) manager.render({ force: true });
