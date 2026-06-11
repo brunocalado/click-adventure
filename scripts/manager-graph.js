@@ -30,11 +30,15 @@ export const NODE_H = 100;
  */
 export function bezierOffset(side, tension = 80) {
   switch (side) {
-    case "top":    return { dx:  0,       dy: -tension };
-    case "right":  return { dx:  tension, dy:  0       };
-    case "bottom": return { dx:  0,       dy:  tension };
-    case "left":   return { dx: -tension, dy:  0       };
-    default:       return { dx:  tension, dy:  0       };
+    case "top":      return { dx:  0,       dy: -tension };
+    case "right":    return { dx:  tension, dy:  0       };
+    case "bottom":   return { dx:  0,       dy:  tension };
+    case "left":     return { dx: -tension, dy:  0       };
+    case "peek-tl":  return { dx: -tension, dy: -tension };
+    case "peek-tr":  return { dx:  tension, dy: -tension };
+    case "peek-bl":  return { dx: -tension, dy:  tension };
+    case "peek-br":  return { dx:  tension, dy:  tension };
+    default:         return { dx:  tension, dy:  0       };
   }
 }
 
@@ -63,12 +67,16 @@ export function anchorPoint(nodeEl, side, wsRect, pan, zoom = 1) {
   const nx = parseFloat(nodeEl.style.left) || 0;
   const ny = parseFloat(nodeEl.style.top)  || 0;
   const offsets = {
-    top:    { x: NODE_W / 2, y: 0 },
-    right:  { x: NODE_W,     y: NODE_H / 2 },
-    bottom: { x: NODE_W / 2, y: NODE_H },
-    left:   { x: 0,          y: NODE_H / 2 }
+    top:       { x: NODE_W / 2, y: 0          },
+    right:     { x: NODE_W,     y: NODE_H / 2 },
+    bottom:    { x: NODE_W / 2, y: NODE_H     },
+    left:      { x: 0,          y: NODE_H / 2 },
+    "peek-tl": { x: 0,          y: 0          },
+    "peek-tr": { x: NODE_W,     y: 0          },
+    "peek-bl": { x: 0,          y: NODE_H     },
+    "peek-br": { x: NODE_W,     y: NODE_H     }
   };
-  return { x: nx + offsets[side].x, y: ny + offsets[side].y };
+  return { x: nx + (offsets[side]?.x ?? NODE_W / 2), y: ny + (offsets[side]?.y ?? 0) };
 }
 
 /**
@@ -145,10 +153,12 @@ export function renderLinks(app) {
     const d = `M ${p1.x},${p1.y} C ${p1.x + c1.dx},${p1.y + c1.dy} ${p2.x + c2.dx},${p2.y + c2.dy} ${p2.x},${p2.y}`;
 
     // Visible path — pointer events disabled so the hit area path on top handles interactions
-    const direction = getEffectiveDirection(link);
-    const multi = isMultiPassage(link);
+    const isPeek = link.type === "peek";
+    const direction = isPeek ? "peek" : getEffectiveDirection(link);
+    const multi = !isPeek && isMultiPassage(link);
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
     path.classList.add("ca-link");
+    if (isPeek) path.classList.add("ca-link--peek");
     path.setAttribute("d", d);
     path.dataset.direction = direction;
     if (multi) path.dataset.multi = "true";
@@ -164,6 +174,8 @@ export function renderLinks(app) {
     hitPath.addEventListener("click", e => {
       e.preventDefault();
       e.stopPropagation();
+      // Peek links don't cycle and don't open the passage editor
+      if (isPeek) return;
       // Shift+click or multi-passage link → open editor; plain click on single-passage → cycle direction
       if (e.shiftKey || multi) {
         new LinkEditorApp(i).render(true);
@@ -180,10 +192,22 @@ export function renderLinks(app) {
     hitPath.addEventListener("mouseleave", () => path.classList.remove("ca-link--hover"));
     svg.appendChild(hitPath);
 
-    // Midpoint indicator — ⊕ for multi-passage, text for both/blocked, arrow for forward/backward
+    // Midpoint indicator
     const mid = pathMidpoint(p1, c1, p2, c2);
 
-    if (multi) {
+    if (isPeek) {
+      // Eye icon to distinguish peek links from navigation links
+      const indicator = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      indicator.classList.add("ca-link-direction");
+      indicator.setAttribute("x", mid.x);
+      indicator.setAttribute("y", mid.y);
+      indicator.setAttribute("text-anchor", "middle");
+      indicator.setAttribute("dominant-baseline", "central");
+      indicator.dataset.direction = "peek";
+      indicator.style.pointerEvents = "none";
+      indicator.textContent = "👁";
+      svg.appendChild(indicator);
+    } else if (multi) {
       const indicator = document.createElementNS("http://www.w3.org/2000/svg", "text");
       indicator.classList.add("ca-link-direction");
       indicator.setAttribute("x", mid.x);
@@ -236,6 +260,8 @@ export async function onCycleLink(app, linkIndex) {
   const { sceneId, startNodeId, nodes, links } = getGraphData();
   const updatedLinks = links.map((l, i) => {
     if (i !== linkIndex) return l;
+    // Peek links have no direction — cycling is a no-op
+    if (l.type === "peek") return l;
     // Multi-passage links are edited via LinkEditorApp — cycling is a no-op here
     if (isMultiPassage(l)) return l;
     const currentDir = l.passages?.[0]?.direction ?? l.direction ?? "both";

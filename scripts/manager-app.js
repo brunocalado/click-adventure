@@ -15,7 +15,7 @@
 
 import { InstructionsApp } from "./instructions-app.js";
 import { SettingsApp } from "./settings-app.js";
-import { getNodeActiveImage, getGraphData, isMultiPassage, getEffectiveDirection } from "./node-utils.js";
+import { getNodeActiveImage, getGraphData, saveGraphData, isMultiPassage, getEffectiveDirection } from "./node-utils.js";
 
 const _VIDEO_EXT = new Set(["webm", "mp4"]);
 /** @param {string} src @returns {boolean} */
@@ -186,6 +186,8 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const options = [];
 
     for (const link of links) {
+      // Peek links are not navigation options
+      if (link.type === "peek") continue;
       if (isMultiPassage(link)) {
         for (const passage of link.passages) {
           const dir = passage.direction ?? "both";
@@ -268,6 +270,8 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const context = await super._prepareContext(options);
     const { nodes, links, startNodeId } = getGraphData();
     const occupants = buildOccupants();
+    const hasPeekAnchors = nodes.some(n => n.isCameraRoom);
+    context.hasPeekAnchors = hasPeekAnchors;
     context.nodes = nodes.map(n => {
       const imageSrc = getNodeActiveImage(n);
       return {

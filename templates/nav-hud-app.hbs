@@ -102,6 +102,16 @@
     </button>
     {{/if}}
     {{/if}}
+
+    {{#if hasPeekPanel}}
+    <button
+      class="ca-hud-peek-toggle-btn"
+      type="button"
+      title="View linked rooms through cameras"
+    >
+      <i class="fa-solid fa-camera"></i> Cameras
+    </button>
+    {{/if}}
   </div>
 
   {{#if isGM}}
@@ -146,6 +156,27 @@
     {{/if}}
   </div>
   {{/if}}
+  {{/if}}
+
+  {{#if hasPeekPanel}}
+  <div class="ca-hud-peek-panel">
+    <div class="ca-hud-ns-section-title"><i class="fa-solid fa-camera"></i> Peek</div>
+    {{#each peekableNodes}}
+    <button
+      class="ca-hud-ns-item {{#if isActive}}ca-hud-ns-item--active{{/if}}"
+      data-action="peek-room"
+      data-node-id="{{id}}"
+      type="button"
+    >
+      <span class="ca-hud-dest-text"><i class="fa-solid fa-eye"></i> {{label}}</span>
+      {{#if imageSrc}}
+      <span class="ca-hud-preview-eye" data-preview-src="{{imageSrc}}" data-is-video="{{isVideo}}">
+        <i class="fa-solid fa-eye"></i>
+      </span>
+      {{/if}}
+    </button>
+    {{/each}}
+  </div>
   {{/if}}
 
   <div class="ca-hud-preview-popup"></div>

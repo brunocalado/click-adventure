@@ -8,6 +8,7 @@
  * Lifecycle hook: renderNavHudApp
  */
 
+import { MODULE_ID } from "./constants.js";
 import { isMultiPassage, getEffectiveDirection, getGraphData, fireActiveItemMacro, setNodeActiveImageIndex } from "./node-utils.js";
 import { shouldLockOnArrival, isUserLocked } from "./autolock-utils.js";
 
@@ -74,6 +75,22 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this._orbMouseDownActive = false;
     /** @type {boolean} — tracks open state of the GM node switcher panel across re-renders */
     this._nodeSwitcherOpen = false;
+    /** @type {boolean} — tracks open state of the peek panel across re-renders */
+    this._peekPanelOpen = false;
+    /**
+     * Id of the node currently being peeked at, or null.
+     * Not persisted — reset on navigation or scene change.
+     * @type {string|null}
+     */
+    this._peekActiveNodeId = null;
+    /**
+     * Saved PIXI texture of the managed tile before a peek swap,
+     * used to restore the original image when peeking stops.
+     * @type {PIXI.Texture|null}
+     */
+    this._peekOriginalTexture = null;
+    /** @type {number|undefined} — Foundry hook id for canvasReady, used to reset peek state. */
+    this._onCanvasReadyHook = undefined;
   }
 
 
@@ -103,6 +120,7 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const { links } = getGraphData();
 
     for (const link of links) {
+      if (link.type === "peek") continue;
       if (isMultiPassage(link)) {
         for (const passage of link.passages) {
           const passDir = passage.direction ?? "both";
@@ -164,6 +182,8 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
       const seen = new Set();
 
       for (const link of links) {
+        // Peek links are not navigation options — handled separately below
+        if (link.type === "peek") continue;
         if (isMultiPassage(link)) {
           // Each passage is listed as its own destination button (no dedup — distinct traversal options)
           for (const passage of link.passages) {
@@ -315,6 +335,28 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     // isOpen is managed via DOM class toggle — default false on each render
     context.isOpen = false;
 
+    // ── Peek panel — available when the current node is a camera room ─────
+    const peekableNodes = [];
+    if (node?.isCameraRoom) {
+      for (const link of links) {
+        if (link.type !== "peek" || link.sourceId !== node.id) continue;
+        const peekNode = nodes.find(n => n.id === link.targetId);
+        if (!peekNode) continue;
+        const peekImgs = Array.isArray(peekNode.images) ? peekNode.images : [];
+        const peekSrc  = peekImgs[peekNode.activeImageIndex ?? 0]?.src ?? null;
+        peekableNodes.push({
+          id:       peekNode.id,
+          label:    peekNode.label || game.scenes.get(peekNode.sceneId)?.name || peekNode.id,
+          imageSrc: peekSrc,
+          isVideo:  peekSrc ? /\.(webm|mp4|ogg|ogv|mov)$/i.test(peekSrc) : false,
+          isActive: this._peekActiveNodeId === peekNode.id
+        });
+      }
+    }
+    context.peekableNodes = peekableNodes;
+    context.hasPeekPanel  = peekableNodes.length > 0;
+    // ─────────────────────────────────────────────────────────────────────
+
     context.isGM        = game.user.isGM;
     context.gmNavMode   = game.settings.get("click-adventure", "gmNavigationMode");
     context.isGuideMode = game.settings.get("click-adventure", "gmNavigationMode") === "guide";
@@ -395,6 +437,15 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     // Force ApplicationV2 to re-apply position styles now that the element
     // is correctly anchored in document.body under position:fixed.
     this.setPosition(this.constructor.DEFAULT_OPTIONS.position);
+
+    // When the canvas reloads (scene change) the PIXI tile is recreated, so the peek
+    // texture swap is gone. Reset peek state so the HUD reflects this.
+    this._onCanvasReadyHook = Hooks.on("canvasReady", () => {
+      this._peekOriginalTexture = null;
+      this._peekActiveNodeId    = null;
+      this._peekPanelOpen       = false;
+      if (this.rendered) this.render({ force: true });
+    });
   }
 
   /**
@@ -408,6 +459,11 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
   async _onClose(options) {
     document.removeEventListener("mousemove", this._docMouseMove);
     document.removeEventListener("mouseup",   this._docMouseUp);
+    if (this._onCanvasReadyHook !== undefined) {
+      Hooks.off("canvasReady", this._onCanvasReadyHook);
+      this._onCanvasReadyHook = undefined;
+    }
+    this._restorePeekTexture();
     globalThis.ClickAdventure._hud = null;
     await super._onClose(options);
   }
@@ -501,6 +557,7 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     html.querySelector(".ca-hud-ns-toggle-btn")?.addEventListener("click", (e) => {
       e.stopPropagation();
       this._closePanelDOM();
+      this._closePeekPanelDOM();
       this._toggleNodeSwitcherDOM();
     });
 
@@ -543,6 +600,61 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     // Restore open state after re-render
     if (this._nodeSwitcherOpen) {
       html.querySelector(".ca-hud-node-switcher")?.classList.add("ca-hud-node-switcher--open");
+    }
+    // ─────────────────────────────────────────────────────────────────────
+
+    // ── Peek panel ────────────────────────────────────────────────────────
+    html.querySelector(".ca-hud-peek-toggle-btn")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      this._closePanelDOM();
+      this._closeNodeSwitcherDOM();
+      this._togglePeekPanelDOM();
+    });
+
+    html.querySelectorAll("[data-action='peek-room']").forEach(btn => {
+      btn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        if (e.target.closest(".ca-hud-preview-eye")) return;
+        const nodeId = btn.dataset.nodeId;
+        if (this._peekActiveNodeId === nodeId) {
+          // Clicking the active peek room again restores the original tile
+          this._restorePeekTexture();
+          this._peekActiveNodeId = null;
+          html.querySelectorAll("[data-action='peek-room']")
+            .forEach(b => b.classList.remove("ca-hud-ns-item--active"));
+        } else {
+          const { nodes } = getGraphData();
+          const peekNode = nodes.find(n => n.id === nodeId);
+          if (!peekNode) return;
+          const peekImgs = Array.isArray(peekNode.images) ? peekNode.images : [];
+          const peekSrc  = peekImgs[peekNode.activeImageIndex ?? 0]?.src ?? null;
+          if (peekSrc) {
+            await this._applyPeekTexture(peekSrc);
+            this._peekActiveNodeId = nodeId;
+            html.querySelectorAll("[data-action='peek-room']").forEach(b => {
+              b.classList.toggle("ca-hud-ns-item--active", b.dataset.nodeId === nodeId);
+            });
+          }
+        }
+      });
+    });
+
+    if (this._peekPanelOpen) {
+      html.querySelector(".ca-hud-peek-panel")?.classList.add("ca-hud-peek-panel--open");
+    }
+
+    // Restore active peek button highlight and re-apply texture after re-render
+    if (this._peekActiveNodeId) {
+      html.querySelectorAll("[data-action='peek-room']").forEach(b => {
+        b.classList.toggle("ca-hud-ns-item--active", b.dataset.nodeId === this._peekActiveNodeId);
+      });
+      const { nodes } = getGraphData();
+      const peekNode = nodes.find(n => n.id === this._peekActiveNodeId);
+      if (peekNode) {
+        const peekImgs = Array.isArray(peekNode.images) ? peekNode.images : [];
+        const peekSrc  = peekImgs[peekNode.activeImageIndex ?? 0]?.src ?? null;
+        if (peekSrc) this._applyPeekTexture(peekSrc);
+      }
     }
     // ─────────────────────────────────────────────────────────────────────
 
@@ -616,6 +728,7 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const panel = this.element?.querySelector(".ca-hud-destinations");
     if (!panel) return;
     this._closeNodeSwitcherDOM();
+    this._closePeekPanelDOM();
     panel.classList.toggle("ca-hud-destinations--open");
   }
 
@@ -648,6 +761,62 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   /**
+   * Toggles the peek panel open/closed via CSS class.
+   * Tracks state on the instance so it survives re-renders.
+   */
+  _togglePeekPanelDOM() {
+    const panel = this.element?.querySelector(".ca-hud-peek-panel");
+    if (!panel) return;
+    this._peekPanelOpen = !this._peekPanelOpen;
+    panel.classList.toggle("ca-hud-peek-panel--open", this._peekPanelOpen);
+  }
+
+  /**
+   * Closes the peek panel and resets its open state.
+   */
+  _closePeekPanelDOM() {
+    const panel = this.element?.querySelector(".ca-hud-peek-panel");
+    panel?.classList.remove("ca-hud-peek-panel--open");
+    this._peekPanelOpen = false;
+  }
+
+  /**
+   * Swaps the managed background tile texture for the peeked room's active image.
+   * Operates on the PIXI mesh directly so only this client sees the change — no
+   * TileDocument update is triggered and no other clients are affected.
+   * Saves the original texture so it can be restored later.
+   *
+   * @param {string} imageSrc — URL of the image to display
+   * @returns {Promise<void>}
+   */
+  async _applyPeekTexture(imageSrc) {
+    const tile = canvas.tiles?.placeables?.find(t => t.document.getFlag(MODULE_ID, "managed"));
+    if (!tile?.mesh) return;
+    if (!this._peekOriginalTexture) {
+      this._peekOriginalTexture = tile.mesh.texture;
+    }
+    try {
+      const tex = await PIXI.Assets.load(imageSrc);
+      tile.mesh.texture = tex;
+    } catch (err) {
+      console.warn("Click Adventure | Peek texture swap failed:", err);
+    }
+  }
+
+  /**
+   * Restores the managed tile texture to its state before the peek swap.
+   * No-op when no peek is active.
+   */
+  _restorePeekTexture() {
+    if (!this._peekOriginalTexture) return;
+    const tile = canvas.tiles?.placeables?.find(t => t.document.getFlag(MODULE_ID, "managed"));
+    if (tile?.mesh) {
+      tile.mesh.texture = this._peekOriginalTexture;
+    }
+    this._peekOriginalTexture = null;
+  }
+
+  /**
    * Navigates the current user to a target node.
    * - In "gated" mode, non-GM players send a request to the GM instead of navigating directly.
    * - Scene transition is per-client only (scene.view() via socket), never global.
@@ -668,6 +837,11 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
       ui.notifications.info("Navigation request sent. Waiting for GM approval.");
       return;
     }
+
+    // Clear any active peek view before navigating away
+    this._restorePeekTexture();
+    this._peekActiveNodeId = null;
+    this._peekPanelOpen    = false;
 
     // ── Capture where we are NOW as the previous location ─────────────
     const currentNode = this._currentNode();

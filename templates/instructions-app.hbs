@@ -83,7 +83,7 @@
       <li><strong>Images</strong> — <em>+ Add Media</em> adds images or videos; each entry has a Navigation Name, a <em>Set Default</em> button (picks the media shown on the node), <em>Remove Entry</em>, and a macro drop-zone (drop a macro, then Run / Open / Remove and choose its trigger)</li>
       <li><strong>Linked Scenes</strong> — drag a Foundry scene onto the drop-zone to link it; each linked scene has a label, <em>Set Default</em>, <em>Remove Entry</em>, and its own macro drop-zone</li>
       <li><strong>Macros</strong> — drop node-level macros that fire on arrival; per macro set a trigger (<em>GM View</em>, <em>GM Activate</em>, <em>GM View or Activate</em>) and a mode (<em>Always</em> / <em>Once</em>). A fired "Once" macro shows an <em>Executed</em> badge with a <em>Reset</em> button</li>
-      <li><strong>Settings</strong> — <em>Set as Start</em> marks this node as the start point for all players (one per adventure); <em>Auto-Lock</em> chooses <em>Open</em>, <em>Inherit</em>, or <em>Locked</em></li>
+      <li><strong>Settings</strong> — <em>Set as Start</em> marks this node as the start point for all players (one per adventure); <em>Camera Room</em> enables the peek feature (see Links tab); <em>Auto-Lock</em> chooses <em>Open</em>, <em>Inherit</em>, or <em>Locked</em></li>
     </ul>
     <p>The footer holds <strong>Save</strong> and <strong>Delete Node</strong>.</p>
 
@@ -122,6 +122,16 @@
       <li><strong style="color:#ef4444">⊘ Locked</strong> — red — visible to players but not traversable (hints at a locked passage)</li>
     </ul>
     <p>Clicking a single-passage link cycles through them in order: Both → Forward → Backward → Blocked → Locked.</p>
+
+    <h3>Peek Links (Camera Rooms)</h3>
+    <p>Peek links let players <strong>spy on a linked room</strong> without navigating to it. To set them up:</p>
+    <ol>
+      <li>Open a node's configuration, go to <strong>Settings</strong>, and enable <strong>Camera: ON</strong>.</li>
+      <li>Once any node is a camera room, small <strong>teal corner anchors</strong> appear at the four corners of every node in the graph.</li>
+      <li>Drag from a corner anchor to a corner anchor on another node — this creates a <strong>peek link</strong> (teal dashed line with an 👁 marker). Corner anchors can only connect to other corner anchors.</li>
+      <li>Right-click a peek link to delete it.</li>
+    </ol>
+    <p>When a player is located in a camera room and that room has outgoing peek links, a <strong>Cameras</strong> button appears in their HUD below the Media button. Clicking it opens a panel listing the peekable rooms. Clicking a room swaps the background tile texture to show that room's image — only for that player, without changing their actual location. The preview resets when they navigate or when the scene reloads.</p>
 
     <h3>Multi-Passage Links</h3>
     <p><kbd>Shift</kbd> + click any link to open the passage editor and add multiple named passages between two nodes. Each passage has its own direction rule. Multi-passage links appear <strong style="color:#a855f7">purple</strong> with a thicker line and a ⊕ marker.</p>

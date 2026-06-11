@@ -590,6 +590,37 @@
   cursor: default;
 }
 
+/* ── Camera room toggle ───────────────────────────────────────────── */
+.click-adventure.node-config .ca-toggle-camera-room {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  line-height: 1;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  background: rgba(40, 60, 120, 0.5);
+  border: 1px solid rgba(100, 140, 220, 0.4);
+  border-radius: var(--ca-radius-md);
+  color: var(--ca-text-primary);
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+
+  &:hover {
+    background: rgba(60, 90, 180, 0.7);
+    border-color: rgba(140, 180, 255, 0.7);
+  }
+}
+
+.click-adventure.node-config .ca-toggle-camera-room--active {
+  background: rgba(10, 45, 35, 0.82);
+  border-color: rgba(20, 180, 140, 0.7);
+  color: rgba(20, 220, 160, 0.95);
+  box-shadow: 0 0 6px rgba(20, 200, 150, 0.35);
+}
+
 /* ── Footer actions ───────────────────────────────────────────────── */
 .click-adventure.node-config .ca-node-config-actions {
   display: flex;

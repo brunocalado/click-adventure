@@ -231,6 +231,64 @@
 .click-adventure.manager .ca-anchor-bottom:hover { transform: translateX(-50%) scale(1.4); }
 .click-adventure.manager .ca-anchor-left:hover   { transform: translateY(-50%) scale(1.4); }
 
+/* Peek anchor dots — square, teal, positioned at the four corners. */
+.click-adventure.manager .ca-anchor-peek {
+  background: rgba(20, 180, 140, 0.85);
+  border-color: rgba(0, 0, 0, 0.4);
+  border-radius: 3px;
+  width: 8px;
+  height: 8px;
+  min-width: 8px;
+  min-height: 8px;
+}
+
+.click-adventure.manager .ca-anchor-peek:hover {
+  background: rgba(60, 220, 170, 0.95);
+  transform: scale(1.5);
+}
+
+.click-adventure.manager .ca-anchor-peek-tl { top: -5px;    left: -5px; }
+.click-adventure.manager .ca-anchor-peek-tr { top: -5px;    right: -5px; }
+.click-adventure.manager .ca-anchor-peek-bl { bottom: -5px; left: -5px; }
+.click-adventure.manager .ca-anchor-peek-br { bottom: -5px; right: -5px; }
+
+/* Camera room toggle button — sits in the node-buttons cluster. */
+.click-adventure.manager .ca-camera-room-btn {
+  width: var(--ca-node-btn-size);
+  height: var(--ca-node-btn-size);
+  min-width: var(--ca-node-btn-size);
+  max-width: var(--ca-node-btn-size);
+  min-height: var(--ca-node-btn-size);
+  max-height: var(--ca-node-btn-size);
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 15, 40, 0.72);
+  border: 1px solid rgba(100, 140, 220, 0.3);
+  color: var(--ca-text-faint);
+  cursor: pointer;
+  pointer-events: all;
+  border-radius: var(--ca-radius-sm);
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+  backdrop-filter: blur(4px);
+  box-sizing: border-box;
+}
+
+.click-adventure.manager .ca-camera-room-btn:hover {
+  color: rgba(20, 220, 160, 0.9);
+  background: rgba(10, 40, 35, 0.85);
+  border-color: rgba(20, 180, 140, 0.6);
+}
+
+/* Active state — teal glow when camera room is on. */
+.click-adventure.manager .ca-camera-room-btn--on {
+  color: rgba(20, 220, 160, 0.95);
+  border-color: rgba(20, 180, 140, 0.7);
+  background: rgba(10, 45, 35, 0.82);
+  box-shadow: 0 0 6px rgba(20, 200, 150, 0.35);
+}
+
 /* Node occupant count badge — compact icon + number inside the top-left wrapper. */
 .click-adventure.manager .ca-node-occupant-badge {
   display: flex;

@@ -149,6 +149,8 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this._pendingNodeMacros = null;
     /** @type {"open"|"inherit"|"locked"|null} */
     this._pendingAutolockMode = null;
+    /** @type {boolean|null} */
+    this._pendingIsCameraRoom = null;
   }
 
 
@@ -214,6 +216,7 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }));
 
     context.autolockMode = this._pendingAutolockMode ?? node.autolockMode ?? "inherit";
+    context.isCameraRoom = this._pendingIsCameraRoom ?? node.isCameraRoom ?? false;
 
     return context;
   }
@@ -634,6 +637,21 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
         });
       });
     });
+
+    html.querySelector("[data-action='toggle-camera-room']")?.addEventListener("click", () => {
+      const { nodes } = getGraphData();
+      const node = nodes.find(n => n.id === this.nodeId);
+      const current = this._pendingIsCameraRoom ?? node?.isCameraRoom ?? false;
+      this._pendingIsCameraRoom = !current;
+      const btn = html.querySelector("[data-action='toggle-camera-room']");
+      if (btn) {
+        btn.classList.toggle("ca-toggle-camera-room--active", this._pendingIsCameraRoom);
+        btn.innerHTML = `<i class="fa-solid fa-camera"></i> ${this._pendingIsCameraRoom ? "Camera: ON" : "Camera: OFF"}`;
+        btn.title = this._pendingIsCameraRoom
+          ? "Camera Room enabled — click to disable"
+          : "Camera Room disabled — click to enable";
+      }
+    });
     // ────────────────────────────────────────────────────────────────────
 
     // ── Tab switching ────────────────────────────────────────────────────
@@ -832,9 +850,10 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const linkedScenes = this._getWorkingLinkedScenes();
     const nodeMacros = this._getWorkingNodeMacros();
     const autolockMode = this._pendingAutolockMode ?? (nodes.find(n => n.id === this.nodeId)?.autolockMode ?? "inherit");
+    const isCameraRoom = this._pendingIsCameraRoom ?? (nodes.find(n => n.id === this.nodeId)?.isCameraRoom ?? false);
     const updatedNodes = nodes.map(n => {
       if (n.id !== this.nodeId) return n;
-      return { ...n, label, images, activeImageIndex: activeIndex, linkedScenes, nodeMacros, autolockMode, imageSrc: undefined };
+      return { ...n, label, images, activeImageIndex: activeIndex, linkedScenes, nodeMacros, autolockMode, isCameraRoom, imageSrc: undefined };
     });
     await saveGraphData({ sceneId, startNodeId, nodes: updatedNodes, links });
 
@@ -868,9 +887,12 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this._pendingLinkedScenes = null;
     this._pendingNodeMacros = null;
     this._pendingAutolockMode = null;
+    this._pendingIsCameraRoom = null;
 
     const manager = foundry.applications.instances.get("manager-app");
     if (manager?.rendered) manager.render({ force: true });
+    const hud = globalThis.ClickAdventure?._hud;
+    if (hud?.rendered) hud.render({ force: true });
     this.close();
   }
 

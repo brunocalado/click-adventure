@@ -437,6 +437,52 @@
   color: var(--ca-text-bright);
 }
 
+/* ── Peek toggle button (players in a camera room) ────────────── */
+.click-adventure.nav-hud .ca-hud-peek-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 12px;
+  border: 1px solid rgba(20, 180, 140, 0.45);
+  background: rgba(0, 30, 22, 0.65);
+  color: rgba(20, 220, 160, 0.8);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
+  margin-top: 6px;
+  align-self: center;
+  pointer-events: all;
+}
+
+.click-adventure.nav-hud .ca-hud-peek-toggle-btn:hover {
+  background: rgba(0, 50, 35, 0.85);
+  color: rgba(60, 240, 190, 0.95);
+  border-color: rgba(20, 200, 150, 0.7);
+}
+
+/* ── Peek panel ─────────────────────────────────────────────────── */
+.click-adventure.nav-hud .ca-hud-peek-panel {
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  align-items: stretch;
+  padding: 8px;
+  background: var(--ca-bg-overlay);
+  border: 1px solid rgba(20, 180, 140, 0.4);
+  border-radius: var(--ca-radius-lg, 8px);
+  backdrop-filter: blur(6px);
+  min-width: 140px;
+  max-width: 200px;
+  order: 4;
+}
+
+.click-adventure.nav-hud .ca-hud-peek-panel--open {
+  display: flex;
+}
+
 /* ── Online players panel (left of orb) ───────────────────────── */
 .click-adventure.nav-hud .ca-hud-players {
   display: flex;

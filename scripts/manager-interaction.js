@@ -132,6 +132,7 @@ export function onAnchorMouseDown(app, e, anchor) {
   app._linkState = {
     sourceId: nodeEl.dataset.nodeId,
     sourceAnchor: srcAnchor,
+    sourceLinkType: anchor.dataset.type ?? "navigation",
     startX,
     startY,
     tempLine: tempPath   // property name kept so onDocMouseMove and onDocMouseUp still work
@@ -341,7 +342,7 @@ export async function onDocMouseUp(app, e) {
   }
 
   if (app._linkState) {
-    const { sourceId, sourceAnchor, tempLine } = app._linkState;
+    const { sourceId, sourceAnchor, sourceLinkType, tempLine } = app._linkState;
     app._linkState = null;
     tempLine.remove();
 
@@ -349,8 +350,10 @@ export async function onDocMouseUp(app, e) {
     const targetId = targetEl?.dataset?.nodeId;
     if (targetId && targetId !== sourceId) {
       const targetAnchorEl = e.target.closest?.(".ca-anchor");
+      // Peek links must connect corner-to-corner — discard if target is not a peek anchor
+      if ((sourceLinkType ?? "navigation") === "peek" && targetAnchorEl?.dataset?.type !== "peek") return;
       const targetAnchor = targetAnchorEl?.dataset?.anchor ?? nearestAnchor(e, targetEl);
-      await saveLink(app, sourceId, sourceAnchor, targetId, targetAnchor, e.shiftKey);
+      await saveLink(app, sourceId, sourceAnchor, targetId, targetAnchor, e.shiftKey, sourceLinkType ?? "navigation");
     }
   }
 }
@@ -392,15 +395,17 @@ export async function saveNodePositions(app, updates) {
  * Persists a new directed link between two anchor points, skipping duplicates.
  * When openEditor is true (Shift held during drag), the LinkEditorApp opens immediately
  * after creation so the user can configure multiple passages in one step.
+ * Peek links (type: "peek") have no passages — they are one-way visibility links only.
  * @param {ManagerApp} app
  * @param {string} sourceId
  * @param {string} sourceAnchor
  * @param {string} targetId
  * @param {string} targetAnchor
  * @param {boolean} [openEditor=false]
+ * @param {string} [linkType="navigation"]
  * @returns {Promise<void>}
  */
-export async function saveLink(app, sourceId, sourceAnchor, targetId, targetAnchor, openEditor = false) {
+export async function saveLink(app, sourceId, sourceAnchor, targetId, targetAnchor, openEditor = false, linkType = "navigation") {
   const { sceneId, startNodeId, nodes, links } = getGraphData();
   const duplicate = links.some(l =>
     l.sourceId === sourceId && l.sourceAnchor === sourceAnchor &&
@@ -408,11 +413,16 @@ export async function saveLink(app, sourceId, sourceAnchor, targetId, targetAnch
   );
   if (duplicate) return;
 
-  const newLinks = [...links, { sourceId, sourceAnchor, targetId, targetAnchor, passages: [{ label: "", direction: "both" }] }];
+  const isPeek = linkType === "peek";
+  const newLink = isPeek
+    ? { sourceId, sourceAnchor, targetId, targetAnchor, type: "peek" }
+    : { sourceId, sourceAnchor, targetId, targetAnchor, passages: [{ label: "", direction: "both" }] };
+
+  const newLinks = [...links, newLink];
   await saveGraphData({ sceneId, startNodeId, nodes, links: newLinks });
   app.render({ force: true });
 
-  if (openEditor) {
+  if (openEditor && !isPeek) {
     new LinkEditorApp(newLinks.length - 1).render(true);
   }
 }

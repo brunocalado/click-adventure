@@ -179,7 +179,7 @@
         <span class="ca-node-label">{{label}}</span>
       </div>
 
-      {{!-- Button cluster — dois botões idênticos empilhados no canto superior direito --}}
+      {{!-- Button cluster — botões empilhados no canto superior direito --}}
       <div class="ca-node-buttons">
         <button class="ca-view-scene-btn" data-node-id="{{id}}" data-scene-id="{{sceneId}}"
                 type="button" title="View Scene"
@@ -191,7 +191,6 @@
                 {{#unless sceneId}}disabled{{/unless}}>
           <i class="fa-solid fa-play" aria-hidden="true"></i>
         </button>
-
       </div>
 
       {{!-- Top-left cluster: start star + occupant badge --}}
@@ -214,6 +213,14 @@
       <div class="ca-anchor ca-anchor-right"  data-anchor="right"></div>
       <div class="ca-anchor ca-anchor-bottom" data-anchor="bottom"></div>
       <div class="ca-anchor ca-anchor-left"   data-anchor="left"></div>
+
+      {{!-- Peek anchors at corners — visible when any node in the graph has camera room enabled --}}
+      {{#if ../hasPeekAnchors}}
+      <div class="ca-anchor ca-anchor-peek ca-anchor-peek-tl" data-anchor="peek-tl" data-type="peek"></div>
+      <div class="ca-anchor ca-anchor-peek ca-anchor-peek-tr" data-anchor="peek-tr" data-type="peek"></div>
+      <div class="ca-anchor ca-anchor-peek ca-anchor-peek-bl" data-anchor="peek-bl" data-type="peek"></div>
+      <div class="ca-anchor ca-anchor-peek ca-anchor-peek-br" data-anchor="peek-br" data-type="peek"></div>
+      {{/if}}
     </div>
     {{/each}}
     </div>

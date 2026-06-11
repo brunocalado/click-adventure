@@ -113,3 +113,20 @@
   fill: var(--ca-state-multi);
   font-size: 14px;
 }
+
+/* Peek link — teal dashed line, visually distinct from navigation links. */
+.click-adventure.manager .ca-link--peek {
+  stroke: rgba(20, 200, 150, 0.75);
+  stroke-dasharray: 5 3;
+  stroke-width: 2px;
+}
+
+.click-adventure.manager .ca-link--peek.ca-link--hover {
+  stroke: rgba(60, 240, 190, 0.95);
+  stroke-width: 3px;
+}
+
+.click-adventure.manager .ca-link-direction[data-direction="peek"] {
+  fill: rgba(20, 200, 150, 0.9);
+  font-size: 11px;
+}

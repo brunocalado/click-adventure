@@ -209,6 +209,18 @@
       </button>
     </div>
 
+    <div class="ca-nc-settings-row">
+      <div class="ca-nc-settings-item">
+        <span class="ca-nc-settings-label">Camera Room</span>
+        <span class="ca-nc-settings-desc">Players in this room gain a Cameras button to peek at linked rooms via corner peek anchors without navigating.</span>
+      </div>
+      <button type="button" data-action="toggle-camera-room"
+              class="ca-toggle-camera-room {{#if isCameraRoom}}ca-toggle-camera-room--active{{/if}}"
+              title="{{#if isCameraRoom}}Camera Room enabled — click to disable{{else}}Camera Room disabled — click to enable{{/if}}">
+        <i class="fa-solid fa-camera"></i> {{#if isCameraRoom}}Camera: ON{{else}}Camera: OFF{{/if}}
+      </button>
+    </div>
+
     <div class="ca-config-section">
       <div class="ca-config-section-title">Auto-Lock</div>
       <div class="ca-btn-group" data-field="autolockMode">

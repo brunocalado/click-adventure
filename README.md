@@ -20,6 +20,7 @@ Click Adventure is a Foundry VTT module that lets you build point-and-click styl
 
 - **Five-Direction Link States** — Each link between nodes can be set to Bidirectional, Forward only, Backward only, Locked (visible but impassable, shows a hint to players), or Blocked (hidden from players entirely; GMs see it marked as secret).
 - **Multi-Passage Links** — A single link between two nodes can carry multiple named passages, each with its own direction state and display mode. Simple links cycle direction on click; multi-passage links open a dedicated editor.
+- **Peek Links** — A special link type drawn between corner anchors (teal dashed line). Peek links are one-way visibility connectors used by the Camera Room feature; they do not appear as navigation options for players and cannot be cycled or multi-passaged.
 
 ### Nodes
 
@@ -27,6 +28,7 @@ Click Adventure is a Foundry VTT module that lets you build point-and-click styl
 - **Linked Scenes Per Node** — Associate multiple Foundry scenes with a single node and switch between them during play, useful for nodes that change their visual representation.
 - **Node Macros** — Attach macros to a node with configurable triggers (GM View, GM Activate, or either) and execution modes (Always or Once). Compendium macros are imported automatically. A Reset Macros button re-enables once-fired macros.
 - **Per-Node Autolock** — Override the global autolock setting on individual nodes: Inherit, Open (always unlock on arrival), or Locked (always lock on arrival).
+- **Camera Rooms & Peek Links** — Mark any node as a Camera Room (node Settings tab). Once enabled, teal corner anchors appear on all nodes; drag corner-to-corner to draw a peek link. Players inside a camera room see a **Cameras** button in their HUD. Clicking it lists all rooms reachable via peek links; clicking a room swaps the background tile to show that room's image locally — no scene change, no broadcast to other players. The peek resets on navigation or scene reload.
 - **Node Context Menu** — Right-click any node in the Manager to set it as the active node, lock or unlock players at that location, or delete it.
 
 ### GM Tools
