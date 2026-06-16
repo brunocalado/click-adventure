@@ -111,6 +111,8 @@ The Manager is the main interface where you build your scene graph. It's GM-only
 
 Open the **Scenes** tab in the sidebar. A **Click Adventure** button (and a **Groups** button) appear in the directory header. Click **Click Adventure** to open the Manager.
 
+![Quick Access Buttons](docs/quick-access.webp)
+
 **Option 2 — Macro**
 
 Create a script macro with the following code:
