@@ -17,7 +17,7 @@
  */
 
 import { MODULE_ID } from "./constants.js";
-import { getOrCreateFolder, createSceneForNode } from "./manager-scene-ops.js";
+import { getOrCreateGroupFolder, createSceneForNode } from "./manager-scene-ops.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -264,7 +264,7 @@ export class AdventureIOApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * For each graph:
    *   1. Resolves all macro references (UUID → world ID → name fallback).
    *   2. Resolves linked-scene references by scene name.
-   *   3. Creates a Foundry Scene for every node (reusing the existing folder).
+   *   3. Creates a Foundry Scene for every node in the graph's own Scene folder.
    *   4. Appends the graph to the world collection with a fresh ID.
    *
    * @param {object[]} graphs - graph objects from the import JSON
@@ -273,7 +273,6 @@ export class AdventureIOApp extends HandlebarsApplicationMixin(ApplicationV2) {
   async _doImport(graphs) {
     ui.notifications.info("Click Adventure: Import started — creating scenes…");
 
-    const folder   = await getOrCreateFolder();
     const warnings = [];
 
     const col = game.settings.get(MODULE_ID, "graphs");
@@ -291,9 +290,12 @@ export class AdventureIOApp extends HandlebarsApplicationMixin(ApplicationV2) {
         processedNodes.push(processed);
       }
 
+      // Each imported graph gets its own Scene folder, keyed by its fresh id.
+      const graphFolder = await getOrCreateGroupFolder({ id: newGraphId, name: graph.name });
+
       // Create Foundry Scenes immediately — no manual "Sync Scenes" step needed.
       for (let i = 0; i < processedNodes.length; i++) {
-        const sceneId = await createSceneForNode(processedNodes[i], folder.id);
+        const sceneId = await createSceneForNode(processedNodes[i], graphFolder.id);
         processedNodes[i] = { ...processedNodes[i], sceneId };
       }
 

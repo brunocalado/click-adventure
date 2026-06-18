@@ -166,6 +166,22 @@ export function getGraphData() {
 }
 
 /**
+ * Returns the full active graph entry (including its `id` and `name`), unlike
+ * {@link getGraphData} which strips those fields. Needed when an operation must
+ * resolve the group's per-group Scene folder (keyed by `id`).
+ *
+ * @returns {{ id: string, name: string, startNodeId: string, nodes: object[], links: object[] }|null}
+ *   The active group, or null when the world has no groups yet.
+ */
+export function getActiveGroup() {
+  const col = game.settings.get(MODULE_ID, "graphs");
+  const raw = typeof col?.toObject === "function" ? col.toObject() : (col ?? {});
+  return (raw.graphs ?? []).find(g => g.id === raw.activeGraphId)
+    ?? raw.graphs?.[0]
+    ?? null;
+}
+
+/**
  * Merges a partial patch into the active graph and persists the collection.
  * Only the active graph entry is modified; all other groups remain unchanged.
  *

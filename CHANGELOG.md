@@ -1,3 +1,16 @@
+# 0.1.3
+
+## [Fixed]
+- **Creating scenes no longer deletes other groups' scenes.** Previously all groups shared a single "Click Adventure" scene folder, so pressing **Create / Update Scenes** while a second group was active deleted the first group's scenes — destroying any GM customizations (placed tiles, tokens, walls, lighting, assets). Each group now owns its own scene folder, so the cleanup that runs on Create / Update Scenes is scoped to the active group and can never touch another group's scenes.
+
+## [Changed]
+- **Per-group scene folders:** each adventure group keeps its Foundry scenes in its own dedicated folder (named *Click Adventure — &lt;group name&gt;*). Renaming a group renames its folder; if the folder is deleted manually it is recreated on the next Create / Update Scenes.
+- **Group deletion cleanup:** deleting a group now also removes that group's scene folder and its scenes, so nothing is left orphaned.
+- **Reset is now per-group:** the Danger Zone button is now **Reset Group** and clears only the current group's nodes, links, and scenes. Other groups are untouched.
+- **Import:** each imported adventure now creates its scenes in its own folder instead of a shared one.
+
+> No migration is performed: scenes created before this version stay in the existing shared folder. Only scenes created from now on are placed in per-group folders.
+
 # 0.1.2
 
 ## [Added]

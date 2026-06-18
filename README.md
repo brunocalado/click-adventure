@@ -70,6 +70,7 @@ Each location is fully configurable: multiple images, linked scenes, macros, aut
 ### 🎭 Adventure Groups
 
 - **Multiple Adventure Graphs** — Organize your campaign into named **Groups**, each with its own independent scene graph. Switch between them at any time — activating a group moves all players to that group's starting node automatically.
+- **Isolated Scenes Per Group** — Each group keeps its Foundry scenes in its own dedicated folder, so building or updating one adventure never touches another's scenes — any tiles, tokens, lighting, or edits you made stay safe. Deleting a group cleans up its folder and scenes automatically, and **Reset Group** only affects the group you're working in.
 - **Export & Import Adventures** — Export selected adventure groups to a portable JSON file. Import them into any world, with automatic scene creation and macro resolution by name. Great for sharing pre-built adventures or backing up your work.
 
 ---

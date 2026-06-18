@@ -13,6 +13,7 @@
  */
 
 import { MODULE_ID } from "./constants.js";
+import { getGroupFolder, deleteGroupSceneFolder } from "./manager-scene-ops.js";
 
 export class GroupManagerApp extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2
@@ -144,6 +145,9 @@ export class GroupManagerApp extends foundry.applications.api.HandlebarsApplicat
     });
     if (!confirmed) return;
 
+    // Clean up the group's own Scene folder and scenes so nothing is orphaned.
+    await deleteGroupSceneFolder(group);
+
     await game.settings.set(MODULE_ID, "graphs", {
       ...raw,
       graphs: graphs.filter(g => g.id !== groupId)
@@ -262,6 +266,10 @@ export class GroupManagerApp extends foundry.applications.api.HandlebarsApplicat
       ...raw,
       graphs: graphs.map(g => g.id === groupId ? { ...g, name } : g)
     });
+
+    // Keep the group's Scene folder name in sync (cosmetic — lookups use the flag).
+    const folder = getGroupFolder({ id: groupId });
+    if (folder) await folder.update({ name: `Click Adventure — ${name}` });
 
     this.render({ force: true });
   }

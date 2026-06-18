@@ -7,7 +7,7 @@
  */
 
 import { MODULE_ID } from "./constants.js";
-import { getNodeActiveImage, getGraphData, saveGraphData, fireActiveItemMacro, fireNodeMacros } from "./node-utils.js";
+import { getNodeActiveImage, getGraphData, getActiveGroup, saveGraphData, fireActiveItemMacro, fireNodeMacros } from "./node-utils.js";
 import { onSetActiveNode } from "./manager-players.js";
 import { buildSceneData } from "./scene-template.js";
 import { NODE_W, NODE_H } from "./manager-graph.js";
@@ -161,17 +161,55 @@ export function filenameToLabel(filename) {
 // ---------------------------------------------------------------------------
 
 /**
- * Finds or creates the "Click Adventure" Scene folder used to group all node scenes.
+ * Resolves the Scene folder owned by a group.
+ *
+ * Association is by the `graphId` flag on the Folder — never by name — so the
+ * lookup is immune to renames and to name collisions with the legacy shared
+ * "Click Adventure" folder. Returns undefined when the group has no folder yet
+ * (or the GM deleted it manually, leaving the flag dangling on nothing).
+ *
+ * @param {{ id: string }} group
+ * @returns {Folder|undefined}
+ */
+export function getGroupFolder(group) {
+  if (!group?.id) return undefined;
+  return game.folders.find(
+    f => f.type === "Scene" && f.getFlag(MODULE_ID, "graphId") === group.id
+  );
+}
+
+/**
+ * Finds or creates the Scene folder owned by a group. If the GM deleted the
+ * folder, {@link getGroupFolder} returns nothing and a fresh one is created,
+ * so the next "Create Scenes" press always works.
+ *
+ * @param {{ id: string, name?: string }} group
  * @returns {Promise<Folder>}
  */
-export async function getOrCreateFolder() {
-  let folder = game.folders.find(
-    f => f.name === "Click Adventure" && f.type === "Scene"
-  );
-  if (!folder) {
-    folder = await Folder.create({ name: "Click Adventure", type: "Scene", sorting: "a" });
-  }
-  return folder;
+export async function getOrCreateGroupFolder(group) {
+  const existing = getGroupFolder(group);
+  if (existing) return existing;
+  return Folder.create({
+    name: `Click Adventure — ${group.name ?? "Adventure"}`,
+    type: "Scene",
+    sorting: "a",
+    flags: { [MODULE_ID]: { graphId: group.id } }
+  });
+}
+
+/**
+ * Deletes a group's Scene folder along with every scene inside it.
+ * No-op when the group has no folder. Scenes are removed in a single batch.
+ *
+ * @param {{ id: string }} group
+ * @returns {Promise<void>}
+ */
+export async function deleteGroupSceneFolder(group) {
+  const folder = getGroupFolder(group);
+  if (!folder) return;
+  const sceneIds = game.scenes.filter(s => s.folder?.id === folder.id).map(s => s.id);
+  if (sceneIds.length) await Scene.deleteDocuments(sceneIds);
+  await folder.delete();
 }
 
 /**
@@ -223,16 +261,23 @@ export async function createSceneForNode(node, folderId) {
  * @returns {Promise<void>}
  */
 export async function onSyncScenes(app) {
-  const { sceneId, startNodeId, nodes, links } = getGraphData();
-  const folder = await getOrCreateFolder();
+  const group = getActiveGroup();
+  if (!group) {
+    ui.notifications.warn("Click Adventure: No active group to sync.");
+    return;
+  }
+  const { startNodeId = "", nodes = [], links = [] } = group;
+  const folder = await getOrCreateGroupFolder(group);
   let updated = 0;
 
-  // Remove scenes in the folder that no longer correspond to any node
+  // Remove scenes in THIS group's folder that no longer correspond to any node.
+  // Scoping the scan to the group's own folder is what prevents another group's
+  // scenes (and their GM customizations) from ever being deleted here.
   const validSceneIds = new Set(nodes.map(n => n.sceneId).filter(Boolean));
-  const folderScenes = game.scenes.filter(s => s.folder?.id === folder.id);
-  for (const scene of folderScenes) {
-    if (!validSceneIds.has(scene.id)) await scene.delete();
-  }
+  const orphanIds = game.scenes
+    .filter(s => s.folder?.id === folder.id && !validSceneIds.has(s.id))
+    .map(s => s.id);
+  if (orphanIds.length) await Scene.deleteDocuments(orphanIds);
 
   const updatedNodes = [...nodes];
   for (let i = 0; i < updatedNodes.length; i++) {
@@ -282,52 +327,48 @@ export async function onSyncScenes(app) {
     updated++;
   }
 
-  await saveGraphData({ sceneId, startNodeId, nodes: updatedNodes, links });
+  await saveGraphData({ startNodeId, nodes: updatedNodes, links });
   app.render({ force: true });
   ui.notifications.info(`Click Adventure: ${updated} scene(s) synced.`);
 }
 
 /**
- * Resets the entire graph — clears all nodes, links, and deletes all scenes
- * in the "Click Adventure" folder. Requires explicit confirmation.
- * Triggered by the "Reset" toolbar button.
+ * Resets the active group — clears its nodes and links and deletes its Scene
+ * folder along with every scene inside it. Other groups are untouched.
+ * Requires explicit confirmation. Triggered by the "Reset" toolbar button.
  * @param {ManagerApp} app
  * @returns {Promise<void>}
  */
 export async function onResetGraph(app) {
+  const group = getActiveGroup();
+  if (!group) return;
+
   const confirmed = await foundry.applications.api.DialogV2.confirm({
-    window: { title: "Reset Graph" },
-    content: "<p>This will delete <strong>all nodes, links and their Foundry Scenes</strong>. This cannot be undone.</p><p>Are you sure?</p>",
+    window: { title: "Reset Group" },
+    content: `<p>This will delete <strong>all nodes, links and Foundry Scenes</strong> in the current group "<strong>${foundry.utils.escapeHTML(group.name ?? "")}</strong>". This cannot be undone.</p><p>Are you sure?</p>`,
     rejectClose: false
   });
   if (!confirmed) return;
 
-  // Delete all scenes in the "Click Adventure" folder
-  const folder = game.folders.find(
-    f => f.name === "Click Adventure" && f.type === "Scene"
-  );
-  if (folder) {
-    const folderScenes = game.scenes.filter(s => s.folder?.id === folder.id);
-    for (const scene of folderScenes) await scene.delete();
-    await folder.delete();
-  }
+  await deleteGroupSceneFolder(group);
 
-  // Clear all users' position flags in a single batch — sequential await loops are prohibited
-  const userUpdates = game.users.map(u => ({
-    _id: u.id,
-    flags: { [MODULE_ID]: { currentNodeId: null } }
-  }));
-  await User.updateDocuments(userUpdates);
+  // Clear position flags only for users currently inside this group's nodes —
+  // players positioned in other groups must not be disturbed. Single batch update.
+  const groupNodeIds = new Set((group.nodes ?? []).map(n => n.id));
+  const userUpdates = game.users
+    .filter(u => groupNodeIds.has(u.getFlag(MODULE_ID, "currentNodeId")))
+    .map(u => ({ _id: u.id, flags: { [MODULE_ID]: { currentNodeId: null } } }));
+  if (userUpdates.length) await User.updateDocuments(userUpdates);
 
-  await saveGraphData({ sceneId: "", startNodeId: "", nodes: [], links: [] });
+  await saveGraphData({ startNodeId: "", nodes: [], links: [] });
 
-  // Close HUD if open — it no longer has a valid state
+  // Close HUD if open — the active group no longer has a valid state
   if (globalThis.ClickAdventure._hud?.rendered) {
     globalThis.ClickAdventure._hud.close();
   }
 
   app.render({ force: true });
-  ui.notifications.info("Click Adventure: graph reset.");
+  ui.notifications.info("Click Adventure: group reset.");
 }
 
 // ---------------------------------------------------------------------------
