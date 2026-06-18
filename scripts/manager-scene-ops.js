@@ -27,15 +27,19 @@ export async function onAddNode(app) {
   const workspace = app.element?.querySelector(".ca-workspace");
   const w = workspace?.clientWidth  ?? 600;
   const h = workspace?.clientHeight ?? 400;
+  const zoom = app._zoom ?? 1;
 
+  // Place the node at the center of the visible viewport, in canvas space.
+  // Mirrors the screen->canvas conversion used elsewhere — (screen - pan) / zoom —
+  // so creation stays accurate at any zoom level (not just 100%).
   const newNode = {
     id: foundry.utils.randomID(),
     label: "Scene",
     images: [],
     activeImageIndex: 0,
     sceneId: null,
-    x: Math.round(-app._pan.x + (w - NODE_W) / 2),
-    y: Math.round(-app._pan.y + (h - NODE_H) / 2)
+    x: Math.round((w / 2 - app._pan.x) / zoom - NODE_W / 2),
+    y: Math.round((h / 2 - app._pan.y) / zoom - NODE_H / 2)
   };
 
   // First node added automatically becomes the start node

@@ -1,3 +1,8 @@
+# 0.1.4
+
+## [Fixed]
+- **New nodes now appear in the visible area at any zoom level.** Pressing **+** while zoomed in past 100% could place the new node outside the visible workspace, forcing you to pan around to find it. Node creation now accounts for the current zoom factor (matching the screen-to-canvas conversion the rest of the workspace already used), so a new node always lands at the center of the visible view. Behavior at 100% zoom is unchanged.
+
 # 0.1.3
 
 ## [Fixed]
