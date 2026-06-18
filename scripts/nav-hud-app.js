@@ -320,7 +320,13 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     // ─────────────────────────────────────────────────────────────────────
 
     // ── Add preview image for each destination ────────────────────────────
+    // Players only receive destination previews when the GM enables the
+    // setting; the GM always sees them. Gating here (rather than in the
+    // template) keeps the image URL out of the player's DOM entirely.
+    const allowDestPreview =
+      game.user.isGM || game.settings.get(MODULE_ID, "playerDestinationPreview");
     for (const dest of availableDestinations) {
+      if (!allowDestPreview) { dest.previewSrc = null; dest.isVideo = false; continue; }
       const destNode  = nodes.find(n => n.id === dest.id);
       const destImgs  = Array.isArray(destNode?.images) ? destNode.images : [];
       const destImg   = destImgs[destNode?.activeImageIndex ?? 0] ?? null;

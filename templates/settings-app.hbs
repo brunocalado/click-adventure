@@ -33,6 +33,14 @@
       </button>
     </div>
     <p class="ca-settings-hint">When enabled, players see other connected players in their HUD and can preview the node image of where each player is.</p>
+    <div class="ca-settings-row">
+      <label class="ca-settings-label">Player Destination Preview</label>
+      <button class="ca-toggle-btn {{#if playerDestinationPreview}}ca-toggle-btn--active{{/if}}"
+              type="button" data-setting="playerDestinationPreview">
+        {{#if playerDestinationPreview}}Enabled{{else}}Disabled{{/if}}
+      </button>
+    </div>
+    <p class="ca-settings-hint">When enabled, players can hover the eye icon on a destination to preview its room image before entering. The GM always sees previews.</p>
   </div>
 
   <div class="ca-settings-section">

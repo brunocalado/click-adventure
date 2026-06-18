@@ -125,6 +125,17 @@ Hooks.on("updateSetting", (setting) => {
 });
 
 /**
+ * Refresh the HUD when the GM toggles destination previews so players gain or
+ * lose the eye icon immediately, without reopening the canvas.
+ */
+Hooks.on("updateSetting", (setting) => {
+  if (setting.key !== `${MODULE_ID}.playerDestinationPreview`) return;
+  if (globalThis.ClickAdventure._hud?.rendered) {
+    globalThis.ClickAdventure._hud.render({ force: true });
+  }
+});
+
+/**
  * Re-render the HUD players panel when a user's flags change (e.g. navigation)
  * or when a user connects/disconnects.
  * Triggered by the native Foundry updateUser and userConnected hooks.
@@ -290,6 +301,15 @@ Hooks.on("init", () => {
     config: false,
     type: Boolean,
     default: true
+  });
+
+  game.settings.register(MODULE_ID, "playerDestinationPreview", {
+    name: "Player Destination Preview",
+    hint: "Allows players to hover the eye icon on a destination to preview its room image before entering. The GM always sees previews.",
+    scope: "world",
+    config: false,
+    type: Boolean,
+    default: false
   });
 
   game.settings.register(MODULE_ID,"orbStyle", {

@@ -1,3 +1,10 @@
+# 0.1.5
+
+## [Added]
+- **Player Destination Preview toggle:** a new GM-controlled switch (Manager → gear icon → HUD Visibility) controls whether players can use the eye icon on destination buttons to preview a room's image before entering it. **It is OFF by default**, so players no longer see destination previews unless the GM turns it on. The GM always sees the previews regardless of the setting. Other-player location previews are unaffected (they remain governed by *Show Player Locations*).
+
+> Behavior change: in worlds upgrading from a previous version, players lose the destination preview eye until the GM enables this setting.
+
 # 0.1.4
 
 ## [Fixed]
