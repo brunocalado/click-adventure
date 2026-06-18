@@ -91,6 +91,8 @@ Each location is fully configurable: multiple images, linked scenes, macros, aut
 - **Scene Transition Effects** — Choose from 13 animated transitions applied when players navigate: Fade, Swirl, Water Drop, Morph, Crosshatch, Wind, Waves, White Noise, Hologram, Hole, Hole Swirl, Glitch, Dots — or None.
 - **Player Autolock** — Prevent players from moving until the GM unlocks them. Lock state persists through pausing and resuming the game.
 - **Default Token Spawn Positions** — Capture per-player token positions so characters land exactly where you want them when arriving at a new scene.
+- **Load Player Tokens Toggle** — Per-group control (Tokens tab) over whether each player's linked-actor token is automatically created and moved into a node's scene as they navigate. When off, navigation only changes the view and tokens already placed are left untouched. On by default; enabling *Saved Positions* or capturing positions switches it on automatically, since both rely on loaded tokens.
+- **Destination Preview** — Players can hover the eye icon on a destination arrow to preview that room's image before traveling there. GM-controlled (HUD tab) and off by default for players; the GM always sees the previews.
 - **Player Location Whisper** — Players can see all other connected players listed in their HUD. Hovering the eye icon shows a tooltip preview of that player's current node image, even if they're in a different scene. Can be disabled via settings.
 
 ---
@@ -99,7 +101,7 @@ Each location is fully configurable: multiple images, linked scenes, macros, aut
 
 - **Customizable HUD Button** — Choose the shape (orb or square), color, optional custom image, and size of the navigation button, with a live preview in the settings panel.
 - **HUD Visibility Control** — Show the HUD to all players or restrict it to GM only.
-- **Settings Panel** — Configure transition type, HUD visibility, Guide Mode action, token position capture, and more — all in one place.
+- **Settings Panel** — Configure transition type, HUD visibility, token behavior, Guide Mode action, and more — organized into **Scenes**, **HUD**, **Tokens**, and **Danger** tabs, with sliding toggle switches for on/off options.
 - **Built-in Instructions** — A help reference is always one click away from the Manager toolbar.
 
 ---
