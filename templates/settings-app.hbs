@@ -82,6 +82,21 @@
 
     <div class="ca-setting-card">
       <div class="ca-setting-card-main">
+        <label class="ca-settings-label">Load Player Tokens</label>
+        <button type="button" role="switch"
+                aria-checked="{{#if loadPlayerTokens}}true{{else}}false{{/if}}"
+                class="ca-switch ca-load-player-tokens {{#if loadPlayerTokens}}ca-switch--on{{/if}}">
+          <span class="ca-switch-track"><span class="ca-switch-knob"></span></span>
+        </button>
+      </div>
+      <p class="ca-setting-card-desc">
+        <strong>Enabled:</strong> a player's linked-actor token is automatically created/moved into a node's scene as they navigate.<br>
+        <strong>Disabled:</strong> no tokens are placed — navigation only changes the view. Applies to the current group only; tokens already in a scene are left in place.
+      </p>
+    </div>
+
+    <div class="ca-setting-card">
+      <div class="ca-setting-card-main">
         <label class="ca-settings-label">Saved Positions</label>
         <button type="button" role="switch" data-setting="useDefaultTokenPositions"
                 aria-checked="{{#if useDefaultTokenPositions}}true{{else}}false{{/if}}"

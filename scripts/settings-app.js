@@ -8,6 +8,7 @@
 
 
 import { onResetGraph } from "./manager-scene-ops.js";
+import { getActiveGroup, saveGraphData } from "./node-utils.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -71,6 +72,10 @@ export class SettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
       { value: "all",     label: "All players" },
       { value: "gm-only", label: "GM only" }
     ];
+
+    // Per-group flag (stored on the active group object, not a game setting).
+    // Absent field is treated as enabled to preserve existing groups' behavior.
+    context.loadPlayerTokens = getActiveGroup()?.loadPlayerTokens !== false;
 
     context.useDefaultTokenPositions = game.settings.get("click-adventure", "useDefaultTokenPositions");
     context.showPlayerWhisper = game.settings.get("click-adventure", "showPlayerWhisper");
@@ -137,14 +142,33 @@ export class SettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     // Sliding switches — generic handler for any boolean setting using data-setting
     this.element.querySelectorAll(".ca-switch[data-setting]").forEach(sw => {
-      sw.addEventListener("click", async function () {
-        const setting = this.dataset.setting;
+      sw.addEventListener("click", async () => {
+        const setting = sw.dataset.setting;
         const next    = !game.settings.get("click-adventure", setting);
         await game.settings.set("click-adventure", setting, next);
+        sw.classList.toggle("ca-switch--on", next);
+        sw.setAttribute("aria-checked", String(next));
+
+        // Saved Positions only makes sense when tokens are loaded — enabling it
+        // forces the per-group Load Player Tokens switch on.
+        if (setting === "useDefaultTokenPositions" && next && getActiveGroup()?.loadPlayerTokens === false) {
+          await saveGraphData({ loadPlayerTokens: true });
+          const lpt = this.element.querySelector(".ca-load-player-tokens");
+          lpt?.classList.add("ca-switch--on");
+          lpt?.setAttribute("aria-checked", "true");
+        }
+      });
+    });
+
+    // Per-group "Load Player Tokens" switch — persists on the active group object
+    // (not a game setting), so it cannot use the generic data-setting handler above.
+    this.element.querySelector(".ca-load-player-tokens")
+      ?.addEventListener("click", async function () {
+        const next = getActiveGroup()?.loadPlayerTokens === false; // flip current state
+        await saveGraphData({ loadPlayerTokens: next });
         this.classList.toggle("ca-switch--on", next);
         this.setAttribute("aria-checked", String(next));
       });
-    });
 
     this.element.querySelector(".ca-capture-token-pos")
       ?.addEventListener("click", async () => {
@@ -182,6 +206,14 @@ export class SettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
             sw.classList.add("ca-switch--on");
             sw.setAttribute("aria-checked", "true");
           }
+        }
+
+        // Capturing positions implies token loading — force Load Player Tokens on.
+        if (getActiveGroup()?.loadPlayerTokens === false) {
+          await saveGraphData({ loadPlayerTokens: true });
+          const lpt = this.element.querySelector(".ca-load-player-tokens");
+          lpt?.classList.add("ca-switch--on");
+          lpt?.setAttribute("aria-checked", "true");
         }
 
         ui.notifications.info(`Click Adventure: Saved default positions for ${count} player(s). Token placement enabled.`);

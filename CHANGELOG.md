@@ -1,3 +1,8 @@
+# 0.1.7
+
+## [Added]
+- **Load Player Tokens toggle:** a new switch in Manager → gear icon → **Tokens** tab controls whether a player's linked-actor token is automatically created/moved into a node's scene as they navigate. When **off**, navigation only changes the view and no tokens are placed (tokens already in a scene are left in place). The setting is **per group** — each adventure group keeps its own value — and defaults to **on**, so existing behavior is unchanged. Turning on *Saved Positions* or clicking *Capture Positions* automatically switches Load Player Tokens on, since both rely on tokens being loaded.
+
 # 0.1.6
 
 ## [Changed]

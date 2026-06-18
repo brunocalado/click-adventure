@@ -22,7 +22,7 @@
  */
 
 import { MODULE_ID } from "./constants.js";
-import { getGraphData, fireActiveItemMacro } from "./node-utils.js";
+import { getGraphData, getActiveGroup, fireActiveItemMacro } from "./node-utils.js";
 import { lockUser, unlockUser } from "./autolock-utils.js";
 
 const SOCKET_ID = "module.click-adventure";
@@ -227,6 +227,9 @@ export class AdventureSocketManager {
   async _handleMoveToken({ userId, fromSceneId, toSceneId } = {}) {
     if (!game.user.isGM) return;
     if (!toSceneId) return;
+
+    // Per-group toggle: skip auto token loading when disabled for the active group.
+    if (getActiveGroup()?.loadPlayerTokens === false) return;
 
     const user = game.users.get(userId);
     if (!user) return;
