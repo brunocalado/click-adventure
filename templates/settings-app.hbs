@@ -1,95 +1,114 @@
 <div class="ca-settings-panel">
 
-  <div class="ca-settings-section">
-    <div class="ca-settings-section-title">Scene Transition</div>
-    <div class="ca-settings-row">
-      <label class="ca-settings-label" for="ca-transition-type">Transition Type</label>
-      <select class="ca-settings-transition" id="ca-transition-type">
-        {{#each transitionOptions}}
-        <option value="{{value}}" {{#if (eq value ../transitionType)}}selected{{/if}}>{{label}}</option>
-        {{/each}}
-      </select>
-    </div>
-    <p class="ca-settings-hint">Applied to all scenes on Create / Update Scenes.</p>
-  </div>
+  <nav class="ca-settings-tabs" role="tablist">
+    <button type="button" class="ca-settings-tab ca-settings-tab--active" data-tab="scenes" role="tab">Scenes</button>
+    <button type="button" class="ca-settings-tab" data-tab="hud"    role="tab">HUD</button>
+    <button type="button" class="ca-settings-tab" data-tab="tokens" role="tab">Tokens</button>
+    <button type="button" class="ca-settings-tab" data-tab="danger" role="tab">Danger</button>
+  </nav>
 
-  <div class="ca-settings-section">
-    <div class="ca-settings-section-title">HUD Visibility</div>
-    <div class="ca-settings-row">
-      <label class="ca-settings-label">Visible to</label>
-      <div class="ca-btn-group" data-setting="hudVisibility">
-        <button class="ca-btn-group-btn {{#if (eq hudVisibility 'all')}}ca-btn-group-btn--active{{/if}}"
-                type="button" data-value="all">All players</button>
-        <button class="ca-btn-group-btn {{#if (eq hudVisibility 'gm-only')}}ca-btn-group-btn--active{{/if}}"
-                type="button" data-value="gm-only">GM only</button>
+  {{!-- ── Scenes ─────────────────────────────────────────────────────── --}}
+  <div class="ca-settings-panel-tab" data-panel="scenes">
+    <div class="ca-setting-card">
+      <div class="ca-setting-card-main">
+        <label class="ca-settings-label" for="ca-transition-type">Transition Type</label>
+        <select class="ca-settings-transition" id="ca-transition-type">
+          {{#each transitionOptions}}
+          <option value="{{value}}" {{#if (eq value ../transitionType)}}selected{{/if}}>{{label}}</option>
+          {{/each}}
+        </select>
       </div>
+      <p class="ca-setting-card-desc">Applied to all scenes on Create / Update Scenes.</p>
     </div>
-    <p class="ca-settings-hint">Controls which users see the navigation HUD. The GM always sees it regardless of this setting.</p>
-    <div class="ca-settings-row">
-      <label class="ca-settings-label">Show Player Locations</label>
-      <button class="ca-toggle-btn {{#if showPlayerWhisper}}ca-toggle-btn--active{{/if}}"
-              type="button" data-setting="showPlayerWhisper">
-        {{#if showPlayerWhisper}}Enabled{{else}}Disabled{{/if}}
-      </button>
-    </div>
-    <p class="ca-settings-hint">When enabled, players see other connected players in their HUD and can preview the node image of where each player is.</p>
-    <div class="ca-settings-row">
-      <label class="ca-settings-label">Player Destination Preview</label>
-      <button class="ca-toggle-btn {{#if playerDestinationPreview}}ca-toggle-btn--active{{/if}}"
-              type="button" data-setting="playerDestinationPreview">
-        {{#if playerDestinationPreview}}Enabled{{else}}Disabled{{/if}}
-      </button>
-    </div>
-    <p class="ca-settings-hint">When enabled, players can hover the eye icon on a destination to preview its room image before entering. The GM always sees previews.</p>
   </div>
 
-  <div class="ca-settings-section">
-    <div class="ca-settings-section-title">Guide Mode</div>
-    <div class="ca-settings-row">
-      <label class="ca-settings-label">Action</label>
-      <div class="ca-btn-group" data-setting="guideModeAction">
-        <button class="ca-btn-group-btn {{#if (eq guideModeAction 'view')}}ca-btn-group-btn--active{{/if}}"
-                type="button" data-value="view">View (per-player)</button>
-        <button class="ca-btn-group-btn {{#if (eq guideModeAction 'activate')}}ca-btn-group-btn--active{{/if}}"
-                type="button" data-value="activate">Activate (global)</button>
+  {{!-- ── HUD ────────────────────────────────────────────────────────── --}}
+  <div class="ca-settings-panel-tab ca-settings-panel-tab--hidden" data-panel="hud">
+    <div class="ca-setting-card">
+      <div class="ca-setting-card-main">
+        <label class="ca-settings-label">Visible to</label>
+        <div class="ca-btn-group" data-setting="hudVisibility">
+          <button class="ca-btn-group-btn {{#if (eq hudVisibility 'all')}}ca-btn-group-btn--active{{/if}}"
+                  type="button" data-value="all">All players</button>
+          <button class="ca-btn-group-btn {{#if (eq hudVisibility 'gm-only')}}ca-btn-group-btn--active{{/if}}"
+                  type="button" data-value="gm-only">GM only</button>
+        </div>
       </div>
+      <p class="ca-setting-card-desc">Controls which users see the navigation HUD. The GM always sees it regardless of this setting.</p>
     </div>
-    <p class="ca-settings-hint">
-      <strong>View:</strong> sends each player to the scene individually via socket.<br>
-      <strong>Activate:</strong> activates the scene globally — Foundry pulls all connected users in automatically. Simpler, but affects everyone on the server.
-    </p>
-  </div>
 
-  <div class="ca-settings-section">
-    <div class="ca-settings-section-title">Token Placement</div>
-
-    <div class="ca-settings-section-title ca-token-placement-subtitle">Saved Positions</div>
-    <div class="ca-token-placement-card">
-      <div class="ca-token-placement-controls">
-        <button class="ca-toggle-btn {{#if useDefaultTokenPositions}}ca-toggle-btn--active{{/if}}"
-                type="button" data-setting="useDefaultTokenPositions">
-          {{#if useDefaultTokenPositions}}Enabled{{else}}Disabled{{/if}}
-        </button>
-        <div class="ca-token-placement-divider"></div>
-        <button class="ca-capture-token-pos" type="button">
-          <i class="fa-solid fa-crosshairs"></i> Capture Positions
+    <div class="ca-setting-card">
+      <div class="ca-setting-card-main">
+        <label class="ca-settings-label">Show Player Locations</label>
+        <button type="button" role="switch" data-setting="showPlayerWhisper"
+                aria-checked="{{#if showPlayerWhisper}}true{{else}}false{{/if}}"
+                class="ca-switch {{#if showPlayerWhisper}}ca-switch--on{{/if}}">
+          <span class="ca-switch-track"><span class="ca-switch-knob"></span></span>
         </button>
       </div>
+      <p class="ca-setting-card-desc">When enabled, players see other connected players in their HUD and can preview the node image of where each player is.</p>
     </div>
 
-    <p class="ca-settings-hint">
-      <strong>Enabled:</strong> teleported tokens spawn at the last captured positions.<br>
-      <strong>Disabled:</strong> tokens appear at the same position they had in the previous scene. Falls back to scene center if no previous position exists.
-    </p>
+    <div class="ca-setting-card">
+      <div class="ca-setting-card-main">
+        <label class="ca-settings-label">Player Destination Preview</label>
+        <button type="button" role="switch" data-setting="playerDestinationPreview"
+                aria-checked="{{#if playerDestinationPreview}}true{{else}}false{{/if}}"
+                class="ca-switch {{#if playerDestinationPreview}}ca-switch--on{{/if}}">
+          <span class="ca-switch-track"><span class="ca-switch-knob"></span></span>
+        </button>
+      </div>
+      <p class="ca-setting-card-desc">When enabled, players can hover the eye icon on a destination to preview its room image before entering. The GM always sees previews.</p>
+    </div>
   </div>
 
-  <div class="ca-settings-section ca-settings-section--danger">
-    <div class="ca-settings-section-title">Danger Zone</div>
-    <div class="ca-danger-row">
-      <button class="ca-reset-graph" type="button">
-        <i class="fa-solid fa-trash"></i> Reset Group
+  {{!-- ── Tokens ─────────────────────────────────────────────────────── --}}
+  <div class="ca-settings-panel-tab ca-settings-panel-tab--hidden" data-panel="tokens">
+    <div class="ca-setting-card">
+      <div class="ca-setting-card-main">
+        <label class="ca-settings-label">Guide Mode</label>
+        <div class="ca-btn-group" data-setting="guideModeAction">
+          <button class="ca-btn-group-btn {{#if (eq guideModeAction 'view')}}ca-btn-group-btn--active{{/if}}"
+                  type="button" data-value="view">View (per-player)</button>
+          <button class="ca-btn-group-btn {{#if (eq guideModeAction 'activate')}}ca-btn-group-btn--active{{/if}}"
+                  type="button" data-value="activate">Activate (global)</button>
+        </div>
+      </div>
+      <p class="ca-setting-card-desc">
+        <strong>View:</strong> sends each player to the scene individually via socket.<br>
+        <strong>Activate:</strong> activates the scene globally — Foundry pulls all connected users in automatically. Simpler, but affects everyone on the server.
+      </p>
+    </div>
+
+    <div class="ca-setting-card">
+      <div class="ca-setting-card-main">
+        <label class="ca-settings-label">Saved Positions</label>
+        <button type="button" role="switch" data-setting="useDefaultTokenPositions"
+                aria-checked="{{#if useDefaultTokenPositions}}true{{else}}false{{/if}}"
+                class="ca-switch {{#if useDefaultTokenPositions}}ca-switch--on{{/if}}">
+          <span class="ca-switch-track"><span class="ca-switch-knob"></span></span>
+        </button>
+      </div>
+      <button class="ca-capture-token-pos" type="button">
+        <i class="fa-solid fa-crosshairs"></i> Capture Positions
       </button>
-      <p class="ca-danger-hint">Deletes <strong>all nodes, links and Foundry Scenes</strong> in the <strong>current group</strong>. Other groups are untouched. This cannot be undone.</p>
+      <p class="ca-setting-card-desc">
+        <strong>Enabled:</strong> teleported tokens spawn at the last captured positions.<br>
+        <strong>Disabled:</strong> tokens appear at the same position they had in the previous scene. Falls back to scene center if no previous position exists.
+      </p>
+    </div>
+  </div>
+
+  {{!-- ── Danger ─────────────────────────────────────────────────────── --}}
+  <div class="ca-settings-panel-tab ca-settings-panel-tab--hidden" data-panel="danger">
+    <div class="ca-setting-card ca-setting-card--danger">
+      <div class="ca-setting-card-main">
+        <label class="ca-settings-label">Reset Group</label>
+        <button class="ca-reset-graph" type="button">
+          <i class="fa-solid fa-trash"></i> Reset Group
+        </button>
+      </div>
+      <p class="ca-setting-card-desc">Deletes <strong>all nodes, links and Foundry Scenes</strong> in the <strong>current group</strong>. Other groups are untouched. This cannot be undone.</p>
     </div>
   </div>
 

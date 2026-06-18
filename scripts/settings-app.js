@@ -29,6 +29,13 @@ export class SettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
   };
 
   /**
+   * Id of the currently active tab. Held on the instance so the selected tab
+   * survives re-renders (mirrors the pattern used by NodeConfigApp).
+   * @type {string}
+   */
+  _activeTab = "scenes";
+
+  /**
    * Provides the current settings values and all available transition options.
    * Triggered during the ApplicationV2 _prepareContext lifecycle stage.
    *
@@ -84,6 +91,29 @@ export class SettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
   _onRender(context, options) {
     super._onRender(context, options);
 
+    // Tab switching — custom data-tab/data-panel pattern (no native TABS API),
+    // matching NodeConfigApp. The active tab is restored on every render.
+    const tabs   = this.element.querySelectorAll(".ca-settings-tab");
+    const panels = this.element.querySelectorAll(".ca-settings-panel-tab");
+
+    const activateTab = (tabName) => {
+      tabs.forEach(t =>
+        t.classList.toggle("ca-settings-tab--active", t.dataset.tab === tabName)
+      );
+      panels.forEach(p =>
+        p.classList.toggle("ca-settings-panel-tab--hidden", p.dataset.panel !== tabName)
+      );
+    };
+
+    activateTab(this._activeTab);
+
+    tabs.forEach(tab => {
+      tab.addEventListener("click", () => {
+        this._activeTab = tab.dataset.tab;
+        activateTab(this._activeTab);
+      });
+    });
+
     this.element.querySelector(".ca-settings-transition")
       ?.addEventListener("change", async (e) => {
         await game.settings.set("click-adventure", "transitionType", e.target.value);
@@ -105,14 +135,14 @@ export class SettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
       });
     });
 
-    // Toggle buttons — generic handler for any boolean setting using data-setting
-    this.element.querySelectorAll(".ca-toggle-btn[data-setting]").forEach(btn => {
-      btn.addEventListener("click", async function () {
+    // Sliding switches — generic handler for any boolean setting using data-setting
+    this.element.querySelectorAll(".ca-switch[data-setting]").forEach(sw => {
+      sw.addEventListener("click", async function () {
         const setting = this.dataset.setting;
         const next    = !game.settings.get("click-adventure", setting);
         await game.settings.set("click-adventure", setting, next);
-        this.classList.toggle("ca-toggle-btn--active", next);
-        this.textContent = next ? "Enabled" : "Disabled";
+        this.classList.toggle("ca-switch--on", next);
+        this.setAttribute("aria-checked", String(next));
       });
     });
 
@@ -143,14 +173,14 @@ export class SettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
         await game.settings.set("click-adventure", "defaultTokenPositions", updated);
 
-        // Auto-enable the toggle if it was off
+        // Auto-enable the switch if it was off
         const wasEnabled = game.settings.get("click-adventure", "useDefaultTokenPositions");
         if (!wasEnabled) {
           await game.settings.set("click-adventure", "useDefaultTokenPositions", true);
-          const toggleBtn = this.element.querySelector(".ca-toggle-btn");
-          if (toggleBtn) {
-            toggleBtn.classList.add("ca-toggle-btn--active");
-            toggleBtn.textContent = "Enabled";
+          const sw = this.element.querySelector('.ca-switch[data-setting="useDefaultTokenPositions"]');
+          if (sw) {
+            sw.classList.add("ca-switch--on");
+            sw.setAttribute("aria-checked", "true");
           }
         }
 

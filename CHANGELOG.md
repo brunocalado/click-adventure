@@ -1,3 +1,9 @@
+# 0.1.6
+
+## [Changed]
+- **Settings window redesign:** the Manager → gear icon settings panel is now organized into four tabs — **Scenes**, **HUD**, **Tokens**, and **Danger** — instead of one long scroll. Each setting sits in its own card with its explanatory text grouped inside it, so it's always clear which description belongs to which control. Text contrast and sizing were increased for readability.
+- **Toggle switches:** the *Show Player Locations*, *Player Destination Preview*, and *Saved Positions* on/off controls are now sliding switches (green when on) instead of the old "Enabled/Disabled" buttons. Behavior and saved values are unchanged.
+
 # 0.1.5
 
 ## [Added]
