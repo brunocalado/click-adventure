@@ -205,6 +205,11 @@ Hooks.on("ready", async () => {
   // while already on their node's scene.
   if (canvas?.scene?.id === node.sceneId) return;
 
+  // Never hijack a scene the GM/world has active that isn't part of this
+  // adventure's graph — the module only restores position within its own
+  // scenes, it never overrides a scene chosen on purpose.
+  if (canvas?.scene && !_isGraphScene(canvas.scene.id)) return;
+
   const scene = game.scenes.get(node.sceneId);
   if (!scene) return;
 

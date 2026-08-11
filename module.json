@@ -2,31 +2,65 @@
   "id": "click-adventure",
   "title": "Click Adventure",
   "description": "Point-and-click adventure game module.",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "compatibility": {
     "minimum": "14",
-    "verified": "14"
+    "verified": "14",
+    "maximum": "14"
   },
-  "esmodules": ["scripts/index.js"],
-  "styles": [
-    "styles/_tokens.css",
-    "styles/_foundry-overrides.css",
-    "styles/manager.css",
-    "styles/nodes.css",
-    "styles/links.css",
-    "styles/nav-hud.css",
-    "styles/nav-mode.css",
-    "styles/node-config.css",
-    "styles/link-editor.css",
-    "styles/instructions.css",
-    "styles/requests.css",
-    "styles/context-menu.css",
-    "styles/settings-panel.css",
-    "styles/hud-style.css",
-    "styles/group-manager.css",
-    "styles/adventure-io.css"
+  "esmodules": [
+    "scripts/index.js"
   ],
-  
+  "styles": [
+    {
+      "src": "styles/_tokens.css"
+    },
+    {
+      "src": "styles/_foundry-overrides.css"
+    },
+    {
+      "src": "styles/manager.css"
+    },
+    {
+      "src": "styles/nodes.css"
+    },
+    {
+      "src": "styles/links.css"
+    },
+    {
+      "src": "styles/nav-hud.css"
+    },
+    {
+      "src": "styles/nav-mode.css"
+    },
+    {
+      "src": "styles/node-config.css"
+    },
+    {
+      "src": "styles/link-editor.css"
+    },
+    {
+      "src": "styles/instructions.css"
+    },
+    {
+      "src": "styles/requests.css"
+    },
+    {
+      "src": "styles/context-menu.css"
+    },
+    {
+      "src": "styles/settings-panel.css"
+    },
+    {
+      "src": "styles/hud-style.css"
+    },
+    {
+      "src": "styles/group-manager.css"
+    },
+    {
+      "src": "styles/adventure-io.css"
+    }
+  ],
   "authors": [
     {
       "name": "Mestre Digital",
@@ -34,38 +68,25 @@
       "flags": {}
     }
   ],
-  
   "socket": true,
-
   "url": "https://github.com/brunocalado/click-adventure",
   "manifest": "https://raw.githubusercontent.com/brunocalado/click-adventure/main/module.json",
   "download": "https://codeload.github.com/brunocalado/click-adventure/zip/main",
-
   "relationships": {
     "recommends": [
       {
         "id": "hide-ui",
         "type": "module",
-        "manifest": "https://raw.githubusercontent.com/brunocalado/hide-ui/main/module.json"
+        "manifest": "https://raw.githubusercontent.com/brunocalado/hide-ui/main/module.json",
+        "compatibility": {}
       },
       {
         "id": "visual-polls",
         "type": "module",
-        "manifest": "https://raw.githubusercontent.com/brunocalado/visual-polls/main/module.json"
+        "manifest": "https://raw.githubusercontent.com/brunocalado/visual-polls/main/module.json",
+        "compatibility": {}
       }
     ]
-  }
+  },
+  "flags": {}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

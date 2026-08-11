@@ -1,3 +1,9 @@
+# 0.1.8
+
+## [Fixed]
+- https://github.com/brunocalado/click-adventure/issues/7
+- **World load no longer overrides a GM-activated scene outside the adventure.** Previously, on every world load, the module would silently switch a user's view — GM included — to the adventure's start scene whenever the currently active scene differed from that user's saved position, even if the GM had deliberately activated a scene that isn't part of the adventure at all. The automatic position-restore on load now only kicks in when the currently viewed scene already belongs to the adventure graph; a scene the GM chose on purpose that isn't part of the module is never touched.
+
 # 0.1.7
 
 ## [Added]
