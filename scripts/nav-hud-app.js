@@ -163,16 +163,6 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
 
-    // Lazy init: if the user has no currentNodeId yet, seed it from startNodeId now.
-    // This handles players who joined after the ready hook ran or mid-session additions.
-    const existingNodeId = game.user.getFlag("click-adventure", "currentNodeId");
-    if (!existingNodeId) {
-      const { startNodeId } = getGraphData();
-      if (startNodeId) {
-        await game.user.setFlag("click-adventure", "currentNodeId", startNodeId);
-      }
-    }
-
     const node = this._currentNode();
     const availableDestinations = [];
     const { nodes, links } = getGraphData();
@@ -451,7 +441,19 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
       this._peekOriginalTexture = null;
       this._peekActiveNodeId    = null;
       this._peekPanelOpen       = false;
-      if (this.rendered) this.render({ force: true });
+
+      // The click-adventure.js canvasReady handler (registered at module load, so it
+      // always runs before this one) calls close() when the new scene doesn't belong
+      // to the adventure — but without awaiting it. `this.rendered` can therefore still
+      // read true here while that close() is still in flight, so re-rendering on that
+      // flag alone would resurrect a HUD that's mid-close. Re-check scene membership
+      // independently instead of trusting `rendered`.
+      const scene = canvas.scene;
+      const { nodes } = getGraphData();
+      const belongsToAdventure = scene?.flags?.[MODULE_ID]?.isAdventureScene === true
+        || nodes.some(n => n.sceneId === scene?.id
+          || (n.linkedScenes ?? []).some(ls => ls.sceneId === scene?.id));
+      if (this.rendered && belongsToAdventure) this.render({ force: true });
     });
   }
 

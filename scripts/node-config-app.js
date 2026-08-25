@@ -863,15 +863,6 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     });
     await saveGraphData({ sceneId, startNodeId, nodes: updatedNodes, links });
 
-    // Reset all users' position to the new start node in a single batch [V14]
-    if (this._pendingStartNode && startNodeId !== persistedStartNodeId) {
-      const userUpdates = game.users.map(u => ({
-        _id: u.id,
-        flags: { "click-adventure": { "currentNodeId": startNodeId } }
-      }));
-      await User.updateDocuments(userUpdates);
-    }
-
     const updatedNode = updatedNodes.find(n => n.id === this.nodeId);
     if (updatedNode?.sceneId) {
       const scene = game.scenes.get(updatedNode.sceneId);

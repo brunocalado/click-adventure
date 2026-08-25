@@ -200,11 +200,11 @@
     <div class="ca-nc-settings-row">
       <div class="ca-nc-settings-item">
         <span class="ca-nc-settings-label">Start Node</span>
-        <span class="ca-nc-settings-desc">Sets this node as the starting position for all players.</span>
+        <span class="ca-nc-settings-desc">Used when this group is activated — teleports online players here.</span>
       </div>
       <button type="button" data-action="toggle-start"
               class="ca-toggle-start {{#if isStartNode}}ca-toggle-start--active{{/if}}"
-              title="{{#if isStartNode}}This is the start node{{else}}Set as start node for all players{{/if}}">
+              title="{{#if isStartNode}}This is the start node{{else}}Set as start node for this group{{/if}}">
         {{#if isStartNode}}&#9733; Start Node{{else}}&#9734; Set as Start{{/if}}
       </button>
     </div>

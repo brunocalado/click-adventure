@@ -169,10 +169,11 @@ Hooks.on("pauseGame", async (paused) => {
 });
 
 /**
- * Seeds this user's per-user currentNodeId flag from startNodeId on first load,
- * then restores the correct scene view based on the saved node position.
+ * Restores the correct scene view based on the user's saved node position.
  * Runs for every user (GM and players alike) — each gets their own independent flag.
- * Only seeds when the user has no position yet and a startNodeId is defined.
+ * A user with no position yet (currentNodeId flag unset) is left alone — the module
+ * never auto-places anyone; positioning happens only via explicit GM teleport (see
+ * manager-players.js) or the "Activate group" action.
  * Only calls scene.view() when the currently viewed canvas scene differs from the
  * node's scene, avoiding a redundant reload when the user is already in the right place.
  */
@@ -185,15 +186,9 @@ Hooks.on("ready", async () => {
     await game.settings.set(MODULE_ID, "_pauseSnapshot", []);
   }
 
-  const { startNodeId, nodes } = getGraphData();
-  const existing = game.user.getFlag(MODULE_ID,"currentNodeId");
+  const { nodes } = getGraphData();
 
-  // Seed position on first visit (no flag set yet)
-  if (!existing && startNodeId) {
-    await game.user.setFlag(MODULE_ID,"currentNodeId", startNodeId);
-  }
-
-  // Resolve the node the user is currently at (after potential seed above)
+  // Resolve the node the user is currently at, if any
   const currentNodeId = game.user.getFlag(MODULE_ID,"currentNodeId");
   if (!currentNodeId) return;
 

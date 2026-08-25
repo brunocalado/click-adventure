@@ -1,3 +1,11 @@
+# 0.1.9
+
+## [Changed]
+- **Start Node no longer auto-places players.** Previously, a player with no saved position was silently teleported to the graph's Start Node on world load, and again as a fallback whenever the HUD rendered — and marking a new node as Start would immediately reset the position of *every* user, even players already mid-adventure, the moment the GM hit Save. A player with no saved position is now left untouched instead — Foundry simply shows whatever scene is otherwise active, and the GM places them manually via the node right-click teleport menu. The Start Node toggle itself is unchanged and still marks which node **Activate Group** sends everyone to.
+
+## [Fixed]
+- **Navigation HUD no longer reappears after switching to a non-adventure scene.** Activating a scene outside the Click Adventure graph correctly closed the HUD, but a stale re-render triggered by the HUD's own canvas-reload handler could reopen it again before the close finished, leaving it visible on scenes it shouldn't appear on. The HUD now re-checks scene membership itself before deciding to re-render.
+
 # 0.1.8
 
 ## [Fixed]
