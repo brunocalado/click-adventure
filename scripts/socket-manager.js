@@ -22,8 +22,9 @@
  */
 
 import { MODULE_ID } from "./constants.js";
-import { getGraphData, getActiveGroup, fireActiveItemMacro } from "./node-utils.js";
+import { getGraphData, getActiveGroup, saveGraphData, fireActiveItemMacro, fireNodeMacros } from "./node-utils.js";
 import { lockUser, unlockUser } from "./autolock-utils.js";
+import { openNodeJournal } from "./node-media.js";
 
 const SOCKET_ID = "module.click-adventure";
 
@@ -66,6 +67,12 @@ export class AdventureSocketManager {
           break;
         case "REQUEST_LOCK":
           this._handleRequestLock(payload);
+          break;
+        case "MACRO_EXECUTED":
+          this._handleMacroExecuted(payload);
+          break;
+        case "OPEN_JOURNAL":
+          this._handleOpenJournal(payload);
           break;
         case "LOCK_CHANGED":
           this._handleLockChanged(payload);
@@ -168,7 +175,11 @@ export class AdventureSocketManager {
     if (nodeId) {
       const { nodes } = getGraphData();
       const node = nodes.find(n => n.id === nodeId);
-      if (node) await fireActiveItemMacro(node, "player-view", sceneId);
+      if (node) {
+        await fireActiveItemMacro(node, "player-view", sceneId);
+        await fireNodeMacros(node, "player-view");
+        await openNodeJournal(node, "view");
+      }
     }
 
     const hud = globalThis.ClickAdventure._hud;
@@ -364,7 +375,11 @@ export class AdventureSocketManager {
     if (toNodeId) {
       const { nodes } = getGraphData();
       const node = nodes.find(n => n.id === toNodeId);
-      if (node) await fireActiveItemMacro(node, "player-view", sceneId ?? null);
+      if (node) {
+        await fireActiveItemMacro(node, "player-view", sceneId ?? null);
+        await fireNodeMacros(node, "player-view");
+        await openNodeJournal(node, "view");
+      }
     }
 
     this.emitPlayerMoved(toNodeId);
@@ -391,6 +406,69 @@ export class AdventureSocketManager {
    */
   emitRequestLock({ userId, nodeId }) {
     this._emit("REQUEST_LOCK", { userId, nodeId });
+  }
+
+  /**
+   * Emits a request from a player to the GM to persist "once" node macros that just
+   * executed on the player's client. The executedOnce flag lives in the world-scoped
+   * "graphs" setting, which only a GM may write.
+   * Called from fireNodeMacros() when the executing client is not a GM.
+   * @param {{ nodeId: string, entryIds: string[] }} param0
+   */
+  emitMacroExecuted({ nodeId, entryIds }) {
+    this._emit("MACRO_EXECUTED", { nodeId, entryIds });
+  }
+
+  /**
+   * Received by all clients. Only the GM client persists the executedOnce marks.
+   * Triggered by socket message type MACRO_EXECUTED.
+   * @param {{ nodeId: string, entryIds: string[] }} payload
+   * @returns {Promise<void>}
+   */
+  async _handleMacroExecuted({ nodeId, entryIds } = {}) {
+    if (!game.user.isGM) return;
+    if (!nodeId || !Array.isArray(entryIds) || entryIds.length === 0) return;
+
+    const { sceneId, startNodeId, nodes, links } = getGraphData();
+    const node = nodes.find(n => n.id === nodeId);
+    if (!Array.isArray(node?.nodeMacros)) return;
+
+    const updatedNodes = nodes.map(n => n.id !== nodeId ? n : {
+      ...n,
+      nodeMacros: n.nodeMacros.map(m =>
+        entryIds.includes(m.id) ? { ...m, executedOnce: true } : m
+      )
+    });
+    await saveGraphData({ sceneId, startNodeId, nodes: updatedNodes, links });
+
+    // Refresh the manager so the "Executed" badge reflects the new state.
+    const manager = foundry.applications.instances.get("manager-app");
+    if (manager?.rendered) manager.render({ force: true });
+  }
+
+  /**
+   * Broadcasts that a node's scene was activated, so every client can open that node's
+   * journal page. Deliberately not addressed to a single user: activation is global, and
+   * each receiving client decides for itself based on the node's trigger and the page's
+   * own permissions.
+   * @param {string} nodeId
+   */
+  emitOpenJournal(nodeId) {
+    this._emit("OPEN_JOURNAL", { nodeId });
+  }
+
+  /**
+   * Received by all clients. Each one opens the node's journal page only if the node's
+   * trigger covers "activate" and the page grants it at least OBSERVER.
+   * Triggered by socket message type OPEN_JOURNAL.
+   * @param {{ nodeId: string }} payload
+   * @returns {Promise<void>}
+   */
+  async _handleOpenJournal({ nodeId } = {}) {
+    if (!nodeId) return;
+    const { nodes } = getGraphData();
+    const node = nodes.find(n => n.id === nodeId);
+    if (node) await openNodeJournal(node, "activate");
   }
 
   /**

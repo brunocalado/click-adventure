@@ -29,7 +29,7 @@ A sleek floating button appears on screen. Players click it to reveal directiona
 ![Navigation HUD](docs/hud.webp)
 
 ### Node Configuration
-Each location is fully configurable: multiple images, linked scenes, macros, autolock rules, and camera room settings — all in one panel.
+Each location is fully configurable: multiple images, linked scenes, macros, a journal page, background music, autolock rules, and camera room settings — all in one panel.
 
 ![Node Settings](docs/node-settings.webp)
 
@@ -59,7 +59,11 @@ Each location is fully configurable: multiple images, linked scenes, macros, aut
 
 - **Multiple Background Images** — Attach several background images to a location. The GM can switch between them live from the HUD, and the change syncs to all players instantly via a managed tile in the scene.
 - **Linked Scenes Per Node** — Associate more than one Foundry scene with a single node and swap between them during play — perfect for locations that look different at different times.
-- **Node Macros** — Attach macros to a node with configurable triggers (GM View, GM Activate, or either) and execution modes (Always or Once). Compendium macros are automatically imported. A **Reset Macros** button re-enables once-fired macros.
+- **Node Macros** — Attach macros to a node with configurable triggers (GM View, GM Activate, Player View, or GM View/Activate) and execution modes (Always or Once). The same trigger choices are available on per-image and per-linked-scene macros. Macros fire on arrival however the player got there — HUD navigation, GM teleport, or an approved request in Gated mode. Compendium macros are automatically imported. A **Reset Macros** button re-enables once-fired macros.
+
+  > A macro set to *Player View* runs on the player's own client, so Foundry's permissions apply: the player must own the macro, and their role must be allowed to use script macros in **Configure Permissions**.
+- **Journal Page Per Node** — Drag a journal page onto a node and it opens automatically when players arrive — on scene view, on scene activate, or both. It writes to the Scene's own journal field, so it is visible in Foundry's native scene configuration too. Foundry permissions decide who sees it: a player with access to the page gets it on arrival, a player without access gets nothing.
+- **Background Music Per Node** — Drag a playlist track (or a whole playlist) onto a node to set the Scene's playlist. Foundry starts it when the scene is **activated**, matching its native behaviour. Both this and the journal page accept compendium documents, importing them into the world automatically.
 - **Per-Node Autolock** — Override the global autolock setting per node: **Inherit**, **Open** (always unlock on arrival), or **Locked** (always lock on arrival).
 - **Camera Rooms & Peek Links** — Mark any node as a Camera Room. Teal corner anchors appear on all nodes; drag corner-to-corner to create a peek link. Players inside a camera room see a **Cameras** button in their HUD — clicking a room swaps their background tile locally to show that room's image. No scene change, no broadcast. Resets on navigation.
 - **Node Context Menu** — Right-click any node to set it as the active location, lock or unlock all players there, or delete it.
@@ -71,7 +75,7 @@ Each location is fully configurable: multiple images, linked scenes, macros, aut
 
 - **Multiple Adventure Graphs** — Organize your campaign into named **Groups**, each with its own independent scene graph. Switch between them at any time — activating a group moves all players to that group's starting node automatically.
 - **Isolated Scenes Per Group** — Each group keeps its Foundry scenes in its own dedicated folder, so building or updating one adventure never touches another's scenes — any tiles, tokens, lighting, or edits you made stay safe. Deleting a group cleans up its folder and scenes automatically, and **Reset Group** only affects the group you're working in.
-- **Export & Import Adventures** — Export selected adventure groups to a portable JSON file. Import them into any world, with automatic scene creation and macro resolution by name. Great for sharing pre-built adventures or backing up your work.
+- **Export & Import Adventures** — Export selected adventure groups to a portable JSON file. Import them into any world, with automatic scene creation and reference resolution by name — macros, linked scenes, journal pages, and playlist tracks all reconnect to the matching documents in the destination world, and anything that can't be found is reported as a warning instead of failing the import. Great for sharing pre-built adventures or backing up your work.
 
 ---
 

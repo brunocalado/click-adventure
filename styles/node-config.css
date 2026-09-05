@@ -799,3 +799,60 @@
   line-height: 1.5;
   margin: 0;
 }
+
+/* ── Journal & Music tabs ─────────────────────────────────────────── */
+/* Both tabs are shortcuts for fields the Scene document already owns, so they
+   deliberately look lighter than the Images/Macros tabs: one drop zone, one row. */
+.click-adventure.node-config .ca-media-hint {
+  margin: 0 0 8px;
+  line-height: 1.45;
+}
+
+.click-adventure.node-config .ca-media-drop {
+  border: 2px dashed var(--ca-border-mid);
+  border-radius: var(--ca-radius-md);
+  padding: 14px 10px;
+  text-align: center;
+  color: var(--ca-text-muted);
+  font-size: 12px;
+  cursor: copy;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.click-adventure.node-config .ca-media-drop--over {
+  border-color: var(--ca-state-open);
+  background: var(--ca-state-open-tint);
+}
+
+.click-adventure.node-config .ca-media-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--ca-radius-md);
+}
+
+.click-adventure.node-config .ca-media-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.click-adventure.node-config .ca-media-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ca-text-bright);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.click-adventure.node-config .ca-media-controls select {
+  width: 100%;
+  font-size: 11px;
+}

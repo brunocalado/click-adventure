@@ -242,13 +242,28 @@ export async function fireActiveItemMacro(node, trigger, sceneId = null) {
 }
 
 /**
+ * Decides whether a configured macro trigger fires for the trigger being dispatched.
+ * "gm-any" is the GM-side wildcard — it covers "gm-view" and "gm-activate" only.
+ * It must never match "player-view", or a macro the GM marked GM-only would run on
+ * the player's client.
+ *
+ * @param {string} entryTrigger - trigger stored on the macro entry
+ * @param {string} trigger      - trigger being dispatched
+ * @returns {boolean}
+ */
+function _triggerMatches(entryTrigger, trigger) {
+  if (entryTrigger === trigger) return true;
+  return entryTrigger === "gm-any" && (trigger === "gm-view" || trigger === "gm-activate");
+}
+
+/**
  * @param {{ macroId: string, trigger: string }|null|undefined} macroEntry
  * @param {string} trigger
  * @returns {Promise<void>}
  */
 async function _tryFireMacro(macroEntry, trigger) {
   if (!macroEntry) return;
-  if (macroEntry.trigger !== trigger && macroEntry.trigger !== "gm-any") return;
+  if (!_triggerMatches(macroEntry.trigger, trigger)) return;
   const macro = game.macros.get(macroEntry.macroId);
   if (!macro) {
     console.warn(`Click Adventure | Macro ${macroEntry.macroId} not found — was it deleted?`);
@@ -266,22 +281,20 @@ async function _tryFireMacro(macroEntry, trigger) {
  * Respects executeMode: "once" macros are skipped if already executed.
  * Marks executed "once" macros and persists the updated node state.
  *
- * Called after fireActiveItemMacro in both onViewScene and onActivateScene.
- * Triggered during navigation events (renderManagerApp lifecycle).
+ * Called after fireActiveItemMacro on every arrival: onViewScene and onActivateScene
+ * in the manager, and NavHudApp._navigateTo plus the socket arrival handlers.
  *
  * @param {object} node    - graph node object
- * @param {string} trigger - "gm-activate" | "gm-view" | "gm-any"
+ * @param {string} trigger - "gm-activate" | "player-view" | "gm-view" | "gm-any"
  * @returns {Promise<void>}
  */
 export async function fireNodeMacros(node, trigger) {
   if (!Array.isArray(node?.nodeMacros) || node.nodeMacros.length === 0) return;
 
-  const { sceneId, startNodeId, nodes, links } = getGraphData();
-  let dirty = false;
+  const executedOnceIds = [];
 
   for (const entry of node.nodeMacros) {
-    const triggerMatches = entry.trigger === trigger || entry.trigger === "gm-any";
-    if (!triggerMatches) continue;
+    if (!_triggerMatches(entry.trigger, trigger)) continue;
     if (entry.executeMode === "once" && entry.executedOnce === true) continue;
 
     const macro = game.macros.get(entry.macroId);
@@ -297,14 +310,24 @@ export async function fireNodeMacros(node, trigger) {
 
     if (entry.executeMode === "once") {
       entry.executedOnce = true;
-      dirty = true;
+      executedOnceIds.push(entry.id);
     }
   }
 
-  if (dirty) {
+  if (executedOnceIds.length === 0) return;
+
+  if (game.user.isGM) {
+    const { sceneId, startNodeId, nodes, links } = getGraphData();
     const updatedNodes = nodes.map(n =>
       n.id === node.id ? { ...n, nodeMacros: node.nodeMacros } : n
     );
     await saveGraphData({ sceneId, startNodeId, nodes: updatedNodes, links });
+  } else {
+    // "graphs" is a world-scoped setting — players cannot write it. Ask the GM to
+    // persist the executedOnce marks, same proxy pattern as REQUEST_LOCK.
+    globalThis.ClickAdventure._socket.emitMacroExecuted({
+      nodeId:   node.id,
+      entryIds: executedOnceIds
+    });
   }
 }

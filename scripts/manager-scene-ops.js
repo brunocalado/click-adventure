@@ -8,6 +8,7 @@
 
 import { MODULE_ID } from "./constants.js";
 import { getNodeActiveImage, getGraphData, getActiveGroup, saveGraphData, fireActiveItemMacro, fireNodeMacros } from "./node-utils.js";
+import { openNodeJournal } from "./node-media.js";
 import { onSetActiveNode } from "./manager-players.js";
 import { buildSceneData } from "./scene-template.js";
 import { NODE_W, NODE_H } from "./manager-graph.js";
@@ -252,6 +253,17 @@ export async function createSceneForNode(node, folderId) {
     }
   ];
 
+  // Journal and music chosen before this node had a scene: apply them here rather than
+  // in a second update, so the scene is never briefly created without them.
+  if (node.pendingJournal) {
+    sceneData.journal          = node.pendingJournal.journalId ?? null;
+    sceneData.journalEntryPage = node.pendingJournal.pageId    ?? null;
+  }
+  if (node.pendingMusic) {
+    sceneData.playlist      = node.pendingMusic.playlistId ?? null;
+    sceneData.playlistSound = node.pendingMusic.soundId    ?? null;
+  }
+
   const scene = await Scene.create(sceneData);
   return scene.id;
 }
@@ -290,7 +302,12 @@ export async function onSyncScenes(app) {
     // Create scene if missing or stale
     if (!node.sceneId || !game.scenes.get(node.sceneId)) {
       const newSceneId = await createSceneForNode(node, folder.id);
-      updatedNodes[i] = { ...updatedNodes[i], sceneId: newSceneId };
+      updatedNodes[i] = {
+        ...updatedNodes[i],
+        sceneId: newSceneId,
+        pendingJournal: null,
+        pendingMusic: null
+      };
       updated++;
       continue;
     }
@@ -403,6 +420,7 @@ export async function onViewScene(app, sceneId, nodeId) {
     if (node) {
       await fireActiveItemMacro(node, "gm-view", sceneId);
       await fireNodeMacros(node, "gm-view");
+      await openNodeJournal(node, "view");
     }
   }
 }
@@ -432,6 +450,10 @@ export async function onActivateScene(app, sceneId, nodeId) {
     if (node) {
       await fireActiveItemMacro(node, "gm-activate", sceneId);
       await fireNodeMacros(node, "gm-activate");
+      // Activation is global, so every client gets the chance to open it — each one
+      // checks the page's permission for itself.
+      await openNodeJournal(node, "activate");
+      globalThis.ClickAdventure._socket.emitOpenJournal(node.id);
     }
   }
 }

@@ -1,3 +1,19 @@
+# 0.2.0
+
+## [Added]
+- **Journal tab in node configuration.** Drag a journal page (or a whole entry) onto a node to assign it, with a trigger controlling when it opens: **On Scene View**, **On Scene Activate**, or **On View or Activate**. It is a shortcut for the Scene's own journal field — the value shows up in the scene's native configuration too, and the module only adds the automatic opening. Visibility follows the page's own Foundry permissions: a player who can observe the page sees it open on arrival, a player who cannot sees nothing at all, with no error. On activation the opening is broadcast, so every client evaluates its own permission.
+- **Music tab in node configuration.** Drag a playlist track (or a whole playlist) onto a node to set the Scene's playlist field. Playback is Foundry's own: the track starts when the scene is **activated**, not when it is merely viewed from the HUD. Dropping a whole playlist leaves the track unset, so Foundry follows the playlist's own playback mode.
+- Both tabs accept compendium documents, importing them into the world first — a Scene's journal and playlist fields hold world IDs, so a pack document could never be referenced directly. A node that has no Foundry scene yet keeps the choice staged and writes it into the scene the moment **Create / Update Scenes** runs.
+- **Player View trigger for node macros.** The Macros tab now offers the same four triggers as the Images and Linked Scenes tabs — *GM Activate*, *Player View*, *GM View*, and *GM View or Activate* — so the GM decides per macro who runs it. The Always/Once execution mode remains exclusive to node macros. Note that a macro triggered on a player's client still needs Foundry's own permissions: the player must own the macro, and the world's **Configure Permissions** must allow their role to use script macros.
+
+## [Changed]
+- **Export and import now carry a node's journal, music, and camera room settings.** Every cross-document reference is written with its name alongside its ID, the same way macro references already were, so an import resolves by ID in the source world and falls back to name in any other. A journal found without its page keeps the entry (the whole entry opens instead); a playlist found without its track keeps the playlist — both with a warning. Only a missing root document clears the reference. `isCameraRoom` and `cameraLabel` were also silently dropped on export before this version and now travel with the node.
+
+## [Fixed]
+- **Node macros never fired when navigating with the HUD.** Macros attached in the node's **Macros** tab only ran when the GM used *View Scene* or *Activate Scene* in the Manager — navigating through the HUD, which is how the game is actually played, fired the per-image and per-linked-scene macros but silently skipped every node macro. This made the Macros tab look broken: the ▶ Run button worked, navigation did not. HUD navigation now fires exactly the same set of macros the Manager fires, and so do arrivals that reach a player through a socket (GM teleport, and approval in Gated mode).
+- **Macros set to "GM View or Activate" fired twice.** The HUD dispatched the trigger and then dispatched `gm-any` again, while the trigger matching already treated `gm-any` as covering both cases — so every such macro ran two times per arrival.
+- **Macros marked GM-only ran on players' clients.** The `gm-any` wildcard matched *any* trigger, including `player-view`, so a macro the GM had explicitly marked "GM View or Activate → GM only" executed on a player's client when they navigated. It now covers *GM View* and *GM Activate* only.
+
 # 0.1.9
 
 ## [Changed]

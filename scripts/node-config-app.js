@@ -9,6 +9,10 @@
  */
 
 import { syncNodeTile, getGraphData, saveGraphData, fireNodeMacros } from "./node-utils.js";
+import {
+  getNodeJournal, getNodeMusic, setNodeJournal, setNodeMusic,
+  buildJournalTriggerOptions, DEFAULT_JOURNAL_TRIGGER, getNodeScene
+} from "./node-media.js";
 
 /**
  * Resolves a Foundry Macro from a drag-drop event.
@@ -45,6 +49,92 @@ async function _resolveMacroFromDrop(event) {
   return macro;
 }
 
+/**
+ * Reads the Foundry drag payload from a drop event.
+ * @param {DragEvent} event
+ * @returns {{type: string, uuid: string}|null}
+ */
+function _readDropData(event) {
+  try { return JSON.parse(event.dataTransfer.getData("text/plain")); }
+  catch { return null; }
+}
+
+/**
+ * Resolves a journal reference from a drop. Accepts a page (the normal case) or a whole
+ * entry, which the Scene stores with a null page — Foundry then opens the entry itself.
+ * Compendium documents are imported into the world first: a Scene's journal field holds
+ * a world id, not a UUID, so a pack document could never be referenced by it.
+ *
+ * @param {DragEvent} event
+ * @returns {Promise<{journalId: string, pageId: string|null}|null>}
+ */
+async function _resolveJournalFromDrop(event) {
+  const data = _readDropData(event);
+  if (!data?.uuid) return null;
+  if (data.type !== "JournalEntryPage" && data.type !== "JournalEntry") return null;
+
+  const doc = await fromUuid(data.uuid);
+  if (!doc) return null;
+
+  const isPage = doc.documentName === "JournalEntryPage";
+  let entry = isPage ? doc.parent : doc;
+  if (!entry) return null;
+
+  if (entry.pack) {
+    const pack = game.packs.get(entry.pack);
+    if (!pack) return null;
+    const existing = game.journal.find(j => j.name === entry.name && !j.pack);
+    if (existing) {
+      entry = existing;
+    } else {
+      entry = await game.journal.importFromCompendium(pack, entry.id);
+      ui.notifications.info(`Click Adventure: Journal "${entry.name}" imported from compendium.`);
+    }
+    // The imported copy has fresh page ids — match the dropped page by name.
+    const pageId = isPage ? (entry.pages.find(p => p.name === doc.name)?.id ?? null) : null;
+    return { journalId: entry.id, pageId };
+  }
+
+  return { journalId: entry.id, pageId: isPage ? doc.id : null };
+}
+
+/**
+ * Resolves a music reference from a drop. Accepts a single track or a whole playlist,
+ * which the Scene stores with a null sound — Foundry then honours the playlist's own mode.
+ * Compendium playlists are imported for the same reason as journals above.
+ *
+ * @param {DragEvent} event
+ * @returns {Promise<{playlistId: string, soundId: string|null}|null>}
+ */
+async function _resolveMusicFromDrop(event) {
+  const data = _readDropData(event);
+  if (!data?.uuid) return null;
+  if (data.type !== "PlaylistSound" && data.type !== "Playlist") return null;
+
+  const doc = await fromUuid(data.uuid);
+  if (!doc) return null;
+
+  const isSound = doc.documentName === "PlaylistSound";
+  let playlist = isSound ? doc.parent : doc;
+  if (!playlist) return null;
+
+  if (playlist.pack) {
+    const pack = game.packs.get(playlist.pack);
+    if (!pack) return null;
+    const existing = game.playlists.find(p => p.name === playlist.name && !p.pack);
+    if (existing) {
+      playlist = existing;
+    } else {
+      playlist = await game.playlists.importFromCompendium(pack, playlist.id);
+      ui.notifications.info(`Click Adventure: Playlist "${playlist.name}" imported from compendium.`);
+    }
+    const soundId = isSound ? (playlist.sounds.find(s => s.name === doc.name)?.id ?? null) : null;
+    return { playlistId: playlist.id, soundId };
+  }
+
+  return { playlistId: playlist.id, soundId: isSound ? doc.id : null };
+}
+
 const VIDEO_EXTENSIONS = new Set(["webm", "mp4"]);
 
 /**
@@ -71,24 +161,10 @@ function buildTriggerOptions(selected) {
   return TRIGGER_OPTIONS.map(o => ({ ...o, selected: o.value === selected }));
 }
 
-const NODE_MACRO_TRIGGER_OPTIONS = [
-  { value: "gm-view",     label: "GM View"             },
-  { value: "gm-activate", label: "GM Activate"         },
-  { value: "gm-any",      label: "GM View or Activate" }
-];
-
 const NODE_MACRO_MODE_OPTIONS = [
   { value: "always", label: "Always" },
   { value: "once",   label: "Once"   }
 ];
-
-/**
- * @param {string} selected
- * @returns {Array<{value:string, label:string, selected:boolean}>}
- */
-function buildNodeMacroTriggerOptions(selected) {
-  return NODE_MACRO_TRIGGER_OPTIONS.map(o => ({ ...o, selected: o.value === selected }));
-}
 
 /**
  * @param {string} selected
@@ -212,10 +288,26 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     context.nodeMacros = workingNodeMacros.map(entry => ({
       ...entry,
       macroName:        game.macros.get(entry.macroId)?.name ?? `Unknown (${entry.macroId})`,
-      triggerOptions:   buildNodeMacroTriggerOptions(entry.trigger),
+      triggerOptions:   buildTriggerOptions(entry.trigger),
       modeOptions:      buildNodeMacroModeOptions(entry.executeMode),
       showExecutedBadge: entry.executeMode === "once" && entry.executedOnce === true
     }));
+
+    // Journal and music read straight from the node's Scene (or the staged reference when
+    // it has none), so they are never staged in the app the way images and macros are.
+    const { journal, page } = getNodeJournal(node);
+    context.hasScene = !!getNodeScene(node);
+    context.journal = {
+      has:            !!journal,
+      title:          journal ? (page ? `${journal.name} — ${page.name}` : journal.name) : "",
+      triggerOptions: buildJournalTriggerOptions(node.journalTrigger ?? DEFAULT_JOURNAL_TRIGGER)
+    };
+
+    const { playlist, sound } = getNodeMusic(node);
+    context.music = {
+      has:   !!playlist,
+      title: playlist ? (sound ? `${playlist.name} — ${sound.name}` : `${playlist.name} (whole playlist)`) : ""
+    };
 
     context.autolockMode = this._pendingAutolockMode ?? node.autolockMode ?? "inherit";
     context.isCameraRoom = this._pendingIsCameraRoom ?? node.isCameraRoom ?? false;
@@ -655,6 +747,76 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     });
     html.querySelector(".ca-camera-label-input")?.addEventListener("input", (e) => {
       this._pendingCameraLabel = e.target.value;
+    });
+    // ────────────────────────────────────────────────────────────────────
+
+    // ── Journal tab ──────────────────────────────────────────────────────
+    // Unlike images and macros, these write through immediately: the value lives on the
+    // Scene document, not in the staged node data, so there is nothing for Save to commit.
+    const _currentNode = () => getGraphData().nodes.find(n => n.id === this.nodeId);
+
+    const _bindDropzone = (zone, resolve, apply) => {
+      if (!zone) return;
+      zone.addEventListener("dragover", e => {
+        e.preventDefault();
+        zone.classList.add("ca-media-drop--over");
+      });
+      zone.addEventListener("dragleave", () => zone.classList.remove("ca-media-drop--over"));
+      zone.addEventListener("drop", async e => {
+        e.preventDefault();
+        zone.classList.remove("ca-media-drop--over");
+        const ref = await resolve(e);
+        if (!ref) {
+          ui.notifications.warn("Click Adventure: that is not something this tab accepts.");
+          return;
+        }
+        const node = _currentNode();
+        if (!node) return;
+        await apply(node, ref);
+        this.render({ force: true });
+      });
+    };
+
+    _bindDropzone(
+      html.querySelector("[data-action='drop-journal']"),
+      _resolveJournalFromDrop,
+      (node, ref) => setNodeJournal(node, ref)
+    );
+
+    html.querySelector("[data-action='remove-journal']")?.addEventListener("click", async () => {
+      const node = _currentNode();
+      if (!node) return;
+      await setNodeJournal(node, null);
+      this.render({ force: true });
+    });
+
+    html.querySelector("[data-action='open-journal']")?.addEventListener("click", () => {
+      const { journal, page } = getNodeJournal(_currentNode() ?? {});
+      if (!journal) return;
+      journal.sheet.render({ force: true, ...(page ? { pageId: page.id } : {}) });
+    });
+
+    html.querySelector("[data-action='set-journal-trigger']")?.addEventListener("change", async (e) => {
+      const { sceneId, startNodeId, nodes, links } = getGraphData();
+      const updatedNodes = nodes.map(n =>
+        n.id === this.nodeId ? { ...n, journalTrigger: e.target.value } : n
+      );
+      await saveGraphData({ sceneId, startNodeId, nodes: updatedNodes, links });
+    });
+    // ────────────────────────────────────────────────────────────────────
+
+    // ── Music tab ────────────────────────────────────────────────────────
+    _bindDropzone(
+      html.querySelector("[data-action='drop-music']"),
+      _resolveMusicFromDrop,
+      (node, ref) => setNodeMusic(node, ref)
+    );
+
+    html.querySelector("[data-action='remove-music']")?.addEventListener("click", async () => {
+      const node = _currentNode();
+      if (!node) return;
+      await setNodeMusic(node, null);
+      this.render({ force: true });
     });
     // ────────────────────────────────────────────────────────────────────
 

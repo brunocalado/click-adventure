@@ -2,13 +2,15 @@
  * AdventureIOApp — Export and import adventure groups (graphs) as JSON.
  *
  * Export: serialises selected graphs from the world setting to a downloadable
- * JSON file. Scene IDs are stripped; macro references carry name metadata so
- * the import side can resolve them by name as a fallback.
+ * JSON file. Scene IDs are stripped, so nothing that lives on a Scene document
+ * survives on its own — every cross-document reference (macro, linked scene,
+ * journal page, playlist track) is written with name metadata alongside its id,
+ * which is what lets the import side resolve it in a different world.
  *
- * Import: reads a previously exported JSON file, resolves macro references
- * (UUID first, then world-macro name), resolves linked-scene references by
- * scene name, creates Foundry Scenes for every node, and appends the imported
- * graphs to the world collection.
+ * Import: reads a previously exported JSON file, resolves those references
+ * (id first, then name), creates Foundry Scenes for every node, and appends the
+ * imported graphs to the world collection. Journal and music resolve into the
+ * node's staging fields, which createSceneForNode bakes into the new Scene.
  *
  * Accessible via game.settings.registerMenu → Foundry module settings panel.
  * Restricted to GM users.
@@ -18,6 +20,7 @@
 
 import { MODULE_ID } from "./constants.js";
 import { getOrCreateGroupFolder, createSceneForNode } from "./manager-scene-ops.js";
+import { getNodeJournal, getNodeMusic } from "./node-media.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -239,7 +242,51 @@ export class AdventureIOApp extends HandlebarsApplicationMixin(ApplicationV2) {
         executedOnce: false,
         macroName:    game.macros.get(nm.macroId)?.name ?? null
       })),
-      autolockMode:     node.autolockMode ?? "inherit"
+      autolockMode:     node.autolockMode ?? "inherit",
+      isCameraRoom:     node.isCameraRoom ?? false,
+      cameraLabel:      node.cameraLabel ?? "",
+      journalTrigger:   node.journalTrigger ?? "view",
+      journal:          this._serializeJournalRef(node),
+      music:            this._serializeMusicRef(node)
+    };
+  }
+
+  /**
+   * Serialises the node's journal assignment. It normally lives on the node's Scene,
+   * which export strips, so it is written out as an id + name pair — the id is what
+   * makes a re-import into the same world exact, the name is what makes it work at all
+   * in a different one.
+   *
+   * @param {object} node
+   * @returns {{journalId: string, journalName: string, pageId: string|null, pageName: string|null}|null}
+   */
+  _serializeJournalRef(node) {
+    const { journal, page } = getNodeJournal(node);
+    if (!journal) return null;
+    return {
+      journalId:   journal.id,
+      journalName: journal.name,
+      pageId:      page?.id   ?? null,
+      pageName:    page?.name ?? null
+    };
+  }
+
+  /**
+   * Serialises the node's music assignment, same reasoning as the journal above.
+   * A null sound means the whole playlist was assigned, which Foundry honours by
+   * following the playlist's own mode.
+   *
+   * @param {object} node
+   * @returns {{playlistId: string, playlistName: string, soundId: string|null, soundName: string|null}|null}
+   */
+  _serializeMusicRef(node) {
+    const { playlist, sound } = getNodeMusic(node);
+    if (!playlist) return null;
+    return {
+      playlistId:   playlist.id,
+      playlistName: playlist.name,
+      soundId:      sound?.id   ?? null,
+      soundName:    sound?.name ?? null
     };
   }
 
@@ -264,8 +311,10 @@ export class AdventureIOApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * For each graph:
    *   1. Resolves all macro references (UUID → world ID → name fallback).
    *   2. Resolves linked-scene references by scene name.
-   *   3. Creates a Foundry Scene for every node in the graph's own Scene folder.
-   *   4. Appends the graph to the world collection with a fresh ID.
+   *   3. Resolves journal and music references (id → name) into the node's staging fields.
+   *   4. Creates a Foundry Scene for every node in the graph's own Scene folder, which is
+   *      where the staged journal and music land; the staging fields are then cleared.
+   *   5. Appends the graph to the world collection with a fresh ID.
    *
    * @param {object[]} graphs - graph objects from the import JSON
    * @returns {Promise<void>}
@@ -296,7 +345,12 @@ export class AdventureIOApp extends HandlebarsApplicationMixin(ApplicationV2) {
       // Create Foundry Scenes immediately — no manual "Sync Scenes" step needed.
       for (let i = 0; i < processedNodes.length; i++) {
         const sceneId = await createSceneForNode(processedNodes[i], graphFolder.id);
-        processedNodes[i] = { ...processedNodes[i], sceneId };
+        processedNodes[i] = {
+          ...processedNodes[i],
+          sceneId,
+          pendingJournal: null,
+          pendingMusic: null
+        };
       }
 
       newGraphEntries.push({
@@ -383,7 +437,90 @@ export class AdventureIOApp extends HandlebarsApplicationMixin(ApplicationV2) {
       if (id) nodeMacros.push({ ...nm, macroId: id, executedOnce: false });
     }
 
-    return { ...node, sceneId: null, images, linkedScenes, nodeMacros };
+    // The export keys are the *references*; what gets persisted are the node's staging
+    // fields, so pull them out of the spread rather than leaving strays on the node.
+    const { journal: journalRef, music: musicRef, ...rest } = node;
+    const pendingJournal = this._resolveJournalRef(journalRef, warnings, `Node "${node.label}"`);
+    const pendingMusic   = this._resolveMusicRef(musicRef, warnings, `Node "${node.label}"`);
+
+    return { ...rest, sceneId: null, images, linkedScenes, nodeMacros, pendingJournal, pendingMusic };
+  }
+
+  /**
+   * Resolves an exported journal reference against this world.
+   *
+   * Resolution order, same shape as {@link _resolveMacroId}:
+   *   1. `game.journal.get(journalId)`  — exact, for a re-import into the source world
+   *   2. `game.journal.getName(name)`   — name fallback, for any other world
+   *
+   * A found entry whose page is missing is kept without the page rather than dropped:
+   * the whole entry opening is closer to the author's intent than nothing opening.
+   *
+   * @param {object|null} ref      - the exported reference
+   * @param {string[]}    warnings - mutable array; push human-readable warnings here
+   * @param {string}      context  - prefix identifying the node in a warning
+   * @returns {{journalId: string, pageId: string|null}|null}
+   */
+  _resolveJournalRef(ref, warnings, context) {
+    if (!ref?.journalId && !ref?.journalName) return null;
+
+    const entry = (ref.journalId ? game.journal.get(ref.journalId) : null)
+      ?? (ref.journalName ? game.journal.getName(ref.journalName) : null);
+
+    if (!entry) {
+      warnings.push(`${context}: journal "${ref.journalName ?? ref.journalId}" not found — reference cleared.`);
+      return null;
+    }
+
+    if (!ref.pageId && !ref.pageName) return { journalId: entry.id, pageId: null };
+
+    const page = (ref.pageId ? entry.pages.get(ref.pageId) : null)
+      ?? (ref.pageName ? entry.pages.find(p => p.name === ref.pageName) : null);
+
+    if (!page) {
+      warnings.push(
+        `${context}: page "${ref.pageName ?? ref.pageId}" not found in journal "${entry.name}" — the whole entry will open instead.`
+      );
+      return { journalId: entry.id, pageId: null };
+    }
+
+    return { journalId: entry.id, pageId: page.id };
+  }
+
+  /**
+   * Resolves an exported music reference against this world, same order and same
+   * partial-match tolerance as {@link _resolveJournalRef}: a playlist found without its
+   * track is kept, and Foundry falls back to the playlist's own playback mode.
+   *
+   * @param {object|null} ref      - the exported reference
+   * @param {string[]}    warnings - mutable array; push human-readable warnings here
+   * @param {string}      context  - prefix identifying the node in a warning
+   * @returns {{playlistId: string, soundId: string|null}|null}
+   */
+  _resolveMusicRef(ref, warnings, context) {
+    if (!ref?.playlistId && !ref?.playlistName) return null;
+
+    const playlist = (ref.playlistId ? game.playlists.get(ref.playlistId) : null)
+      ?? (ref.playlistName ? game.playlists.getName(ref.playlistName) : null);
+
+    if (!playlist) {
+      warnings.push(`${context}: playlist "${ref.playlistName ?? ref.playlistId}" not found — reference cleared.`);
+      return null;
+    }
+
+    if (!ref.soundId && !ref.soundName) return { playlistId: playlist.id, soundId: null };
+
+    const sound = (ref.soundId ? playlist.sounds.get(ref.soundId) : null)
+      ?? (ref.soundName ? playlist.sounds.find(s => s.name === ref.soundName) : null);
+
+    if (!sound) {
+      warnings.push(
+        `${context}: track "${ref.soundName ?? ref.soundId}" not found in playlist "${playlist.name}" — the whole playlist will be used instead.`
+      );
+      return { playlistId: playlist.id, soundId: null };
+    }
+
+    return { playlistId: playlist.id, soundId: sound.id };
   }
 
   /**

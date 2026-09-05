@@ -80,11 +80,13 @@
     </ul>
 
     <h3>Node Configuration</h3>
-    <p>Double-click a node to open its window. A <strong>Default Scene Name</strong> field sits above four tabs:</p>
+    <p>Double-click a node to open its window. A <strong>Default Scene Name</strong> field sits above six tabs:</p>
     <ul>
       <li><strong>Images</strong> — <em>+ Add Media</em> adds images or videos; each entry has a Navigation Name, a <em>Set Default</em> button (picks the media shown on the node), <em>Remove Entry</em>, and a macro drop-zone (drop a macro, then Run / Open / Remove and choose its trigger)</li>
       <li><strong>Linked Scenes</strong> — drag a Foundry scene onto the drop-zone to link it; each linked scene has a label, <em>Set Default</em>, <em>Remove Entry</em>, and its own macro drop-zone</li>
-      <li><strong>Macros</strong> — drop node-level macros that fire on arrival; per macro set a trigger (<em>GM View</em>, <em>GM Activate</em>, <em>GM View or Activate</em>) and a mode (<em>Always</em> / <em>Once</em>). A fired "Once" macro shows an <em>Executed</em> badge with a <em>Reset</em> button</li>
+      <li><strong>Macros</strong> — drop node-level macros that fire on arrival; per macro set a trigger (<em>GM Activate</em>, <em>Player View</em>, <em>GM View</em>, <em>GM View or Activate</em>) and a mode (<em>Always</em> / <em>Once</em>). A fired "Once" macro shows an <em>Executed</em> badge with a <em>Reset</em> button. A <em>Player View</em> macro runs on the player's own client, so they must own the macro and their role must be allowed to use script macros in Foundry's <em>Configure Permissions</em></li>
+      <li><strong>Journal</strong> — drag a journal page (or a whole entry) onto the drop-zone; it opens automatically on arrival, with a trigger of <em>On Scene View</em>, <em>On Scene Activate</em>, or <em>On View or Activate</em>. It writes to the scene's own journal field, and only users the page grants permission to will see it open</li>
+      <li><strong>Music</strong> — drag a playlist track (or a whole playlist) onto the drop-zone to set the scene's playlist. Foundry plays it when the scene is <em>activated</em>, not when it is merely viewed from the HUD</li>
       <li><strong>Settings</strong> — <em>Set as Start</em> marks this node as the group's start point, used when activating this group (one per group); <em>Camera Room</em> enables the peek feature (see Camera Room tab); <em>Auto-Lock</em> chooses <em>Open</em>, <em>Inherit</em>, or <em>Locked</em></li>
     </ul>
     <p>The footer holds <strong>Save</strong> and <strong>Delete Node</strong>.</p>

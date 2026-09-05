@@ -9,8 +9,9 @@
  */
 
 import { MODULE_ID } from "./constants.js";
-import { isMultiPassage, getEffectiveDirection, getGraphData, fireActiveItemMacro, setNodeActiveImageIndex } from "./node-utils.js";
+import { isMultiPassage, getEffectiveDirection, getGraphData, fireActiveItemMacro, fireNodeMacros, setNodeActiveImageIndex } from "./node-utils.js";
 import { shouldLockOnArrival, isUserLocked } from "./autolock-utils.js";
+import { openNodeJournal } from "./node-media.js";
 
 // ── 3D gradient helpers (private to this module) ─────────────────────────────
 function _hexToRgb(hex) {
@@ -894,10 +895,13 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     // ── Fire arrival macros ───────────────────────────────────────────────
     if (game.user.isGM) {
       await fireActiveItemMacro(targetNode, "gm-view", targetNode.sceneId ?? null);
-      await fireActiveItemMacro(targetNode, "gm-any",  targetNode.sceneId ?? null);
+      await fireNodeMacros(targetNode, "gm-view");
     } else {
       await fireActiveItemMacro(targetNode, "player-view", targetNode.sceneId ?? null);
+      await fireNodeMacros(targetNode, "player-view");
     }
+    // Arriving is a scene view for whoever navigated, GM or player alike.
+    await openNodeJournal(targetNode, "view");
     // ─────────────────────────────────────────────────────────────────────
 
     // Request GM to move this player's token between scenes.
@@ -925,7 +929,9 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
         if (scene) await scene.activate();
 
         await fireActiveItemMacro(targetNode, "gm-activate", targetNode.sceneId ?? null);
-        await fireActiveItemMacro(targetNode, "gm-any",       targetNode.sceneId ?? null);
+        await fireNodeMacros(targetNode, "gm-activate");
+        await openNodeJournal(targetNode, "activate");
+        globalThis.ClickAdventure._socket.emitOpenJournal(targetNode.id);
 
         // Update all players' position flags and move their tokens to the activated scene.
         const { nodes: guideNodes } = getGraphData();

@@ -17,6 +17,8 @@
     <button class="ca-nc-tab ca-nc-tab--active" data-tab="images"        role="tab">Images</button>
     <button class="ca-nc-tab"                   data-tab="linked-scenes" role="tab">Linked Scenes</button>
     <button class="ca-nc-tab"                   data-tab="macros"        role="tab">Macros</button>
+    <button class="ca-nc-tab"                   data-tab="journal"       role="tab">Journal</button>
+    <button class="ca-nc-tab"                   data-tab="music"         role="tab">Music</button>
     <button class="ca-nc-tab"                   data-tab="settings"      role="tab">Settings</button>
   </div>
 
@@ -193,6 +195,62 @@
       </div>
     </div>
     {{/each}}
+  </div>
+
+  {{!-- TAB: Journal --}}
+  <div class="ca-nc-panel ca-nc-panel--hidden" data-panel="journal">
+    <p class="ca-nc-hint ca-media-hint">
+      Shortcut for the Scene’s own journal field. Whoever has permission on the page sees it;
+      everyone else gets nothing.
+      {{#unless hasScene}}<strong>This node has no scene yet</strong> — the choice is kept and
+      written to the scene as soon as Create Scenes runs.{{/unless}}
+    </p>
+
+    <div class="ca-media-drop" data-action="drop-journal">
+      <span>Drag a journal page here</span>
+    </div>
+
+    {{#if journal.has}}
+    <div class="ca-media-item">
+      <div class="ca-media-header">
+        <span class="ca-media-name" title="{{journal.title}}">{{journal.title}}</span>
+        <button type="button" data-action="open-journal" title="Open it now">&#9741; Open</button>
+        <button type="button" data-action="remove-journal"
+                class="ca-btn-remove ca-btn-remove--labeled">Remove</button>
+      </div>
+      <div class="ca-media-controls">
+        <select data-action="set-journal-trigger">
+          {{#each journal.triggerOptions}}
+          <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+          {{/each}}
+        </select>
+      </div>
+    </div>
+    {{/if}}
+  </div>
+
+  {{!-- TAB: Music --}}
+  <div class="ca-nc-panel ca-nc-panel--hidden" data-panel="music">
+    <p class="ca-nc-hint ca-media-hint">
+      Shortcut for the Scene’s own playlist field. Foundry starts it when the scene is
+      <em>activated</em> — viewing a scene from the HUD does not play it.
+      {{#unless hasScene}}<strong>This node has no scene yet</strong> — the choice is kept and
+      written to the scene as soon as Create Scenes runs.{{/unless}}
+    </p>
+
+    <div class="ca-media-drop" data-action="drop-music">
+      <span>Drag a playlist or a track here</span>
+    </div>
+
+    {{#if music.has}}
+    <div class="ca-media-item">
+      <div class="ca-media-header">
+        <span class="ca-media-name" title="{{music.title}}">{{music.title}}</span>
+        <button type="button" data-action="remove-music"
+                class="ca-btn-remove ca-btn-remove--labeled">Remove</button>
+      </div>
+    </div>
+    {{/if}}
   </div>
 
   {{!-- TAB: Settings --}}
