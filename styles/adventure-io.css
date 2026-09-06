@@ -1,213 +1,120 @@
-/* Reset Foundry's default window-content padding for this window only. */
-#adventure-io-app .window-content {
-  padding: 0;
-  overflow: hidden;
-}
+/*!
+ * Click Adventure
+ * Copyright (c) 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
 
-/* @section: adventure-io-app
-   @scope: AdventureIOApp export/import window
+/* @section: adventure-io
+   @scope: .click-adventure.adventure-io — the export / import window
+   @depends: _tokens.css, _components.css
+
+   @manifest:
+     .ca-io-section     Export or Import block, one card each
+     .ca-io-graph-list  Checkbox list of groups
+     .ca-io-actions     Trailing action row of a section
+     .ca-io-file-label  <label> wrapping a hidden file input, styled as a button
 */
+
+.click-adventure.adventure-io .ca-io-wrap {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ca-space-4);
+  padding: var(--ca-space-6);
+}
 
 .click-adventure.adventure-io .ca-io-help-row {
   display: flex;
-  justify-content: flex-end;
-  padding: 8px 16px 0;
-}
-
-.click-adventure.adventure-io .ca-io-help-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 10px;
-  background: var(--ca-bg-toolbar);
-  border: 1px solid var(--ca-border-toolbar);
-  border-radius: var(--ca-radius-pill);
-  color: var(--ca-text-muted);
-  font-size: 10px;
-  text-decoration: none;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
-}
-
-.click-adventure.adventure-io .ca-io-help-btn:hover {
-  background: var(--ca-bg-toolbar-hover);
-  border-color: var(--ca-border-toolbar-hv);
-  color: var(--ca-text-bright);
-  text-decoration: none;
-}
-
-.click-adventure.adventure-io .ca-io-wrap {
-  display: flex;
-  flex-direction: column;
-  background: var(--ca-bg-panel);
-  color: var(--ca-text-primary);
 }
 
 .click-adventure.adventure-io .ca-io-section {
-  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ca-space-3);
 }
 
-.click-adventure.adventure-io .ca-io-section-title {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--ca-text-section);
-  margin-bottom: 8px;
+.click-adventure.adventure-io .ca-io-divider {
+  display: none;
 }
 
 .click-adventure.adventure-io .ca-io-hint {
-  font-size: 11px;
-  color: var(--ca-text-muted);
-  margin: 0 0 8px;
-  line-height: 1.45;
+  margin: 0;
 }
 
 .click-adventure.adventure-io .ca-io-hint--warning {
   color: var(--ca-state-warning);
 }
 
-.click-adventure.adventure-io .ca-io-empty {
-  font-size: 11px;
-  color: var(--ca-text-subtle);
-  font-style: italic;
-  margin: 0;
-}
-
-.click-adventure.adventure-io .ca-io-divider {
-  border: none;
-  border-top: 1px solid var(--ca-border-divider);
-  margin: 0;
-}
-
-/* Graph list */
-
 .click-adventure.adventure-io .ca-io-graph-list {
   list-style: none;
-  margin: 0 0 10px;
+  margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-}
-
-.click-adventure.adventure-io .ca-io-graph-item {
-  background: var(--ca-bg-toolbar);
-  border: 1px solid var(--ca-border-faint);
-  border-radius: var(--ca-radius-md);
-  padding: 6px 8px;
-  transition: border-color 0.12s;
-}
-
-.click-adventure.adventure-io .ca-io-graph-item:hover {
-  border-color: var(--ca-border-soft);
+  gap: var(--ca-space-1);
+  max-height: 220px;
+  overflow-y: auto;
 }
 
 .click-adventure.adventure-io .ca-io-graph-label {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--ca-space-2);
+  padding: var(--ca-space-2);
+  border-radius: var(--ca-radius-sm);
   cursor: pointer;
-  user-select: none;
+  transition: background-color 0.15s ease;
+}
+
+.click-adventure.adventure-io .ca-io-graph-label:hover {
+  background: var(--ca-border-faint);
 }
 
 .click-adventure.adventure-io .ca-io-graph-name {
   flex: 1;
-  font-size: 12px;
+  min-width: 0;
+  font-size: var(--ca-fs-body);
   color: var(--ca-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .click-adventure.adventure-io .ca-io-graph-meta {
-  font-size: 10px;
-  color: var(--ca-text-subtle);
+  flex-shrink: 0;
+  font-size: var(--ca-fs-micro);
+  color: var(--ca-text-faint);
 }
-
-/* Action row */
 
 .click-adventure.adventure-io .ca-io-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
   justify-content: flex-end;
+  gap: var(--ca-space-3);
 }
 
+/* Export's All/None pair straddles the card; Import has no left-hand group and
+   its buttons simply collapse to the right. An auto margin handles both without
+   needing a modifier class or :has(). */
 .click-adventure.adventure-io .ca-io-select-btns {
   display: flex;
-  gap: 4px;
-  flex: 1;
+  gap: var(--ca-space-2);
+  margin-right: auto;
 }
-
-.click-adventure.adventure-io .ca-io-small-btn {
-  padding: 3px 8px;
-  background: var(--ca-bg-toolbar);
-  border: 1px solid var(--ca-border-toolbar);
-  border-radius: var(--ca-radius-md);
-  color: var(--ca-text-muted);
-  font-size: 10px;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-}
-
-.click-adventure.adventure-io .ca-io-small-btn:hover {
-  background: var(--ca-bg-toolbar-hover);
-  color: var(--ca-text-bright);
-}
-
-.click-adventure.adventure-io .ca-io-primary-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 14px;
-  background: rgba(60, 90, 180, 0.5);
-  border: 1px solid rgba(140, 180, 255, 0.6);
-  border-radius: var(--ca-radius-md);
-  color: var(--ca-text-bright);
-  font-size: 12px;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.click-adventure.adventure-io .ca-io-primary-btn:hover {
-  background: rgba(80, 110, 200, 0.7);
-}
-
-.click-adventure.adventure-io .ca-io-cancel-btn {
-  padding: 5px 12px;
-  background: var(--ca-bg-toolbar);
-  border: 1px solid var(--ca-border-toolbar);
-  border-radius: var(--ca-radius-md);
-  color: var(--ca-text-muted);
-  font-size: 12px;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-}
-
-.click-adventure.adventure-io .ca-io-cancel-btn:hover {
-  background: var(--ca-bg-toolbar-hover);
-  color: var(--ca-text-bright);
-}
-
-/* File input — hide native element, style the label as a dashed drop-zone button */
 
 .click-adventure.adventure-io .ca-io-file-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 7px 16px;
-  background: var(--ca-bg-toolbar);
-  border: 1px dashed var(--ca-border-toolbar);
-  border-radius: var(--ca-radius-md);
-  color: var(--ca-text-muted);
-  font-size: 12px;
+  align-self: flex-start;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
-}
-
-.click-adventure.adventure-io .ca-io-file-label:hover {
-  background: var(--ca-bg-toolbar-hover);
-  border-color: var(--ca-border-toolbar-hv);
-  color: var(--ca-text-bright);
 }
 
 .click-adventure.adventure-io .ca-io-file-input {
   display: none;
+}
+
+.click-adventure.adventure-io .ca-io-empty {
+  margin: 0;
 }

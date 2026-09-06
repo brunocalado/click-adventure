@@ -21,7 +21,7 @@ export class SettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
     id: "settings-app",
     classes: ["click-adventure", "settings"],
     window: { title: "Click Adventure — Settings", resizable: false },
-    position: { width: 420, height: "auto" }
+    position: { width: 560, height: "auto" }
   };
 
   /** @override */
@@ -103,7 +103,7 @@ export class SettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     const activateTab = (tabName) => {
       tabs.forEach(t =>
-        t.classList.toggle("ca-settings-tab--active", t.dataset.tab === tabName)
+        t.classList.toggle("ca-tab--active", t.dataset.tab === tabName)
       );
       panels.forEach(p =>
         p.classList.toggle("ca-settings-panel-tab--hidden", p.dataset.panel !== tabName)

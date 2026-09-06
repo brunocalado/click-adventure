@@ -3,43 +3,43 @@
   {{#if isGM}}
 
   {{!-- Type --}}
-  <div class="ca-os-section">
-    <div class="ca-settings-section-title">Type</div>
-    <div class="ca-os-type-row">
+  <div class="ca-card ca-os-section">
+    <div class="ca-label ca-settings-section-title">Type</div>
+    <div class="ca-btn-group ca-os-type-row">
       {{#each typeOptions}}
-      <button class="ca-os-type-btn {{#if (eq value ../orbType)}}ca-os-type-btn--active{{/if}}"
+      <button class="ca-btn-group-btn ca-os-type-btn {{#if (eq value ../orbType)}}ca-btn-group-btn--active{{/if}}"
               data-type="{{value}}" type="button">{{label}}</button>
       {{/each}}
     </div>
   </div>
 
   {{!-- Size --}}
-  <div class="ca-os-section">
-    <div class="ca-settings-section-title">Size</div>
+  <div class="ca-card ca-os-section">
+    <div class="ca-label ca-settings-section-title">Size</div>
     <div class="ca-os-row">
-      <label class="ca-settings-label">Scale</label>
+      <label class="ca-label ca-settings-label">Scale</label>
       <input class="ca-os-size" type="range" min="0.75" max="2.5" step="0.25" value="{{orbSize}}">
       <span class="ca-os-size-label">{{orbSize}}×</span>
     </div>
   </div>
 
   {{!-- Color --}}
-  <div class="ca-os-section">
-    <div class="ca-settings-section-title">Color</div>
+  <div class="ca-card ca-os-section">
+    <div class="ca-label ca-settings-section-title">Color</div>
     <div class="ca-os-row">
-      <label class="ca-settings-label">Base Color</label>
+      <label class="ca-label ca-settings-label">Base Color</label>
       <input class="ca-os-color" type="color" value="{{orbColor}}">
     </div>
-    <p class="ca-settings-hint">Ignored when an image is set.</p>
+    <p class="ca-hint ca-settings-hint">Ignored when an image is set.</p>
   </div>
 
   {{!-- Image --}}
-  <div class="ca-os-section">
-    <div class="ca-settings-section-title">Image <span class="ca-os-optional">(optional)</span></div>
+  <div class="ca-card ca-os-section">
+    <div class="ca-label ca-settings-section-title">Image <span class="ca-os-optional">(optional)</span></div>
     <div class="ca-os-row">
       <span class="ca-os-image-path">{{#if orbImage}}{{orbImage}}{{else}}<em>None</em>{{/if}}</span>
-      <button class="ca-os-image-browse" type="button">Browse…</button>
-      {{#if orbImage}}<button class="ca-os-image-clear" type="button" title="Remove image">✕</button>{{/if}}
+      <button class="ca-btn ca-btn--quiet ca-btn--sm ca-os-image-browse" type="button">Browse…</button>
+      {{#if orbImage}}<button class="ca-btn ca-btn--ghost-danger ca-btn--sm ca-os-image-clear" type="button" title="Remove image">✕</button>{{/if}}
     </div>
     {{#if orbImage}}
     <div class="ca-os-image-thumb-wrap">
@@ -50,15 +50,15 @@
 
   {{else}}
 
-  <div class="ca-os-section">
-    <p class="ca-settings-hint">Only the GM can modify the HUD button style.</p>
+  <div class="ca-card ca-os-section">
+    <p class="ca-hint ca-settings-hint">Only the GM can modify the HUD button style.</p>
   </div>
 
   {{/if}}
 
   {{!-- Preview --}}
-  <div class="ca-os-section">
-    <div class="ca-settings-section-title">Preview</div>
+  <div class="ca-card ca-os-section">
+    <div class="ca-label ca-settings-section-title">Preview</div>
     <div class="ca-os-preview">
       {{#if orbImage}}
         <img class="ca-os-preview-img {{#if (eq orbType 'square')}}ca-os-preview-img--square{{/if}}"

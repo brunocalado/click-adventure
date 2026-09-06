@@ -318,7 +318,7 @@ Hooks.on("init", () => {
     scope: "world",
     config: false,
     type: Object,
-    default: { type: "orb", size: 1, color: "#3355aa", orbImage: "" }
+    default: { type: "orb", size: 1, color: "#d4a017", orbImage: "" }
   });
 
   game.settings.register(MODULE_ID,"defaultTokenPositions", {

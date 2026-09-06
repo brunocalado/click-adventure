@@ -1,3 +1,25 @@
+# 0.2.1
+
+## [Changed]
+- **The whole interface was redesigned.** Every window in the module now shares one visual system: true-dark neutral surfaces, an amber accent for confirming actions, blue for additive ones, and green for on/default states. Labels sit on the same line as the control they name instead of stacked above it, list entries are cards rather than flat rows, and each window's one global action (Add Media, and the like) rides the tab row instead of claiming a line of its own. All nine windows were previously styled independently, which is why they never quite looked like the same product.
+- **Windows open wider.** The new density needs more room: Node Configuration went from 660 to 820px, Settings, Link Editor, Export/Import and Adventure Groups from 420-480 to 560, Instructions from 480x560 to 700x640 (it also gained two tabs), and HUD Button Style from 340 to 460. At the old widths, buttons in a card row overflowed and the destructive action ended up flush against the one the user actually wants.
+- **Confirmation dialogs are themed.** Delete Node, Delete Link, Delete Group, Reset Group, Reset Macros, New Group and Rename Group used to appear in Foundry's default chrome, visibly foreign to the rest of the module. They now carry the module's frame, and the destructive choice is a red button rather than a generic one.
+- **Toolbar state toggles read as switches.** *Free Move: OFF* was red, which looked like an error rather than a deliberate setting; it is now neutral grey, with green reserved for the ON state. *Autolock: ON* is green for the same reason.
+- **The HUD button's default colour is now amber** (`#d4a017`) instead of blue, to match the rest of the interface. Worlds where the GM already picked a colour are unaffected; worlds that never changed it will see the new default.
+- Module windows now force a dark colour scheme regardless of Foundry's own light/dark theme setting, since the palette is built around amber on black.
+- **Two features finally documented in the built-in Instructions.** The help window never mentioned **Adventure Groups** or **Export / Import**, even though both ship in the UI. New *Groups* and *Export / Import* tabs cover what a group is, what Activate actually does to online players (and why it appears to do nothing when the start node has no scene), when Delete is refused, where the export screen lives in Foundry's own settings, and how macro / journal / playlist / linked-scene references are resolved on import.
+- **The built-in Instructions were brought back in line with the interface.** They still described the old *+ Add Media* button and the *Navigation Name* field, and listed the passage-editor footer in an order it no longer uses. The colour swatches in the Links and Camera Room tabs now read their colours from the same tokens the canvas paints with, so a retuned state colour can no longer leave the help text describing the old one.
+
+## [Fixed]
+- **HUD destination buttons had no contrast against their own panel.** Buttons inside the destinations list, the media switcher and the camera panel drew on the same surface colour as the panel behind them, leaving only a 1px border to separate them.
+- **The macro column in Node Configuration overflowed its card.** Run / Open / Remove needed more width than the 200px column allows, so the buttons spilled past the card edge instead of wrapping.
+
+## [Internal]
+- New `styles/_components.css` holds the shared UI primitives — buttons, inputs, labels, tabs, cards, dropzones, switches and segmented groups — that every window now draws from. Each window's own stylesheet keeps only what is genuinely unique to it, which removed roughly 900 lines of duplicated CSS.
+- Every colour literal in the module now lives in `styles/_tokens.css`; the 62 hex values and ~260 `rgba()` calls previously scattered across the other stylesheets are gone. Tokens are split into two deliberate tiers: muted `--ca-accent-*` / `--ca-fn-*` for window chrome, and vivid `--ca-state-*` for the node graph, where a 2px SVG stroke needs a colour that survives being one pixel wide.
+- Templates kept every class the apps bind listeners to, so the redesign touched no event wiring. The three tabbed windows now share a single `ca-tab--active` state class instead of three differently-named ones.
+- `styles/_foundry-overrides.css` documents two v14 behaviours worth knowing: Foundry declares all of its CSS inside `@layer`, so unlayered module rules win without `!important`; and it declares `--button-*` / `--input-*` on the elements themselves, so retheming has to target the elements rather than an ancestor.
+
 # 0.2.0
 
 ## [Added]

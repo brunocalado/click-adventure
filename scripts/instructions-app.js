@@ -17,7 +17,7 @@ export class InstructionsApp extends HandlebarsApplicationMixin(ApplicationV2) {
     id: "instructions-app",
     classes: ["click-adventure", "instructions"],
     window: { title: "Click Adventure — Help", resizable: false },
-    position: { width: 480, height: 560 }
+    position: { width: 700, height: 640 }
   };
 
   /** @override */
@@ -49,7 +49,7 @@ export class InstructionsApp extends HandlebarsApplicationMixin(ApplicationV2) {
         this._activeTab = tab;
 
         this.element.querySelectorAll(".ca-instr-tab-btn").forEach(b =>
-          b.classList.toggle("ca-instr-tab-btn--active", b.dataset.tab === tab)
+          b.classList.toggle("ca-tab--active", b.dataset.tab === tab)
         );
         this.element.querySelectorAll(".ca-instr-panel").forEach(p =>
           p.classList.toggle("ca-instr-panel--active", p.dataset.panel === tab)

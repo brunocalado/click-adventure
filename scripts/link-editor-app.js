@@ -22,7 +22,7 @@ export class LinkEditorApp extends HandlebarsApplicationMixin(ApplicationV2) {
     id: "link-editor-app",
     classes: ["click-adventure", "link-editor"],
     window: { title: "Edit Link Passages", resizable: false },
-    position: { width: 420, height: "auto" }
+    position: { width: 560, height: "auto" }
   };
 
   /** @override */

@@ -1,34 +1,143 @@
-/* @section: foundry-overrides
-   @scope: ApplicationV2 windows + button reset against Foundry global styles
-   @depends: --ca-node-btn-size
+/*!
+ * Click Adventure
+ * Copyright (c) 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
 
-   These rules use !important to defeat Foundry VTT's high-specificity global
-   button/window styles. Do NOT add !important elsewhere — put new overrides
-   here and document the original Foundry rule being beaten.
+/* @section: foundry-overrides
+   @scope: ApplicationV2 window chrome for every .click-adventure window
+   @depends: _tokens.css
+
+   WHY THIS FILE NEEDS ALMOST NO !important
+   foundry2.css declares every one of its rules inside a cascade layer
+   (`@layer reset, variables, elements, blocks, applications, …` — foundry2.css:5).
+   Module stylesheets loaded through module.json are UNLAYERED, and unlayered
+   rules beat every layered rule regardless of selector specificity. So a plain
+   `.click-adventure .window-header` already wins over Foundry's
+   `.themed.theme-dark .application .window-header`. The only rules below that
+   still need !important are the ones fighting INLINE styles written by
+   ApplicationV2's own positioning JS, which no stylesheet can outrank.
+
+   The second thing worth knowing: Foundry declares --button-* and --input-*
+   ON the elements themselves (foundry2.css:379 for inputs, :456 for buttons),
+   not on an ancestor. A variable set on .application therefore loses to them.
+   Retheming has to target the elements, which is what this file does.
 
    @manifest:
-     .ca-node .ca-node-buttons .ca-view-scene-btn   Force 18x18 sizing over Foundry button defaults
-     .click-adventure a.button:focus, button:focus, select:focus   Suppress Foundry's orange focus ring (foundry2.css:4004) for all module windows
-     .click-adventure.settings .window-content      Zero Foundry padding; opaque bg
-     .click-adventure.nav-hud                       Free-floating ApplicationV2 (no chrome)
+     .application.click-adventure                Frame: palette, radius, shadow, forced dark
+     .click-adventure .window-header/-title      Amber uppercase title bar
+     .click-adventure .window-content            Zero Foundry padding; each template owns its own
+     .click-adventure input/select/textarea      Retheme Foundry's --input-* variables
+     .click-adventure button                     Retheme Foundry's --button-* variables
+     .click-adventure *:focus                    Suppress Foundry's orange focus ring
+     .ca-node .ca-view-scene-btn                 Force the 18x18 node icon slot
+     .click-adventure.nav-hud                    Strip the frame off the free-floating HUD
+     .click-adventure.ca-dialog                  DialogV2 confirmations
 */
 
-/* Foundry assigns a default min-width/padding to all <button> elements. The
-   tiny node icons need to override that to fit the 18x18 slot. */
-.ca-node .ca-node-buttons .ca-view-scene-btn,
-.ca-node .ca-node-buttons .ca-activate-scene-btn {
-  width: var(--ca-node-btn-size) !important;
-  height: var(--ca-node-btn-size) !important;
-  min-width: var(--ca-node-btn-size) !important;
-  max-width: var(--ca-node-btn-size) !important;
-  padding: 0 !important;
-  box-sizing: border-box;
+/* ── Window frame ─────────────────────────────────────────────────── */
+/* Forced dark: the module's palette is amber-on-black, which falls apart if a
+   user runs Foundry's light theme. color-scheme keeps native widgets (scrollbars,
+   date pickers) in step. */
+.application.click-adventure {
+  --header-height: 40px;
+  --background: var(--ca-bg-panel);
+  --color-header-background: var(--ca-bg-panel-alt);
+  --color-border: var(--ca-border);
+  --color-text-primary: var(--ca-text-primary);
+  --color-form-label: var(--ca-text-muted);
+  --color-form-hint: var(--ca-text-faint);
+  --font-sans: var(--ca-font-ui);
+  --font-primary: var(--ca-font-ui);
+  color-scheme: dark;
+  background: var(--ca-bg-panel);
+  border: 1px solid var(--ca-border);
+  border-radius: var(--ca-radius-window);
+  box-shadow: var(--ca-shadow-modal);
+  font-family: var(--ca-font-ui);
+  color: var(--ca-text-primary);
 }
 
-/* Suppress Foundry's orange focus ring (foundry2.css:4004) for all module windows.
-   All apps carry .click-adventure via DEFAULT_OPTIONS.classes, making this the
-   single point of truth — no per-component overrides needed.
-   Parent class raises specificity above Foundry's bare selector, so !important is unnecessary. */
+.click-adventure .window-header {
+  padding: 0 var(--ca-space-4);
+  background: var(--ca-bg-panel-alt);
+  border-bottom: 1px solid var(--ca-border);
+}
+
+.click-adventure .window-header .window-title {
+  font-family: var(--ca-font-ui);
+  font-size: var(--ca-fs-title);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--ca-accent);
+}
+
+/* These buttons carry their Font Awesome classes on the BUTTON element itself
+   (class="header-control icon fa-solid fa-xmark"), so they must keep Foundry's
+   transparent chrome and must never have font-family reassigned — see the note
+   on the form-control rules below. */
+.click-adventure .window-header button.header-control {
+  --button-background-color: none;
+  --button-border-color: transparent;
+  --button-text-color: var(--ca-text-muted);
+  --button-hover-text-color: var(--ca-text-primary);
+  --button-hover-background-color: transparent;
+  --button-hover-border-color: transparent;
+}
+
+/* Foundry pads .window-content with var(--spacer-16). Every template in this
+   module lays out its own padding, so zero it once here instead of per window. */
+.click-adventure .window-content {
+  padding: 0;
+  background: var(--ca-bg-panel);
+  color: var(--ca-text-primary);
+}
+
+/* ── Form controls ────────────────────────────────────────────────── */
+/* NOTE ON font-family: it is deliberately NOT set here or on the button rule
+   below. Foundry puts Font Awesome classes directly on some of its own controls
+   (.header-control), and reassigning font-family on a blanket `button` selector
+   replaces the icon font and renders the glyph as an empty box. The typeface
+   still reaches every control, because Foundry's own rules read
+   var(--font-sans), which .application.click-adventure remaps above. Elements
+   this module authors set the face explicitly via .ca-btn / .ca-input. */
+.click-adventure input,
+.click-adventure select,
+.click-adventure textarea {
+  --input-background-color: var(--ca-bg-input);
+  --input-border-color: var(--ca-border);
+  --input-text-color: var(--ca-text-input);
+  --input-focus-outline-color: var(--ca-accent);
+  --input-box-shadow: none;
+}
+
+.click-adventure select option {
+  background: var(--ca-bg-input);
+  color: var(--ca-text-primary);
+}
+
+/* Baseline for any button that has not been given a .ca-btn variant. Buttons
+   carrying .ca-btn set background/colour directly, so they are unaffected. */
+.click-adventure button,
+.click-adventure a.button {
+  --button-background-color: var(--ca-bg-input);
+  --button-border-color: var(--ca-border);
+  --button-text-color: var(--ca-text-muted);
+  --button-hover-background-color: var(--ca-bg-hover);
+  --button-hover-border-color: var(--ca-border-toolbar-hv);
+  --button-hover-text-color: var(--ca-text-primary);
+  --button-focus-outline-color: var(--ca-accent);
+  /* Foundry animates every property over 0.5s, which makes the UI feel laggy. */
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+/* Suppress Foundry's orange focus ring (foundry2.css:4104) for all module
+   windows. All apps carry .click-adventure via DEFAULT_OPTIONS.classes, making
+   this the single point of truth. Accessible focus comes back through
+   .ca-btn:focus-visible in _components.css, which outranks this. */
 .click-adventure a.button:focus,
 .click-adventure button:focus,
 .click-adventure select:focus {
@@ -36,17 +145,44 @@
   box-shadow: none;
 }
 
-/* Zero out Foundry's .window-content padding for the settings window,
-   then apply the opaque background directly on it so no gap is visible.
-   Source: foundry2.css:6924 — .application .window-content { padding: var(--spacer-16) } */
-.click-adventure.settings .window-content {
-  padding: 0 !important;
-  background: var(--ca-bg-panel) !important;
+/* ── DialogV2 confirmations ───────────────────────────────────────── */
+/* The apps pass classes: ["click-adventure", "ca-dialog"]; ApplicationV2
+   concatenates that with DialogV2's own ["dialog"] (application.mjs:477). */
+.click-adventure.ca-dialog .window-content {
+  padding: var(--ca-space-5) var(--ca-space-6);
 }
 
-/* Foundry's ApplicationV2 ships a window frame (chrome, header, border).
-   The Nav HUD is a free-floating overlay — strip the frame so only the
-   inner pointer-event-enabled root is visible. */
+.click-adventure.ca-dialog .dialog-content {
+  font-size: var(--ca-fs-body);
+  color: var(--ca-text-primary);
+  line-height: 1.6;
+}
+
+.click-adventure.ca-dialog .form-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--ca-space-3);
+  margin-top: var(--ca-space-5);
+}
+
+/* ── Node icon buttons ────────────────────────────────────────────── */
+/* Foundry gives every <button> a --button-size floor; the tiny node icons have
+   to opt out to fit their 18x18 slot. */
+.ca-node .ca-node-buttons .ca-view-scene-btn,
+.ca-node .ca-node-buttons .ca-activate-scene-btn {
+  --button-size: var(--ca-node-btn-size);
+  width: var(--ca-node-btn-size);
+  height: var(--ca-node-btn-size);
+  min-width: var(--ca-node-btn-size);
+  max-width: var(--ca-node-btn-size);
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ── Free-floating HUD ────────────────────────────────────────────── */
+/* ApplicationV2 ships a window frame and writes position/size as INLINE styles
+   from setPosition(). Inline styles outrank any stylesheet, layered or not, so
+   these are the one place !important is genuinely required. */
 .click-adventure.nav-hud {
   position: fixed !important;
   z-index: var(--ca-z-hud) !important;

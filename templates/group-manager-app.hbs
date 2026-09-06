@@ -5,7 +5,7 @@
   {{#if groups.length}}
   <ul class="ca-gm-list">
     {{#each groups}}
-    <li class="ca-gm-row {{#if isActive}}ca-gm-row--active{{/if}}">
+    <li class="ca-card ca-gm-row {{#if isActive}}ca-card--default ca-gm-row--active{{/if}}">
       <span class="ca-gm-icon">
         {{#if isActive}}
           <i class="fas fa-map-marked-alt"></i>
@@ -17,18 +17,18 @@
       {{#if isActive}}
         <span class="ca-gm-badge">Active</span>
       {{else}}
-        <button class="ca-gm-activate-btn" type="button"
+        <button class="ca-btn ca-btn--toggle ca-gm-activate-btn" type="button"
                 data-action="activateGroup" data-group-id="{{id}}"
                 title="Set as active group and move all players to its start node">
           Activate
         </button>
       {{/if}}
-      <button class="ca-gm-rename-btn" type="button"
+      <button class="ca-btn ca-btn--quiet ca-btn--sm ca-gm-rename-btn" type="button"
               data-action="renameGroup" data-group-id="{{id}}"
               title="Rename this group">
         <i class="fas fa-pencil"></i>
       </button>
-      <button class="ca-gm-delete-btn" type="button"
+      <button class="ca-btn ca-btn--ghost-danger ca-btn--sm ca-gm-delete-btn" type="button"
               data-action="deleteGroup" data-group-id="{{id}}"
               title="{{#if canDelete}}Delete this group{{else}}Cannot delete the active group or the last group{{/if}}"
               {{#unless canDelete}}disabled{{/unless}}>
@@ -38,17 +38,17 @@
     {{/each}}
   </ul>
   {{else}}
-  <p class="ca-gm-empty">No groups yet. Create one below to get started.</p>
+  <p class="ca-hint ca-gm-empty">No groups yet. Create one below to get started.</p>
   {{/if}}
 
-  <div class="ca-gm-footer">
-    <button class="ca-gm-new-btn" type="button" data-action="newGroup">
+  <div class="ca-win-footer ca-gm-footer">
+    <button class="ca-btn ca-btn--blue ca-gm-new-btn" type="button" data-action="newGroup">
       <i class="fas fa-plus"></i> New Group
     </button>
   </div>
 
   {{else}}
-  <p class="ca-gm-empty">Only the GM can manage adventure groups.</p>
+  <p class="ca-hint ca-gm-empty">Only the GM can manage adventure groups.</p>
   {{/if}}
 
 </div>

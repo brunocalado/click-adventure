@@ -46,7 +46,7 @@ export class HudStyleApp extends HandlebarsApplicationMixin(ApplicationV2) {
     id: "hud-style-app",
     classes: ["click-adventure", "hud-style"],
     window: { frame: true, title: "HUD Button Style", resizable: false },
-    position: { width: 340, height: "auto" }
+    position: { width: 460, height: "auto" }
   };
 
   /** @override */
@@ -63,7 +63,7 @@ export class HudStyleApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const style = game.settings.get("click-adventure", "orbStyle");
 
     const orbType  = style.type     ?? "orb";
-    const orbColor = style.color    ?? "#3355aa";
+    const orbColor = style.color    ?? "#d4a017";
     const orbImage = style.orbImage ?? "";
     const scale    = style.size     ?? 1;
     const baseOrb  = 80;   // mirrors --ca-orb-size: 80px from nav-hud-app

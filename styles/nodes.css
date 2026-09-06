@@ -37,7 +37,7 @@
   display: flex;
   flex-direction: column;
   user-select: none;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--ca-shadow-node);
   transition: border-color 0.15s, box-shadow 0.15s;
   /* Avatars and anchors render outside the node border. */
   overflow: visible;
@@ -45,7 +45,7 @@
 
 .click-adventure.manager .ca-node:hover {
   border-color: var(--ca-border-card-hover);
-  box-shadow: 0 0 0 2px rgba(127, 170, 255, 0.3), 0 2px 8px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 0 2px var(--ca-accent-glow), var(--ca-shadow-node);
 }
 
 .click-adventure.manager .ca-node:active {
@@ -55,7 +55,7 @@
 /* Active node — green border. */
 .click-adventure.manager .ca-node[data-active="true"] {
   border-color: var(--ca-state-open);
-  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.4), 0 2px 8px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 0 2px var(--ca-state-open-border), var(--ca-shadow-node);
 }
 
 /* Image fills the top of the card, flush with rounded corners. */
@@ -74,14 +74,14 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, transparent 55%);
+  background: linear-gradient(to bottom, var(--ca-scrim-top) 0%, transparent 55%);
   border-radius: inherit;
   pointer-events: none;
 }
 
 .click-adventure.manager .ca-node-image--empty {
   background-color: var(--ca-bg-card-empty);
-  border-bottom: 1px dashed rgba(74, 111, 165, 0.5);
+  border-bottom: 1px dashed var(--ca-border-soft);
 }
 
 /* Video thumbnail inside the node card. */
@@ -106,7 +106,7 @@
   justify-content: center;
   padding: 0 8px;
   border-top: 1px solid var(--ca-border-faint);
-  background: rgba(10, 12, 30, 0.35);
+  background: var(--ca-scrim-label);
   border-radius: 0 0 var(--ca-radius-lg) var(--ca-radius-lg);
   overflow: hidden;
 }
@@ -141,7 +141,7 @@
   display: flex;
   align-items: center;
   color: var(--ca-state-warning);
-  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.8));
+  filter: drop-shadow(var(--ca-shadow-icon));
 }
 
 .click-adventure.manager .ca-start-icon svg {
@@ -153,12 +153,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(10, 45, 35, 0.82);
-  border: 1px solid rgba(20, 180, 140, 0.55);
+  background: var(--ca-state-peek-tint);
+  border: 1px solid var(--ca-state-peek-border);
   border-radius: 10px;
   padding: 1px 5px;
   font-size: 10px;
-  color: rgba(20, 210, 160, 0.95);
+  color: var(--ca-state-peek);
 }
 
 /* Two identical buttons stacked in the top-right corner. */
@@ -186,8 +186,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(10, 15, 40, 0.72);
-  border: 1px solid rgba(100, 140, 220, 0.3);
+  background: var(--ca-bg-badge);
+  border: 1px solid var(--ca-border-mid);
   color: var(--ca-text-faint);
   cursor: pointer;
   pointer-events: all;
@@ -200,8 +200,8 @@
 .click-adventure.manager .ca-view-scene-btn:hover:not(:disabled),
 .click-adventure.manager .ca-activate-scene-btn:hover:not(:disabled) {
   color: var(--ca-text-link);
-  background: rgba(20, 40, 90, 0.85);
-  border-color: rgba(100, 170, 255, 0.55);
+  background: var(--ca-bg-hover);
+  border-color: var(--ca-accent);
 }
 
 .click-adventure.manager .ca-view-scene-btn:disabled,
@@ -247,8 +247,8 @@
 
 /* Peek anchor dots — square, teal, positioned at the four corners. */
 .click-adventure.manager .ca-anchor-peek {
-  background: rgba(20, 180, 140, 0.85);
-  border-color: rgba(0, 0, 0, 0.4);
+  background: var(--ca-state-peek);
+  border-color: var(--ca-bg-deep);
   border-radius: 3px;
   width: 8px;
   height: 8px;
@@ -257,7 +257,7 @@
 }
 
 .click-adventure.manager .ca-anchor-peek:hover {
-  background: rgba(60, 220, 170, 0.95);
+  background: var(--ca-state-peek-hover);
   transform: scale(1.5);
 }
 
@@ -278,8 +278,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(10, 15, 40, 0.72);
-  border: 1px solid rgba(100, 140, 220, 0.3);
+  background: var(--ca-bg-badge);
+  border: 1px solid var(--ca-border-mid);
   color: var(--ca-text-faint);
   cursor: pointer;
   pointer-events: all;
@@ -290,17 +290,17 @@
 }
 
 .click-adventure.manager .ca-camera-room-btn:hover {
-  color: rgba(20, 220, 160, 0.9);
-  background: rgba(10, 40, 35, 0.85);
-  border-color: rgba(20, 180, 140, 0.6);
+  color: var(--ca-state-peek);
+  background: var(--ca-state-peek-tint);
+  border-color: var(--ca-state-peek-border);
 }
 
 /* Active state — teal glow when camera room is on. */
 .click-adventure.manager .ca-camera-room-btn--on {
-  color: rgba(20, 220, 160, 0.95);
-  border-color: rgba(20, 180, 140, 0.7);
-  background: rgba(10, 45, 35, 0.82);
-  box-shadow: 0 0 6px rgba(20, 200, 150, 0.35);
+  color: var(--ca-state-peek);
+  border-color: var(--ca-state-peek);
+  background: var(--ca-state-peek-tint);
+  box-shadow: 0 0 6px var(--ca-state-peek-border);
 }
 
 /* Node occupant count badge — compact icon + number inside the top-left wrapper. */
@@ -308,27 +308,27 @@
   display: flex;
   align-items: center;
   gap: 3px;
-  background: rgba(0, 0, 0, 0.72);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: var(--ca-bg-badge);
+  border: 1px solid var(--ca-border-soft);
   border-radius: 10px;
   padding: 1px 5px;
   font-size: 10px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--ca-text-primary);
   pointer-events: none;
   white-space: nowrap;
 }
 
 .click-adventure.manager .ca-node-occupant-badge i {
   font-size: 9px;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--ca-text-muted);
 }
 
 /* Node highlight — amber ring when hovered from the player panel or after focus.
    Uses !important to override the active-node green border (higher specificity). */
 .click-adventure.manager .ca-node--highlighted,
 .click-adventure.manager .ca-node[data-active="true"].ca-node--highlighted {
-  outline: 2px solid rgba(255, 200, 60, 0.85) !important;
+  outline: 2px solid var(--ca-accent) !important;
   outline-offset: 3px;
   border-radius: 6px;
 }
@@ -341,7 +341,7 @@
    When a node is simultaneously selected AND highlighted, both outlines
    stack visually because this rule uses outline-offset: 7px vs highlighted's 3px. */
 .click-adventure.manager .ca-node--selected {
-  outline: 2px solid rgba(160, 100, 255, 0.9);
+  outline: 2px solid var(--ca-state-blocked);
   outline-offset: 7px;
   animation: ca-node-wobble 0.7s ease-in-out infinite alternate;
 }
@@ -350,7 +350,7 @@
    the purple outline clears the amber one. */
 .click-adventure.manager .ca-node--selected.ca-node--highlighted,
 .click-adventure.manager .ca-node[data-active="true"].ca-node--selected.ca-node--highlighted {
-  outline: 2px solid rgba(160, 100, 255, 0.9);
+  outline: 2px solid var(--ca-state-blocked);
   outline-offset: 10px;
 }
 

@@ -1,130 +1,96 @@
+/*!
+ * Click Adventure
+ * Copyright (c) 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
+
 /* @section: instructions
-   @scope: InstructionsApp tabbed help window
-   @depends: --ca-bg-popover, --ca-border-soft, --ca-text-*, --ca-text-section,
-             --ca-radius-sm, --ca-radius-xl
+   @scope: .click-adventure.instructions — the tabbed help window
+   @depends: _tokens.css, _components.css
+
+   Almost pure typography: the tab bar is a primitive, and what is left is
+   making long-form help copy readable on a dark ground.
 
    @manifest:
-     .ca-instr-wrap               Full-height flex column: tab bar + panel
-     .ca-instr-tabs               Horizontal tab button row
-     .ca-instr-tab-btn            Individual tab button (inactive state)
-     .ca-instr-tab-btn--active    Active tab button
-     .ca-instr-panel              Tab content panel (hidden by default)
-     .ca-instr-panel--active      Visible panel
-     .ca-instr-panel h3           Section heading inside a panel
-     .ca-instr-panel ul           Tip list
-     .ca-instr-panel li           Single tip
-     .ca-instr-panel p            Free-text paragraph
-     .ca-instr-panel kbd          Inline keyboard key glyph
+     .ca-instr-wrap     Root: tab bar plus the scrolling panel
+     .ca-instr-panel    One help panel; only the active one is shown
 */
 
-/* Layout wrapper — fills the ApplicationV2 content area */
-.ca-instr-wrap {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  color: var(--ca-text-primary);
-  font-size: 12px;
-}
-
-/* ── Tab bar ─────────────────────────────────────────── */
-
-.ca-instr-tabs {
-  display: flex;
-  gap: 2px;
-  padding: 8px 12px 0;
-  border-bottom: 1px solid rgba(100, 130, 200, 0.25);
-  flex-shrink: 0;
-}
-
-.ca-instr-tab-btn {
-  padding: 5px 14px;
-  background: transparent;
-  border: 1px solid transparent;
-  border-bottom: none;
-  border-radius: var(--ca-radius-sm) var(--ca-radius-sm) 0 0;
-  color: var(--ca-text-muted);
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: color 0.15s, background 0.15s, border-color 0.15s;
-  white-space: nowrap;
-}
-
-.ca-instr-tab-btn:hover {
-  color: var(--ca-text-primary);
-  background: rgba(100, 130, 200, 0.1);
-}
-
-.ca-instr-tab-btn--active {
-  color: var(--ca-text-link, #7eb8f7);
-  background: rgba(80, 110, 180, 0.15);
-  border-color: rgba(100, 130, 200, 0.35);
-  cursor: default;
-}
-
-/* ── Panels ──────────────────────────────────────────── */
-
-.ca-instr-panel {
-  display: none;
-  flex-direction: column;
-  gap: 14px;
-  padding: 14px 16px;
-  overflow-y: auto;
+.click-adventure.instructions .ca-instr-wrap {
   flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ca-space-4);
+  padding: var(--ca-space-6) var(--ca-space-6) var(--ca-space-5);
 }
 
-.ca-instr-panel--active {
-  display: flex;
+.click-adventure.instructions .ca-instr-panel {
+  display: none;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: var(--ca-space-2);
+  font-size: var(--ca-fs-body);
+  color: var(--ca-text-muted);
+  line-height: 1.65;
+}
+
+.click-adventure.instructions .ca-instr-panel--active {
+  display: block;
 }
 
 .click-adventure.instructions .ca-instr-panel h3 {
-  margin: 0 0 5px;
-  font-size: 11px;
+  margin: var(--ca-space-5) 0 var(--ca-space-2);
+  font-size: var(--ca-fs-label);
   font-weight: 700;
+  letter-spacing: var(--ca-ls-label);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--ca-text-section);
-  border-bottom: 1px solid rgba(100, 130, 200, 0.2);
-  padding-bottom: 4px;
+  color: var(--ca-accent);
+  border: none;
 }
 
-.click-adventure.instructions .ca-instr-panel ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
+.click-adventure.instructions .ca-instr-panel h3:first-child {
+  margin-top: 0;
+}
+
+.click-adventure.instructions .ca-instr-panel ul,
+.click-adventure.instructions .ca-instr-panel ol {
+  margin: 0 0 var(--ca-space-3);
+  padding-left: var(--ca-space-5);
 }
 
 .click-adventure.instructions .ca-instr-panel li {
-  line-height: 1.5;
-  color: var(--ca-text-primary);
+  margin-bottom: var(--ca-space-1);
+}
+
+.click-adventure.instructions .ca-instr-panel li::marker {
+  color: var(--ca-text-faint);
 }
 
 .click-adventure.instructions .ca-instr-panel p {
-  margin: 0;
-  line-height: 1.5;
-  color: #a8b8d8;
+  margin: 0 0 var(--ca-space-3);
 }
 
-/* ── Keyboard key glyph ──────────────────────────────── */
-
-.click-adventure.instructions .ca-instr-panel kbd {
-  display: inline-block;
-  padding: 1px 5px;
-  background: rgba(80, 100, 160, 0.4);
-  border: 1px solid rgba(120, 150, 210, 0.5);
-  border-radius: var(--ca-radius-sm);
-  font-size: 11px;
-  font-family: monospace;
-  color: #dde8ff;
+.click-adventure.instructions .ca-instr-panel strong {
+  color: var(--ca-text-primary);
+  font-weight: 600;
 }
 
-/* Force opaque window background — Foundry's default .application may apply
-   a semi-transparent background in some themes.
-   Uses --ca-bg-panel (#1a1c2e) since --ca-bg-app is not defined in this module. */
-.click-adventure.instructions {
-  background: var(--ca-bg-panel, #1a1c2e) !important;
+.click-adventure.instructions .ca-instr-panel em {
+  color: var(--ca-text-primary);
+  font-style: italic;
 }
 
+/* The Links tab names each direction by its colour, so these have to be the very
+   tokens the canvas paints with — a hardcoded hex here would silently start
+   lying the first time a state colour is retuned. */
+/* Scoped through .ca-instr-panel so these outrank the panel's own
+   `strong { color: … }` rule above, which is otherwise more specific. */
+.click-adventure.instructions .ca-instr-panel .ca-swatch--open        { color: var(--ca-state-open); }
+.click-adventure.instructions .ca-instr-panel .ca-swatch--directional { color: var(--ca-state-directional); }
+.click-adventure.instructions .ca-instr-panel .ca-swatch--blocked     { color: var(--ca-state-blocked); }
+.click-adventure.instructions .ca-instr-panel .ca-swatch--locked      { color: var(--ca-state-locked); }
+.click-adventure.instructions .ca-instr-panel .ca-swatch--peek        { color: var(--ca-state-peek); }

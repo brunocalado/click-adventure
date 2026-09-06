@@ -60,8 +60,8 @@
 .click-adventure.nav-hud .ca-hud-dest-btn {
   width: 100%;
   padding: 6px 14px;
-  background: rgba(40, 60, 120, 0.7);
-  border: 1px solid rgba(100, 140, 220, 0.4);
+  background: var(--ca-bg-hud-item);
+  border: 1px solid var(--ca-border-mid);
   border-radius: var(--ca-radius-lg);
   color: var(--ca-text-primary);
   font-size: 12px;
@@ -109,7 +109,7 @@
   z-index: 9999;
   pointer-events: none;
   display: none;
-  background: rgba(0, 0, 0, 0.88);
+  background: var(--ca-bg-overlay);
   border: 1px solid var(--ca-border-soft);
   border-radius: 6px;
   padding: 4px;
@@ -130,29 +130,29 @@
 }
 
 .click-adventure.nav-hud .ca-hud-dest-btn:hover {
-  background: rgba(60, 90, 180, 0.85);
-  border-color: rgba(140, 180, 255, 0.7);
+  background: var(--ca-bg-hud-item-hover);
+  border-color: var(--ca-accent);
   color: var(--ca-text-bright);
 }
 
 .click-adventure.nav-hud .ca-hud-dest-btn--locked {
   opacity: 0.85;
-  border-color: rgba(239, 68, 68, 0.6);
+  border-color: var(--ca-state-locked-border);
   color: var(--ca-text-locked);
   cursor: not-allowed;
 }
 
 .click-adventure.nav-hud .ca-hud-dest-btn--locked:hover {
   background: var(--ca-state-locked-tint);
-  border-color: rgba(239, 68, 68, 0.85);
+  border-color: var(--ca-state-locked);
   color: var(--ca-text-locked-hv);
 }
 
 /* Secret destination — only shown to GM for "blocked" links */
 .click-adventure.nav-hud .ca-hud-dest-btn--secret {
-  border-color: rgba(168, 85, 247, 0.6);
-  color: #c084fc;
-  background: rgba(60, 20, 80, 0.7);
+  border-color: var(--ca-state-blocked);
+  color: var(--ca-state-multi-hover);
+  background: var(--ca-state-blocked-tint);
 }
 
 .click-adventure.nav-hud .ca-hud-dest-btn--secret i {
@@ -160,9 +160,9 @@
 }
 
 .click-adventure.nav-hud .ca-hud-dest-btn--secret:hover {
-  background: rgba(80, 30, 110, 0.85);
-  border-color: rgba(192, 132, 252, 0.85);
-  color: #e9d5ff;
+  background: var(--ca-state-blocked-tint);
+  border-color: var(--ca-state-multi-hover);
+  color: var(--ca-text-bright);
 }
 
 /* Orb */
@@ -188,30 +188,21 @@
   border-radius: 50%;
   /* 3D depth via layered box-shadows:
      outer: drop shadow below; inner top: highlight edge; inner bottom: depth shadow */
-  box-shadow:
-    0 4px 14px rgba(0, 0, 0, 0.65),
-    0 1px 4px  rgba(0, 0, 0, 0.45),
-    inset 0 1px 3px  rgba(255, 255, 255, 0.35),
-    inset 0 -2px 5px rgba(0, 0, 0, 0.35);
-  border: 2px solid rgba(0, 0, 0, 0.3);
+  box-shadow: var(--ca-shadow-orb);
+  border: 2px solid var(--ca-orb-border);
   transition: transform 0.15s, box-shadow 0.15s;
 }
 
 .click-adventure.nav-hud .ca-hud-orb:hover .ca-hud-orb-inner {
   transform: scale(1.12);
   box-shadow:
-    0 6px 20px var(--ca-orb-glow, rgba(60, 100, 255, 0.5)),
-    0 2px 6px  rgba(0, 0, 0, 0.4),
-    inset 0 1px 3px  rgba(255, 255, 255, 0.45),
-    inset 0 -2px 5px rgba(0, 0, 0, 0.3);
+    0 6px 20px var(--ca-orb-glow, var(--ca-orb-glow-default)),
+    var(--ca-shadow-orb-hover);
 }
 
 .click-adventure.nav-hud .ca-hud-orb--dragging .ca-hud-orb-inner {
   transform: scale(0.92);
-  box-shadow:
-    0 2px 6px rgba(0, 0, 0, 0.6),
-    inset 0 2px 5px rgba(0, 0, 0, 0.5),
-    inset 0 1px 2px rgba(255, 255, 255, 0.2);
+  box-shadow: var(--ca-shadow-orb-drag);
 }
 
 /* Square variant — same inner styles, only border-radius changes */
@@ -230,11 +221,8 @@
   height: var(--ca-orb-inner);
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid rgba(0, 0, 0, 0.3);
-  box-shadow:
-    0 4px 14px rgba(0, 0, 0, 0.65),
-    0 1px 4px  rgba(0, 0, 0, 0.45),
-    inset 0 1px 3px rgba(255, 255, 255, 0.35);
+  border: 2px solid var(--ca-orb-border);
+  box-shadow: var(--ca-shadow-orb);
   pointer-events: none;
   display: block;
   transition: transform 0.15s, box-shadow 0.15s;
@@ -243,8 +231,8 @@
 .click-adventure.nav-hud .ca-hud-orb:hover .ca-hud-orb-img {
   transform: scale(1.12);
   box-shadow:
-    0 6px 20px var(--ca-orb-glow, rgba(60, 100, 255, 0.5)),
-    0 2px 6px rgba(0, 0, 0, 0.4);
+    0 6px 20px var(--ca-orb-glow, var(--ca-orb-glow-default)),
+    var(--ca-shadow-orb-hover);
 }
 
 .click-adventure.nav-hud .ca-hud-orb--dragging .ca-hud-orb-img {
@@ -257,13 +245,13 @@
 
 /* Origin indicator — the node this user navigated here from */
 .click-adventure.nav-hud .ca-hud-dest-btn--origin {
-  border-color: rgba(100, 220, 140, 0.7);
-  background: rgba(30, 80, 50, 0.75);
+  border-color: var(--ca-fn-green);
+  background: var(--ca-state-open-tint);
 }
 
 .click-adventure.nav-hud .ca-hud-dest-btn--origin:hover {
-  background: rgba(40, 110, 70, 0.9);
-  border-color: rgba(130, 255, 170, 0.85);
+  background: var(--ca-fn-green);
+  border-color: var(--ca-state-open);
   color: var(--ca-text-bright);
 }
 
@@ -290,9 +278,9 @@
   font-size: 11px;
   font-weight: 600;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(0, 0, 0, 0.55);
-  color: rgba(255, 255, 255, 0.65);
+  border: 1px solid var(--ca-border-soft);
+  background: var(--ca-scrim-hud);
+  color: var(--ca-text-muted);
   cursor: pointer;
   white-space: nowrap;
   transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
@@ -302,19 +290,19 @@
 }
 
 .click-adventure.nav-hud .ca-hud-mode-btn:hover {
-  background: rgba(0, 0, 0, 0.75);
-  color: rgba(255, 255, 255, 0.9);
+  background: var(--ca-scrim-hud-hover);
+  color: var(--ca-text-primary);
 }
 
 /* Amber in guide mode — immediately distinct, warns the GM that all players will follow */
 .click-adventure.nav-hud .ca-hud-mode-btn--guide {
-  background: rgba(180, 100, 0, 0.75);
-  border-color: rgba(255, 165, 0, 0.6);
-  color: #ffd580;
+  background: var(--ca-accent-glow);
+  border-color: var(--ca-accent);
+  color: var(--ca-accent);
 }
 
 .click-adventure.nav-hud .ca-hud-mode-btn--guide:hover {
-  background: rgba(200, 115, 0, 0.9);
+  background: var(--ca-accent);
 }
 
 /* GM shortcut to open the Scene Graph Manager */
@@ -326,9 +314,9 @@
   font-size: 11px;
   font-weight: 600;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(0, 0, 0, 0.55);
-  color: rgba(255, 255, 255, 0.65);
+  border: 1px solid var(--ca-border-soft);
+  background: var(--ca-scrim-hud);
+  color: var(--ca-text-muted);
   cursor: pointer;
   white-space: nowrap;
   transition: background 140ms ease, color 140ms ease;
@@ -338,8 +326,8 @@
 }
 
 .click-adventure.nav-hud .ca-hud-manager-btn:hover {
-  background: rgba(0, 0, 0, 0.75);
-  color: rgba(255, 255, 255, 0.9);
+  background: var(--ca-scrim-hud-hover);
+  color: var(--ca-text-primary);
 }
 
 /* ── Auto-lock destination state ──────────────────────────────── */
@@ -360,9 +348,9 @@
   font-size: 11px;
   font-weight: 600;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(0, 0, 0, 0.55);
-  color: rgba(255, 255, 255, 0.65);
+  border: 1px solid var(--ca-border-soft);
+  background: var(--ca-scrim-hud);
+  color: var(--ca-text-muted);
   cursor: pointer;
   white-space: nowrap;
   transition: background 140ms ease, color 140ms ease;
@@ -372,8 +360,8 @@
 }
 
 .click-adventure.nav-hud .ca-hud-ns-toggle-btn:hover {
-  background: rgba(0, 0, 0, 0.75);
-  color: rgba(255, 255, 255, 0.9);
+  background: var(--ca-scrim-hud-hover);
+  color: var(--ca-text-primary);
 }
 
 /* ── GM node switcher panel ────────────────────────────────────── */
@@ -399,7 +387,7 @@
 .click-adventure.nav-hud .ca-hud-ns-section-title {
   font-size: 10px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--ca-text-faint);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   padding: 2px 4px 0;
@@ -408,8 +396,8 @@
 .click-adventure.nav-hud .ca-hud-ns-item {
   width: 100%;
   padding: 5px 10px;
-  background: rgba(40, 60, 120, 0.7);
-  border: 1px solid rgba(100, 140, 220, 0.4);
+  background: var(--ca-bg-hud-item);
+  border: 1px solid var(--ca-border-mid);
   border-radius: var(--ca-radius-lg, 8px);
   color: var(--ca-text-primary);
   font-size: 12px;
@@ -426,14 +414,14 @@
 }
 
 .click-adventure.nav-hud .ca-hud-ns-item:hover {
-  background: rgba(60, 90, 180, 0.85);
-  border-color: rgba(140, 180, 255, 0.7);
+  background: var(--ca-bg-hud-item-hover);
+  border-color: var(--ca-accent);
   color: var(--ca-text-bright);
 }
 
 .click-adventure.nav-hud .ca-hud-ns-item--active {
-  background: rgba(30, 60, 150, 0.9);
-  border-color: rgba(160, 200, 255, 0.75);
+  background: var(--ca-bg-hud-item-hover);
+  border-color: var(--ca-accent-hover);
   color: var(--ca-text-bright);
 }
 
@@ -446,9 +434,9 @@
   font-size: 11px;
   font-weight: 600;
   border-radius: 12px;
-  border: 1px solid rgba(20, 180, 140, 0.45);
-  background: rgba(0, 30, 22, 0.65);
-  color: rgba(20, 220, 160, 0.8);
+  border: 1px solid var(--ca-state-peek-border);
+  background: var(--ca-state-peek-tint);
+  color: var(--ca-state-peek);
   cursor: pointer;
   white-space: nowrap;
   transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
@@ -458,9 +446,9 @@
 }
 
 .click-adventure.nav-hud .ca-hud-peek-toggle-btn:hover {
-  background: rgba(0, 50, 35, 0.85);
-  color: rgba(60, 240, 190, 0.95);
-  border-color: rgba(20, 200, 150, 0.7);
+  background: var(--ca-state-peek-tint);
+  color: var(--ca-state-peek-hover);
+  border-color: var(--ca-state-peek);
 }
 
 /* ── Peek panel ─────────────────────────────────────────────────── */
@@ -471,7 +459,7 @@
   align-items: stretch;
   padding: 8px;
   background: var(--ca-bg-overlay);
-  border: 1px solid rgba(20, 180, 140, 0.4);
+  border: 1px solid var(--ca-state-peek-border);
   border-radius: var(--ca-radius-lg, 8px);
   backdrop-filter: blur(6px);
   min-width: 140px;
@@ -501,25 +489,25 @@
   font-size: 11px;
   font-weight: 600;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(0, 0, 0, 0.55);
-  color: rgba(255, 255, 255, 0.65);
+  border: 1px solid var(--ca-border-soft);
+  background: var(--ca-scrim-hud);
+  color: var(--ca-text-muted);
   white-space: nowrap;
   transition: background 140ms ease, color 140ms ease;
 }
 
 .click-adventure.nav-hud .ca-hud-player-badge:hover {
-  background: rgba(0, 0, 0, 0.75);
-  color: rgba(255, 255, 255, 0.9);
+  background: var(--ca-scrim-hud-hover);
+  color: var(--ca-text-primary);
 }
 
 .click-adventure.nav-hud .ca-hud-player-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--ca-player-color, #aaaaaa);
+  background: var(--ca-player-color, var(--ca-text-muted));
   flex-shrink: 0;
-  box-shadow: 0 0 4px var(--ca-player-color, #aaaaaa);
+  box-shadow: 0 0 4px var(--ca-player-color, var(--ca-text-muted));
 }
 
 .click-adventure.nav-hud .ca-hud-player-name {

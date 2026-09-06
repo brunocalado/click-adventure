@@ -366,7 +366,10 @@ export async function onResetGraph(app) {
 
   const confirmed = await foundry.applications.api.DialogV2.confirm({
     window: { title: "Reset Group" },
+    classes: ["click-adventure", "ca-dialog"],
     content: `<p>This will delete <strong>all nodes, links and Foundry Scenes</strong> in the current group "<strong>${foundry.utils.escapeHTML(group.name ?? "")}</strong>". This cannot be undone.</p><p>Are you sure?</p>`,
+    yes: { class: "ca-btn ca-btn--danger" },
+    no:  { class: "ca-btn ca-btn--quiet" },
     rejectClose: false
   });
   if (!confirmed) return;
@@ -484,7 +487,10 @@ export async function onResetMacros(app) {
 
   const confirmed = await foundry.applications.api.DialogV2.confirm({
     window: { title: "Reset Macros" },
+    classes: ["click-adventure", "ca-dialog"],
     content: `<p>This will reset <strong>${count} executed macro(s)</strong> across all nodes so they can fire again.</p><p>Are you sure?</p>`,
+    yes: { class: "ca-btn ca-btn--danger" },
+    no:  { class: "ca-btn ca-btn--quiet" },
     rejectClose: false
   });
   if (!confirmed) return;

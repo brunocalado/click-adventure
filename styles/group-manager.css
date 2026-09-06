@@ -1,67 +1,53 @@
-/* Reset Foundry's default window-content padding for this window.
-   ID specificity wins over class specificity so this does not leak. */
-#group-manager-app .window-content {
-  padding: 0;
-  overflow: hidden;
-}
+/*!
+ * Click Adventure
+ * Copyright (c) 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
 
-/* @section: group-manager-app
-   @scope: GroupManagerApp window
+/* @section: group-manager
+   @scope: .click-adventure.group-manager — the adventure group list
+   @depends: _tokens.css, _components.css
+
+   @manifest:
+     .ca-gm-list       Group rows
+     .ca-gm-row        One group; the active one uses .ca-card--default
+     .ca-gm-badge      "Active" marker on the current group
+     .ca-gm-footer     New Group action
 */
 
 .click-adventure.group-manager .ca-gm-panel {
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  background: var(--ca-bg-panel);
-  color: var(--ca-text-primary);
-  min-width: 0;
+  gap: var(--ca-space-4);
+  padding: var(--ca-space-6) var(--ca-space-6) 0;
 }
 
-/* ── List ──────────────────────────────────────────────────────────────── */
-
 .click-adventure.group-manager .ca-gm-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   list-style: none;
   margin: 0;
-  padding: 10px 12px;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  max-height: 320px;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--ca-border-soft) transparent;
+  gap: var(--ca-space-2);
 }
 
 .click-adventure.group-manager .ca-gm-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border: 1px solid var(--ca-border-card);
-  border-radius: var(--ca-radius-lg);
-  background: var(--ca-bg-card);
-  transition: border-color 0.15s, background 0.15s;
+  gap: var(--ca-space-3);
+  padding: var(--ca-space-3);
 }
-
-.click-adventure.group-manager .ca-gm-row:not(.ca-gm-row--active):hover {
-  border-color: var(--ca-border-card-hover);
-  background: var(--ca-bg-add-node);
-}
-
-/* Active group — green */
-.click-adventure.group-manager .ca-gm-row--active {
-  border-color: var(--ca-state-open-border);
-  background: var(--ca-state-open-tint);
-}
-
-/* ── Row internals ─────────────────────────────────────────────────────── */
 
 .click-adventure.group-manager .ca-gm-icon {
-  color: var(--ca-text-subtle);
-  font-size: 13px;
-  width: 16px;
-  text-align: center;
   flex-shrink: 0;
+  color: var(--ca-text-muted);
 }
 
 .click-adventure.group-manager .ca-gm-row--active .ca-gm-icon {
@@ -70,130 +56,40 @@
 
 .click-adventure.group-manager .ca-gm-name {
   flex: 1;
+  min-width: 0;
+  font-size: var(--ca-fs-body);
   font-weight: 600;
-  font-size: 13px;
   color: var(--ca-text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.click-adventure.group-manager .ca-gm-row--active .ca-gm-name {
-  color: var(--ca-text-bright);
-}
-
-/* Active badge — green pill */
 .click-adventure.group-manager .ca-gm-badge {
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 7px;
-  background: rgba(34, 197, 94, 0.25);
-  border: 1px solid var(--ca-state-open-border);
-  color: var(--ca-state-open);
+  flex-shrink: 0;
+  padding: 4px 10px;
   border-radius: var(--ca-radius-pill);
+  background: var(--ca-fn-green-tint);
+  border: 1px solid var(--ca-fn-green);
+  color: var(--ca-state-open);
+  font-size: var(--ca-fs-micro);
+  font-weight: 700;
+  letter-spacing: var(--ca-ls-label);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  flex-shrink: 0;
 }
 
-/* Activate button — amber/warm */
-.click-adventure.group-manager .ca-gm-activate-btn {
-  padding: 3px 10px;
-  background: rgba(245, 158, 11, 0.15);
-  border: 1px solid rgba(245, 158, 11, 0.45);
-  border-radius: var(--ca-radius-md);
-  color: var(--ca-state-directional);
-  font-size: 11px;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
-}
-
-.click-adventure.group-manager .ca-gm-activate-btn:hover {
-  background: rgba(245, 158, 11, 0.28);
-  border-color: rgba(245, 158, 11, 0.7);
-  color: #fcd34d;
-}
-
-/* Rename button — neutral, always visible */
-.click-adventure.group-manager .ca-gm-rename-btn {
-  background: transparent;
-  border: 1px solid var(--ca-border-soft);
-  border-radius: var(--ca-radius-md);
-  color: var(--ca-text-muted);
-  font-size: 12px;
-  cursor: pointer;
-  padding: 3px 7px;
-  flex-shrink: 0;
-  line-height: 1;
-  transition: color 0.15s, border-color 0.15s, background 0.15s;
-}
-
-.click-adventure.group-manager .ca-gm-rename-btn:hover {
-  color: var(--ca-text-bright);
-  border-color: var(--ca-border-card-hover);
-  background: var(--ca-bg-add-node);
-}
-
-/* Delete button — visible red border, always visible */
+/* Delete sits last in the row already; the primitive's auto margin would tear it
+   away from the rename button next to it. */
 .click-adventure.group-manager .ca-gm-delete-btn {
-  background: rgba(200, 112, 112, 0.08);
-  border: 1px solid rgba(200, 112, 112, 0.4);
-  border-radius: var(--ca-radius-md);
-  color: var(--ca-state-danger);
-  font-size: 12px;
-  cursor: pointer;
-  padding: 3px 7px;
-  flex-shrink: 0;
-  line-height: 1;
-  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  margin-left: 0;
 }
-
-.click-adventure.group-manager .ca-gm-delete-btn:hover:not(:disabled) {
-  color: var(--ca-state-danger-hv);
-  border-color: rgba(200, 112, 112, 0.7);
-  background: rgba(200, 112, 112, 0.18);
-}
-
-.click-adventure.group-manager .ca-gm-delete-btn:disabled {
-  opacity: 0.2;
-  cursor: not-allowed;
-}
-
-/* ── Empty state ───────────────────────────────────────────────────────── */
 
 .click-adventure.group-manager .ca-gm-empty {
-  margin: 0;
-  padding: 20px 14px;
-  color: var(--ca-text-mute-row);
-  font-style: italic;
+  padding: var(--ca-space-6);
   text-align: center;
-  font-size: 12px;
 }
-
-/* ── Footer ────────────────────────────────────────────────────────────── */
 
 .click-adventure.group-manager .ca-gm-footer {
-  padding: 8px 12px;
-  border-top: 1px solid var(--ca-border-divider);
-  display: flex;
-  justify-content: flex-end;
-  background: var(--ca-bg-panel-alt);
-}
-
-.click-adventure.group-manager .ca-gm-new-btn {
-  padding: 4px 12px;
-  background: var(--ca-bg-toolbar);
-  border: 1px solid var(--ca-border-toolbar);
-  border-radius: var(--ca-radius-md);
-  color: var(--ca-text-muted);
-  font-size: 12px;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-}
-
-.click-adventure.group-manager .ca-gm-new-btn:hover {
-  background: var(--ca-bg-toolbar-hover);
-  border-color: var(--ca-border-toolbar-hv);
-  color: var(--ca-text-bright);
+  justify-content: flex-start;
+  margin: 0 calc(-1 * var(--ca-space-6));
 }

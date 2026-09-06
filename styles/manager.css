@@ -41,7 +41,7 @@
   gap: 6px;
   padding: 6px 10px;
   background: var(--ca-bg-toolbar-row);
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--ca-border);
   flex-shrink: 0;
 }
 
@@ -54,7 +54,7 @@
   flex: 1;
   overflow: hidden;
   background-color: var(--ca-bg-deep);
-  background-image: radial-gradient(circle, #3a3a5a 1px, transparent 1px);
+  background-image: radial-gradient(circle, var(--ca-grid-dot) 1px, transparent 1px);
   background-size: var(--ca-grid-size) var(--ca-grid-size);
   cursor: grab;
 }
@@ -82,7 +82,7 @@
   border: 1px solid var(--ca-border-toolbar);
   border-radius: var(--ca-radius-md);
   color: var(--ca-text-muted);
-  font-size: 12px;
+  font-size: var(--ca-fs-label);
   cursor: pointer;
   flex-shrink: 0;
   transition: background 0.15s, border-color 0.15s, color 0.15s;
@@ -91,7 +91,7 @@
 .click-adventure .ca-toolbar-pill:hover {
   background: var(--ca-bg-toolbar-hover);
   border-color: var(--ca-border-toolbar-hv);
-  color: #ccddf0;
+  color: var(--ca-text-primary);
 }
 
 .ca-add-node {
@@ -105,9 +105,9 @@
   padding: 0;
   margin: 0;
   background: var(--ca-bg-add-node);
-  border: 1px solid #555;
+  border: 1px solid var(--ca-border);
   border-radius: var(--ca-radius-md);
-  color: #ccc;
+  color: var(--ca-text-muted);
   font-size: 20px;
   line-height: var(--ca-toolbar-h);
   cursor: pointer;
@@ -120,7 +120,7 @@
 
 .ca-add-node:hover {
   background: var(--ca-bg-add-node-hover);
-  border-color: #888;
+  border-color: var(--ca-border-toolbar-hv);
   color: var(--ca-text-bright);
 }
 
@@ -132,7 +132,7 @@
   border: 1px solid var(--ca-border-toolbar);
   border-radius: var(--ca-radius-md);
   color: var(--ca-text-muted);
-  font-size: 12px;
+  font-size: var(--ca-fs-label);
   cursor: pointer;
   flex-shrink: 0;
   transition: background 0.15s, border-color 0.15s, color 0.15s;
@@ -141,20 +141,20 @@
 .ca-sync-scenes:hover {
   background: var(--ca-bg-toolbar-hover);
   border-color: var(--ca-border-toolbar-hv);
-  color: #ccddf0;
+  color: var(--ca-text-primary);
 }
 
 .ca-sync-scenes--alert {
-  background: rgba(245, 158, 11, 0.12);
-  border-color: rgba(245, 158, 11, 0.55);
-  color: var(--ca-state-warning);
+  background: var(--ca-accent-glow);
+  border-color: var(--ca-accent);
+  color: var(--ca-accent);
   font-weight: 600;
 }
 
 .ca-sync-scenes--alert:hover {
-  background: rgba(245, 158, 11, 0.25);
-  border-color: var(--ca-state-warning);
-  color: #fcd34d;
+  background: var(--ca-accent);
+  border-color: var(--ca-accent);
+  color: var(--ca-on-accent);
 }
 
 .ca-instructions-btn {
@@ -167,7 +167,7 @@
   border: 1px solid var(--ca-border-toolbar);
   border-radius: var(--ca-radius-md);
   color: var(--ca-text-muted);
-  font-size: 12px;
+  font-size: var(--ca-fs-label);
   line-height: var(--ca-toolbar-h);
   cursor: pointer;
   flex-shrink: 0;
@@ -177,25 +177,25 @@
 .ca-instructions-btn:hover {
   background: var(--ca-bg-toolbar-hover);
   border-color: var(--ca-border-toolbar-hv);
-  color: #ccddf0;
+  color: var(--ca-text-primary);
 }
 
 .ca-reset-graph {
   margin-left: auto;
   padding: 4px 10px;
   background: transparent;
-  border: 1px solid rgba(180, 60, 60, 0.5);
+  border: 1px solid var(--ca-fn-red-border);
   border-radius: var(--ca-radius-md);
   color: var(--ca-state-danger);
-  font-size: 12px;
+  font-size: var(--ca-fs-label);
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
 .ca-reset-graph:hover {
-  background: rgba(160, 40, 40, 0.3);
-  border-color: rgba(220, 80, 80, 0.8);
-  color: var(--ca-state-danger-hv);
+  background: var(--ca-fn-red);
+  border-color: var(--ca-fn-red);
+  color: var(--ca-text-bright);
 }
 
 .ca-settings-btn {
@@ -219,13 +219,13 @@
 .ca-settings-btn:hover {
   background: var(--ca-bg-toolbar-hover);
   border-color: var(--ca-border-toolbar-hv);
-  color: #ccddf0;
+  color: var(--ca-text-primary);
 }
 
 .ca-settings-btn--active {
-  background: rgba(100, 150, 220, 0.15);
+  background: var(--ca-bg-hover);
   border-color: var(--ca-border-toolbar-hv);
-  color: #ccddf0;
+  color: var(--ca-text-primary);
 }
 
 /* ── Manager layout wrapper ────────────────────────────────────────────────── */
@@ -240,8 +240,8 @@
 .click-adventure.manager .ca-player-panel {
   width: 160px;
   min-width: 160px;
-  background: #1a1a1f;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--ca-bg-card);
+  border-right: 1px solid var(--ca-border-faint);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -257,9 +257,9 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--ca-text-muted);
   padding: 0 4px 6px 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid var(--ca-border-mid);
   margin-bottom: 4px;
   flex-shrink: 0;
 }
@@ -277,26 +277,26 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.65);
+  color: var(--ca-text-muted);
   padding: 6px 10px 2px;
 }
 
 .click-adventure.manager .ca-player-group--online .ca-player-group-label {
-  color: #4ade80;
+  color: var(--ca-state-open);
 }
 
 .click-adventure.manager .ca-player-group--offline .ca-player-group-label {
-  color: #f87171;
+  color: var(--ca-state-locked);
 }
 
 .click-adventure.manager .ca-player-group--gm {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--ca-border-faint);
   margin-bottom: 4px;
   padding-bottom: 2px;
 }
 
 .click-adventure.manager .ca-player-group--offline {
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--ca-border-faint);
   margin-top: 4px;
   padding-top: 2px;
 }
@@ -309,7 +309,7 @@
 
 .click-adventure.manager .ca-player-row--empty {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--ca-text-mute-row);
   font-style: italic;
   padding: 3px 10px;
 }
@@ -331,7 +331,7 @@
 
 .click-adventure.manager .ca-player-row[data-node-id]:hover,
 .click-adventure.manager .ca-player-row--highlighted {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--ca-border-faint);
 }
 
 .click-adventure.manager .ca-player-row--offline {
@@ -346,9 +346,9 @@
 }
 
 .click-adventure.manager .ca-player-name {
-  font-size: 12px;
+  font-size: var(--ca-fs-label);
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--ca-text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -371,13 +371,13 @@
 
 /* ── Autolock toolbar toggle ──────────────────────────────────── */
 .click-adventure.manager .ca-autolock-toggle {
-  border: 1px solid var(--ca-border-toolbar, rgba(255,255,255,0.12));
+  border: 1px solid var(--ca-border-toolbar);
   transition: background 0.15s, color 0.15s;
 }
 .click-adventure.manager .ca-autolock-toggle--on {
-  background: var(--ca-state-locked-bg, rgba(231,140,53,0.25));
-  color: var(--ca-state-locked-text, #e78c35);
-  border-color: var(--ca-state-locked-text, #e78c35);
+  background: var(--ca-fn-green);
+  color: var(--ca-text-bright);
+  border-color: var(--ca-fn-green);
 }
 
 /* ── Player lock button in the sidebar ───────────────────────── */
@@ -387,17 +387,17 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: rgba(255, 255, 255, 0.65);
+  color: var(--ca-text-muted);
   padding: 2px 4px;
   border-radius: 3px;
   transition: color 0.15s;
   line-height: 1;
 }
 .click-adventure.manager .ca-player-lock-btn--locked {
-  color: var(--ca-state-locked-text, #e78c35);
+  color: var(--ca-state-directional);
 }
 .click-adventure.manager .ca-player-lock-btn:hover {
-  color: var(--ca-text-bright, #eee);
+  color: var(--ca-text-bright);
 }
 
 /* ── Bulk lock / unlock buttons in Players panel title ───────── */
@@ -406,7 +406,7 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: rgba(255, 255, 255, 0.65);
+  color: var(--ca-text-muted);
   padding: 2px 4px;
   border-radius: 3px;
   transition: color 0.15s;
@@ -415,14 +415,14 @@
 }
 
 .click-adventure.manager .ca-bulk-lock-btn:hover {
-  color: var(--ca-text-bright, #eee);
+  color: var(--ca-text-bright);
 }
 
 /* ── Toolbar separator ────────────────────────────────────────── */
 .click-adventure .ca-toolbar-sep {
   width: 1px;
   height: 18px;
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--ca-border-mid);
   flex-shrink: 0;
   margin: 0 2px;
 }
@@ -443,10 +443,10 @@
   padding: 2px 7px;
   font-size: 11px;
   line-height: 1.4;
-  background: var(--ca-bg-panel, #1e1e2e);
-  color: var(--ca-text-primary, #ccc);
-  border: 1px solid var(--ca-border, rgba(255,255,255,0.15));
-  border-radius: var(--ca-radius-sm, 4px);
+  background: var(--ca-bg-card);
+  color: var(--ca-text-muted);
+  border: 1px solid var(--ca-border);
+  border-radius: var(--ca-radius-sm);
   cursor: pointer;
   opacity: 0.7;
   transition: opacity 0.15s;
@@ -459,25 +459,25 @@
 
 /* ── Free Move toolbar toggle (mirrors Autolock pattern) ─────── */
 .click-adventure.manager .ca-free-move-toggle {
-  border: 1px solid var(--ca-border-toolbar, rgba(255,255,255,0.12));
+  border: 1px solid var(--ca-border-toolbar);
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 .click-adventure.manager .ca-free-move-toggle--on {
-  background: rgba(53, 185, 100, 0.20);
-  color: #4ecb71;
-  border-color: #4ecb71;
+  background: var(--ca-fn-green);
+  color: var(--ca-text-bright);
+  border-color: var(--ca-fn-green);
 }
 .click-adventure.manager .ca-free-move-toggle--off {
-  background: rgba(180, 60, 60, 0.18);
-  color: #d96060;
-  border-color: #d96060;
+  background: var(--ca-bg-toolbar);
+  color: var(--ca-text-muted);
+  border-color: var(--ca-border-toolbar);
 }
 
 /* ── Rubber-band selection rectangle ─────────────────────────── */
 .click-adventure .ca-select-rect {
   position: absolute;
-  border: 1px solid rgba(120, 180, 255, 0.85);
-  background: rgba(100, 160, 255, 0.08);
+  border: 1px solid var(--ca-accent);
+  background: var(--ca-accent-glow);
   pointer-events: none;
   z-index: 30;
   box-sizing: border-box;

@@ -1,186 +1,126 @@
-/* Reset Foundry's default window-content padding for this window only.
-   .application .window-content adds padding: var(--spacer-16) globally.
-   ID specificity (#hud-style-app) wins over class specificity (.application)
-   so this override is safe and does not leak to any other window. */
-#hud-style-app .window-content {
-  padding: 0;
-  overflow: hidden;
-}
+/*!
+ * Click Adventure
+ * Copyright (c) 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
 
 /* @section: hud-style-app
-   @scope: HudStyleApp configuration window
+   @scope: .click-adventure.hud-style — the HUD button appearance window
+   @depends: _tokens.css, _components.css
+
+   @manifest:
+     .ca-os-section      One setting group, a card
+     .ca-os-row          Label and control on one line
+     .ca-os-preview      Live preview of the orb
 */
 
 .click-adventure.hud-style .ca-os-panel {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 0;
-  padding: 0;
-  background: var(--ca-bg-panel);
-  color: var(--ca-text-primary);
+  gap: var(--ca-space-3);
+  padding: var(--ca-space-6);
 }
 
 .click-adventure.hud-style .ca-os-section {
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--ca-border-divider);
-}
-
-.click-adventure.hud-style .ca-os-section:last-child {
-  border-bottom: none;
-}
-
-/* Type selector buttons */
-.click-adventure.hud-style .ca-os-type-row {
   display: flex;
-  gap: 6px;
-  margin-top: 6px;
+  flex-direction: column;
+  gap: var(--ca-space-3);
 }
 
-.click-adventure.hud-style .ca-os-type-btn {
-  flex: 1;
-  padding: 5px 10px;
-  background: var(--ca-bg-toolbar);
-  border: 1px solid var(--ca-border-toolbar);
-  border-radius: var(--ca-radius-md);
-  color: var(--ca-text-muted);
-  font-size: 12px;
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
-}
-
-.click-adventure.hud-style .ca-os-type-btn:hover {
-  background: var(--ca-bg-toolbar-hover);
-  color: var(--ca-text-bright);
-}
-
-.click-adventure.hud-style .ca-os-type-btn--active {
-  background: rgba(60, 90, 180, 0.5);
-  border-color: rgba(140, 180, 255, 0.6);
-  color: var(--ca-text-bright);
-}
-
-/* Size / color rows */
 .click-adventure.hud-style .ca-os-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-top: 6px;
+  gap: var(--ca-space-4);
+}
+
+/* .ca-os-section is a column flex container, so an inline-flex child still gets
+   stretched to full width unless it opts out. */
+.click-adventure.hud-style .ca-os-type-row {
+  align-self: flex-start;
+}
+
+.click-adventure.hud-style .ca-os-optional {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--ca-text-faint);
 }
 
 .click-adventure.hud-style .ca-os-size {
   flex: 1;
-  accent-color: var(--ca-state-link-base);
+  min-width: 0;
 }
 
 .click-adventure.hud-style .ca-os-size-label {
-  min-width: 32px;
-  font-size: 11px;
-  color: var(--ca-text-muted);
+  flex-shrink: 0;
+  min-width: 36px;
+  font-size: var(--ca-fs-label);
+  font-weight: 600;
+  color: var(--ca-text-primary);
   text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 .click-adventure.hud-style .ca-os-color {
-  width: 40px;
-  height: 26px;
-  padding: 0;
-  border: 1px solid var(--ca-border-soft);
-  border-radius: var(--ca-radius-sm);
-  background: none;
+  width: 56px;
+  height: 32px;
+  padding: 2px;
+  border: 1px solid var(--ca-border);
+  border-radius: var(--ca-radius-md);
+  background: var(--ca-bg-input);
   cursor: pointer;
 }
 
-/* Preview area — no background set; inherits panel color for a homogeneous surface */
-.click-adventure.hud-style .ca-os-preview {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100px;
-  margin-top: 6px;
-  border-radius: var(--ca-radius-md);
-  overflow: hidden;
-}
-
-/* Image row */
 .click-adventure.hud-style .ca-os-image-path {
   flex: 1;
-  font-size: 11px;
+  min-width: 0;
+  font-size: var(--ca-fs-label);
   color: var(--ca-text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 160px;
-}
-
-.click-adventure.hud-style .ca-os-image-browse,
-.click-adventure.hud-style .ca-os-image-clear {
-  padding: 4px 8px;
-  background: var(--ca-bg-toolbar);
-  border: 1px solid var(--ca-border-toolbar);
-  border-radius: var(--ca-radius-md);
-  color: var(--ca-text-muted);
-  font-size: 11px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.15s, color 0.15s;
-}
-
-.click-adventure.hud-style .ca-os-image-browse:hover,
-.click-adventure.hud-style .ca-os-image-clear:hover {
-  background: var(--ca-bg-toolbar-hover);
-  color: var(--ca-text-bright);
+  direction: rtl;
+  text-align: left;
 }
 
 .click-adventure.hud-style .ca-os-image-clear {
-  padding: 4px 6px;
-  color: var(--ca-state-danger);
-  border-color: rgba(200, 112, 112, 0.3);
+  margin-left: 0;
 }
 
-.click-adventure.hud-style .ca-os-image-thumb-wrap {
+.click-adventure.hud-style .ca-os-image-thumb-wrap,
+.click-adventure.hud-style .ca-os-preview {
   display: flex;
   justify-content: center;
-  margin-top: 8px;
+  align-items: center;
+  min-height: 96px;
+  padding: var(--ca-space-3);
+  border-radius: var(--ca-radius-md);
+  background: var(--ca-bg-deep);
+  border: 1px solid var(--ca-border);
 }
 
-.click-adventure.hud-style .ca-os-image-thumb {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
+.click-adventure.hud-style .ca-os-image-thumb,
+.click-adventure.hud-style .ca-os-preview-img {
+  width: 72px;
+  height: 72px;
   object-fit: cover;
-  border: 2px solid var(--ca-border-soft);
-}
-
-.click-adventure.hud-style .ca-os-image-thumb--square {
-  border-radius: 20%;
-}
-
-.click-adventure.hud-style .ca-os-optional {
-  font-size: 10px;
-  color: var(--ca-text-subtle);
-  font-weight: normal;
-  margin-left: 4px;
-}
-
-/* Preview shapes */
-.click-adventure.hud-style .ca-os-preview-shape {
-  width: 52px;
-  height: 52px;
   border-radius: 50%;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
+}
+
+.click-adventure.hud-style .ca-os-image-thumb--square,
+.click-adventure.hud-style .ca-os-preview-img--square {
+  border-radius: var(--ca-radius-md);
+}
+
+.click-adventure.hud-style .ca-os-preview-shape {
+  border-radius: 50%;
 }
 
 .click-adventure.hud-style .ca-os-preview-shape--square {
-  border-radius: 20%;
-}
-
-.click-adventure.hud-style .ca-os-preview-img {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  object-fit: cover;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
-}
-
-.click-adventure.hud-style .ca-os-preview-img--square {
-  border-radius: 20%;
+  border-radius: var(--ca-radius-md);
 }

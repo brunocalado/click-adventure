@@ -19,9 +19,9 @@
   z-index: var(--ca-z-context-menu);
   min-width: 180px;
   background: var(--ca-bg-menu);
-  border: 1px solid rgba(100, 130, 200, 0.35);
+  border: 1px solid var(--ca-border);
   border-radius: var(--ca-radius-lg);
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6);
+  box-shadow: var(--ca-shadow-modal);
   backdrop-filter: blur(8px);
   overflow: hidden;
   user-select: none;
@@ -54,7 +54,7 @@
 }
 
 .ca-context-menu .ca-context-menu-item:hover:not(.ca-context-menu-item--active) {
-  background: rgba(60, 90, 180, 0.4);
+  background: var(--ca-bg-hover);
 }
 
 .ca-context-menu .ca-context-menu-item--active {
@@ -63,13 +63,13 @@
 }
 
 .ca-context-menu .ca-context-menu-item--send-all {
-  color: #7faaff;
+  color: var(--ca-accent);
   font-weight: 600;
 }
 
 .ca-context-menu .ca-context-menu-item--send-all:hover {
-  background: rgba(60, 90, 180, 0.35);
-  color: #aacfff;
+  background: var(--ca-accent-glow);
+  color: var(--ca-accent-hover);
 }
 
 .ca-context-menu .ca-context-menu-dot {

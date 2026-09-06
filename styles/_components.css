@@ -1,0 +1,384 @@
+/*!
+ * Click Adventure
+ * Copyright (c) 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
+
+/* @section: components
+   @scope: .click-adventure — shared UI primitives used by every module window
+   @depends: _tokens.css
+
+   Every window used to redeclare its own buttons, tabs, inputs and cards, which
+   is why nine windows looked like nine different products. These are the shared
+   vocabulary; per-window stylesheets now only carry what is genuinely unique.
+
+   Templates KEEP their existing hook classes — the apps bind listeners by class
+   name (querySelector(".ca-link-editor-save"), classList.add("ca-switch--on")) —
+   and gain a primitive class alongside:
+     <button class="ca-btn ca-btn--accent ca-link-editor-save">Save</button>
+
+   Buttons and inputs declare colours directly rather than through Foundry's
+   --button-* / --input-* variables, because those are declared ON the element
+   (foundry2.css:456 `a.button, button, kbd`) and a variable set on an ancestor
+   loses to them. Every :hover here therefore restates background, colour AND
+   border-color, to beat Foundry's `button:hover` outright.
+
+   @manifest:
+     .ca-label            Uppercase field label
+     .ca-field            Label and control sharing one line
+     .ca-input            Text input / select
+     .ca-hint             Small explanatory copy
+     .ca-btn--*           accent | blue | quiet | toggle | toggle-on | ghost-danger | danger
+     .ca-btn-group        Segmented control
+     .ca-switch           On/off switch (markup: button > .ca-switch-track > .ca-switch-knob)
+     .ca-card--*          default (green) | danger (red)
+     .ca-dropzone         Drag-and-drop target
+     .ca-tabs-header      Tab bar with a slot for a global action on the same row
+     .ca-win-footer       Window footer, actions pushed right
+*/
+
+.click-adventure {
+  font-family: var(--ca-font-ui);
+}
+
+/* ── Labels, fields, inputs ───────────────────────────────────────── */
+.click-adventure .ca-label {
+  font-size: var(--ca-fs-label);
+  font-weight: 600;
+  color: var(--ca-text-muted);
+  letter-spacing: var(--ca-ls-label);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.click-adventure .ca-field {
+  display: flex;
+  align-items: center;
+  gap: var(--ca-space-4);
+}
+
+.click-adventure .ca-field > .ca-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.click-adventure .ca-input {
+  height: auto;
+  line-height: 1.35;
+  padding: 9px 12px;
+  background: var(--ca-bg-input);
+  border: 1px solid var(--ca-border);
+  border-radius: var(--ca-radius-md);
+  color: var(--ca-text-input);
+  font-family: var(--ca-font-ui);
+  font-size: var(--ca-fs-input);
+  box-shadow: none;
+}
+
+.click-adventure .ca-input:focus {
+  border-color: var(--ca-accent);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ca-accent-glow);
+}
+
+.click-adventure .ca-input::placeholder {
+  color: var(--ca-text-faint);
+}
+
+.click-adventure .ca-hint {
+  font-size: var(--ca-fs-label);
+  color: var(--ca-text-faint);
+  line-height: 1.55;
+}
+
+.click-adventure .ca-hint strong {
+  color: var(--ca-text-muted);
+  font-weight: 600;
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────── */
+.click-adventure .ca-btn {
+  --button-size: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ca-space-2);
+  height: auto;
+  min-height: 0;
+  padding: 8px 16px;
+  border: 1px solid transparent;
+  border-radius: var(--ca-radius-md);
+  font-family: var(--ca-font-ui);
+  font-size: var(--ca-fs-body);
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  /* .ca-btn is also used on <a> (the help link in adventure-io), which would
+     otherwise carry Foundry's link underline. */
+  text-decoration: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.click-adventure .ca-btn--sm {
+  padding: 5px 10px;
+  font-size: var(--ca-fs-micro);
+}
+
+/* Amber — confirm, save, the one primary action per window. */
+.click-adventure .ca-btn--accent            { background: var(--ca-accent); color: var(--ca-on-accent); }
+.click-adventure .ca-btn--accent:hover      { background: var(--ca-accent-hover); color: var(--ca-on-accent); border-color: transparent; }
+
+/* Blue — additive and secondary: add media, import, new group. */
+.click-adventure .ca-btn--blue              { background: var(--ca-fn-blue); color: var(--ca-text-bright); }
+.click-adventure .ca-btn--blue:hover        { background: var(--ca-fn-blue-hover); color: var(--ca-text-bright); border-color: transparent; }
+
+/* Quiet — neutral, non-committal. */
+.click-adventure .ca-btn--quiet             { background: var(--ca-bg-input); color: var(--ca-text-muted); border-color: var(--ca-border); }
+.click-adventure .ca-btn--quiet:hover       { background: var(--ca-bg-hover); color: var(--ca-text-primary); border-color: var(--ca-border-toolbar-hv); }
+
+/* Toggle pair — the same button off and on. Grey reads as "you may", green as "it is". */
+.click-adventure .ca-btn--toggle            { background: var(--ca-bg-input); color: var(--ca-text-muted); border-color: var(--ca-border); }
+.click-adventure .ca-btn--toggle:hover      { background: var(--ca-bg-hover); color: var(--ca-text-primary); border-color: var(--ca-border-toolbar-hv); }
+.click-adventure .ca-btn--toggle-on         { background: var(--ca-fn-green); color: var(--ca-text-bright); border-color: var(--ca-fn-green); }
+.click-adventure .ca-btn--toggle-on:hover   { background: var(--ca-fn-green-hover); color: var(--ca-text-bright); border-color: var(--ca-fn-green-hover); }
+
+/* Ghost danger — destructive inside a card. Translucent, and pushed to the far
+   right so it never sits next to the action a user actually wants. */
+.click-adventure .ca-btn--ghost-danger       { background: var(--ca-fn-red-ghost); color: var(--ca-fn-red); margin-left: auto; }
+.click-adventure .ca-btn--ghost-danger:hover { background: var(--ca-fn-red); color: var(--ca-text-bright); border-color: var(--ca-fn-red); }
+
+/* Solid danger — destructive in a window footer, where it must be unmissable. */
+.click-adventure .ca-btn--danger             { background: var(--ca-fn-red); color: var(--ca-text-bright); }
+.click-adventure .ca-btn--danger:hover       { background: var(--ca-fn-red-hover); color: var(--ca-text-bright); border-color: transparent; }
+
+.click-adventure .ca-btn:disabled,
+.click-adventure .ca-btn[disabled] {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.click-adventure .ca-btn:disabled:hover,
+.click-adventure .ca-btn[disabled]:hover {
+  background: var(--ca-bg-input);
+  color: var(--ca-text-muted);
+  border-color: var(--ca-border);
+}
+
+.click-adventure .ca-btn:focus-visible {
+  outline: 2px solid var(--ca-accent);
+  outline-offset: 2px;
+}
+
+/* ── Segmented control ────────────────────────────────────────────── */
+.click-adventure .ca-btn-group {
+  display: inline-flex;
+  background: var(--ca-bg-input);
+  border: 1px solid var(--ca-border);
+  border-radius: var(--ca-radius-md);
+  overflow: hidden;
+}
+
+.click-adventure .ca-btn-group-btn {
+  --button-size: auto;
+  height: auto;
+  min-height: 0;
+  padding: 7px 14px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  color: var(--ca-text-muted);
+  font-family: var(--ca-font-ui);
+  font-size: var(--ca-fs-label);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.click-adventure .ca-btn-group-btn + .ca-btn-group-btn {
+  border-left: 1px solid var(--ca-border);
+}
+
+.click-adventure .ca-btn-group-btn:hover {
+  background: var(--ca-bg-hover);
+  color: var(--ca-text-primary);
+  border-color: var(--ca-border);
+}
+
+.click-adventure .ca-btn-group-btn--active,
+.click-adventure .ca-btn-group-btn--active:hover {
+  background: var(--ca-accent);
+  color: var(--ca-on-accent);
+}
+
+/* ── Switch ───────────────────────────────────────────────────────── */
+.click-adventure .ca-switch {
+  --button-size: auto;
+  height: auto;
+  min-height: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.click-adventure .ca-switch:hover {
+  background: none;
+  border-color: transparent;
+}
+
+.click-adventure .ca-switch-track {
+  display: block;
+  position: relative;
+  width: 42px;
+  height: 24px;
+  border-radius: var(--ca-radius-pill);
+  background: var(--ca-bg-input);
+  border: 1px solid var(--ca-border);
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.click-adventure .ca-switch-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--ca-text-faint);
+  transition: left 0.15s ease, background-color 0.15s ease;
+}
+
+.click-adventure .ca-switch--on .ca-switch-track {
+  background: var(--ca-fn-green);
+  border-color: var(--ca-fn-green);
+}
+
+.click-adventure .ca-switch--on .ca-switch-knob {
+  left: 21px;
+  background: var(--ca-text-bright);
+}
+
+/* ── Cards ────────────────────────────────────────────────────────── */
+.click-adventure .ca-card {
+  background: var(--ca-bg-card);
+  border: 1px solid var(--ca-border);
+  border-radius: var(--ca-radius-lg);
+  padding: var(--ca-space-4);
+}
+
+/* The default/active entry: green edge plus a tint that fades out by 30%, so the
+   card reads as chosen without turning the whole row green. */
+.click-adventure .ca-card--default {
+  border-color: var(--ca-fn-green);
+  background: linear-gradient(to right, var(--ca-fn-green-tint), var(--ca-bg-card) 30%);
+}
+
+.click-adventure .ca-card--danger {
+  border-color: var(--ca-fn-red-border);
+}
+
+/* ── Dropzone ─────────────────────────────────────────────────────── */
+.click-adventure .ca-dropzone {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: var(--ca-space-1);
+  padding: var(--ca-space-3);
+  border: 2px dashed var(--ca-border);
+  border-radius: var(--ca-radius-md);
+  background: var(--ca-border-faint);
+  color: var(--ca-text-muted);
+  font-size: var(--ca-fs-label);
+  font-weight: 500;
+  text-align: center;
+  transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+}
+
+.click-adventure .ca-dropzone:hover,
+.click-adventure .ca-dropzone--over {
+  border-color: var(--ca-accent);
+  color: var(--ca-accent);
+  background: var(--ca-accent-glow);
+}
+
+/* ── Tabs ─────────────────────────────────────────────────────────── */
+.click-adventure .ca-tabs-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--ca-space-4);
+  border-bottom: 1px solid var(--ca-border);
+}
+
+/* Row gap is 0 on purpose: when a long tab bar wraps, the active tab's underline
+   already separates the rows, and a 24px row gap leaves an airy hole instead. */
+.click-adventure .ca-tabs-nav {
+  display: flex;
+  gap: 0 var(--ca-space-6);
+  flex-wrap: wrap;
+}
+
+.click-adventure .ca-tab {
+  --button-size: auto;
+  height: auto;
+  min-height: 0;
+  padding: 12px 4px;
+  position: relative;
+  background: none;
+  border: none;
+  border-radius: 0;
+  color: var(--ca-text-muted);
+  font-family: var(--ca-font-ui);
+  font-size: var(--ca-fs-body);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.click-adventure .ca-tab:hover {
+  background: none;
+  border-color: transparent;
+  color: var(--ca-text-primary);
+}
+
+.click-adventure .ca-tab--active,
+.click-adventure .ca-tab--active:hover {
+  color: var(--ca-accent);
+}
+
+.click-adventure .ca-tab--active::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--ca-accent);
+  box-shadow: 0 -2px 6px var(--ca-accent-glow);
+}
+
+/* Global action riding the tab row instead of claiming a line of its own. */
+.click-adventure .ca-tabs-actions {
+  display: flex;
+  gap: var(--ca-space-2);
+  margin-bottom: var(--ca-space-2);
+  flex-shrink: 0;
+}
+
+/* ── Window footer ────────────────────────────────────────────────── */
+.click-adventure .ca-win-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--ca-space-3);
+  padding: var(--ca-space-4) var(--ca-space-6);
+  background: var(--ca-bg-panel-alt);
+  border-top: 1px solid var(--ca-border);
+}

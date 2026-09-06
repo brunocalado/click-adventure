@@ -292,7 +292,10 @@ export async function onDeleteLink(app, e, lineEl) {
 
   const confirmed = await foundry.applications.api.DialogV2.confirm({
     window: { title: "Delete Link" },
+    classes: ["click-adventure", "ca-dialog"],
     content: "<p>Remove this connection?</p>",
+    yes: { class: "ca-btn ca-btn--danger" },
+    no:  { class: "ca-btn ca-btn--quiet" },
     rejectClose: false
   });
   if (!confirmed) return;

@@ -1,32 +1,34 @@
 <div class="ca-settings-panel">
 
-  <nav class="ca-settings-tabs" role="tablist">
-    <button type="button" class="ca-settings-tab ca-settings-tab--active" data-tab="scenes" role="tab">Scenes</button>
-    <button type="button" class="ca-settings-tab" data-tab="hud"    role="tab">HUD</button>
-    <button type="button" class="ca-settings-tab" data-tab="tokens" role="tab">Tokens</button>
-    <button type="button" class="ca-settings-tab" data-tab="danger" role="tab">Danger</button>
-  </nav>
+  <div class="ca-tabs-header">
+    <nav class="ca-tabs-nav ca-settings-tabs" role="tablist">
+    <button type="button" class="ca-tab ca-settings-tab ca-tab--active" data-tab="scenes" role="tab">Scenes</button>
+    <button type="button" class="ca-tab ca-settings-tab" data-tab="hud"    role="tab">HUD</button>
+    <button type="button" class="ca-tab ca-settings-tab" data-tab="tokens" role="tab">Tokens</button>
+    <button type="button" class="ca-tab ca-settings-tab" data-tab="danger" role="tab">Danger</button>
+    </nav>
+  </div>
 
   {{!-- ── Scenes ─────────────────────────────────────────────────────── --}}
   <div class="ca-settings-panel-tab" data-panel="scenes">
-    <div class="ca-setting-card">
+    <div class="ca-card ca-setting-card">
       <div class="ca-setting-card-main">
-        <label class="ca-settings-label" for="ca-transition-type">Transition Type</label>
-        <select class="ca-settings-transition" id="ca-transition-type">
+        <label class="ca-label ca-settings-label" for="ca-transition-type">Transition Type</label>
+        <select class="ca-input ca-settings-transition" id="ca-transition-type">
           {{#each transitionOptions}}
           <option value="{{value}}" {{#if (eq value ../transitionType)}}selected{{/if}}>{{label}}</option>
           {{/each}}
         </select>
       </div>
-      <p class="ca-setting-card-desc">Applied to all scenes on Create / Update Scenes.</p>
+      <p class="ca-hint ca-setting-card-desc">Applied to all scenes on Create / Update Scenes.</p>
     </div>
   </div>
 
   {{!-- ── HUD ────────────────────────────────────────────────────────── --}}
   <div class="ca-settings-panel-tab ca-settings-panel-tab--hidden" data-panel="hud">
-    <div class="ca-setting-card">
+    <div class="ca-card ca-setting-card">
       <div class="ca-setting-card-main">
-        <label class="ca-settings-label">Visible to</label>
+        <label class="ca-label ca-settings-label">Visible to</label>
         <div class="ca-btn-group" data-setting="hudVisibility">
           <button class="ca-btn-group-btn {{#if (eq hudVisibility 'all')}}ca-btn-group-btn--active{{/if}}"
                   type="button" data-value="all">All players</button>
@@ -34,39 +36,39 @@
                   type="button" data-value="gm-only">GM only</button>
         </div>
       </div>
-      <p class="ca-setting-card-desc">Controls which users see the navigation HUD. The GM always sees it regardless of this setting.</p>
+      <p class="ca-hint ca-setting-card-desc">Controls which users see the navigation HUD. The GM always sees it regardless of this setting.</p>
     </div>
 
-    <div class="ca-setting-card">
+    <div class="ca-card ca-setting-card">
       <div class="ca-setting-card-main">
-        <label class="ca-settings-label">Show Player Locations</label>
+        <label class="ca-label ca-settings-label">Show Player Locations</label>
         <button type="button" role="switch" data-setting="showPlayerWhisper"
                 aria-checked="{{#if showPlayerWhisper}}true{{else}}false{{/if}}"
                 class="ca-switch {{#if showPlayerWhisper}}ca-switch--on{{/if}}">
           <span class="ca-switch-track"><span class="ca-switch-knob"></span></span>
         </button>
       </div>
-      <p class="ca-setting-card-desc">When enabled, players see other connected players in their HUD and can preview the node image of where each player is.</p>
+      <p class="ca-hint ca-setting-card-desc">When enabled, players see other connected players in their HUD and can preview the node image of where each player is.</p>
     </div>
 
-    <div class="ca-setting-card">
+    <div class="ca-card ca-setting-card">
       <div class="ca-setting-card-main">
-        <label class="ca-settings-label">Player Destination Preview</label>
+        <label class="ca-label ca-settings-label">Player Destination Preview</label>
         <button type="button" role="switch" data-setting="playerDestinationPreview"
                 aria-checked="{{#if playerDestinationPreview}}true{{else}}false{{/if}}"
                 class="ca-switch {{#if playerDestinationPreview}}ca-switch--on{{/if}}">
           <span class="ca-switch-track"><span class="ca-switch-knob"></span></span>
         </button>
       </div>
-      <p class="ca-setting-card-desc">When enabled, players can hover the eye icon on a destination to preview its room image before entering. The GM always sees previews.</p>
+      <p class="ca-hint ca-setting-card-desc">When enabled, players can hover the eye icon on a destination to preview its room image before entering. The GM always sees previews.</p>
     </div>
   </div>
 
   {{!-- ── Tokens ─────────────────────────────────────────────────────── --}}
   <div class="ca-settings-panel-tab ca-settings-panel-tab--hidden" data-panel="tokens">
-    <div class="ca-setting-card">
+    <div class="ca-card ca-setting-card">
       <div class="ca-setting-card-main">
-        <label class="ca-settings-label">Guide Mode</label>
+        <label class="ca-label ca-settings-label">Guide Mode</label>
         <div class="ca-btn-group" data-setting="guideModeAction">
           <button class="ca-btn-group-btn {{#if (eq guideModeAction 'view')}}ca-btn-group-btn--active{{/if}}"
                   type="button" data-value="view">View (per-player)</button>
@@ -74,40 +76,40 @@
                   type="button" data-value="activate">Activate (global)</button>
         </div>
       </div>
-      <p class="ca-setting-card-desc">
+      <p class="ca-hint ca-setting-card-desc">
         <strong>View:</strong> sends each player to the scene individually via socket.<br>
         <strong>Activate:</strong> activates the scene globally — Foundry pulls all connected users in automatically. Simpler, but affects everyone on the server.
       </p>
     </div>
 
-    <div class="ca-setting-card">
+    <div class="ca-card ca-setting-card">
       <div class="ca-setting-card-main">
-        <label class="ca-settings-label">Load Player Tokens</label>
+        <label class="ca-label ca-settings-label">Load Player Tokens</label>
         <button type="button" role="switch"
                 aria-checked="{{#if loadPlayerTokens}}true{{else}}false{{/if}}"
                 class="ca-switch ca-load-player-tokens {{#if loadPlayerTokens}}ca-switch--on{{/if}}">
           <span class="ca-switch-track"><span class="ca-switch-knob"></span></span>
         </button>
       </div>
-      <p class="ca-setting-card-desc">
+      <p class="ca-hint ca-setting-card-desc">
         <strong>Enabled:</strong> a player's linked-actor token is automatically created/moved into a node's scene as they navigate.<br>
         <strong>Disabled:</strong> no tokens are placed — navigation only changes the view. Applies to the current group only; tokens already in a scene are left in place.
       </p>
     </div>
 
-    <div class="ca-setting-card">
+    <div class="ca-card ca-setting-card">
       <div class="ca-setting-card-main">
-        <label class="ca-settings-label">Saved Positions</label>
+        <label class="ca-label ca-settings-label">Saved Positions</label>
         <button type="button" role="switch" data-setting="useDefaultTokenPositions"
                 aria-checked="{{#if useDefaultTokenPositions}}true{{else}}false{{/if}}"
                 class="ca-switch {{#if useDefaultTokenPositions}}ca-switch--on{{/if}}">
           <span class="ca-switch-track"><span class="ca-switch-knob"></span></span>
         </button>
       </div>
-      <button class="ca-capture-token-pos" type="button">
+      <button class="ca-btn ca-btn--quiet ca-capture-token-pos" type="button">
         <i class="fa-solid fa-crosshairs"></i> Capture Positions
       </button>
-      <p class="ca-setting-card-desc">
+      <p class="ca-hint ca-setting-card-desc">
         <strong>Enabled:</strong> teleported tokens spawn at the last captured positions.<br>
         <strong>Disabled:</strong> tokens appear at the same position they had in the previous scene. Falls back to scene center if no previous position exists.
       </p>
@@ -116,14 +118,14 @@
 
   {{!-- ── Danger ─────────────────────────────────────────────────────── --}}
   <div class="ca-settings-panel-tab ca-settings-panel-tab--hidden" data-panel="danger">
-    <div class="ca-setting-card ca-setting-card--danger">
+    <div class="ca-card ca-setting-card ca-card--danger">
       <div class="ca-setting-card-main">
-        <label class="ca-settings-label">Reset Group</label>
-        <button class="ca-reset-graph" type="button">
+        <label class="ca-label ca-settings-label">Reset Group</label>
+        <button class="ca-btn ca-btn--danger ca-reset-graph" type="button">
           <i class="fa-solid fa-trash"></i> Reset Group
         </button>
       </div>
-      <p class="ca-setting-card-desc">Deletes <strong>all nodes, links and Foundry Scenes</strong> in the <strong>current group</strong>. Other groups are untouched. This cannot be undone.</p>
+      <p class="ca-hint ca-setting-card-desc">Deletes <strong>all nodes, links and Foundry Scenes</strong> in the <strong>current group</strong>. Other groups are untouched. This cannot be undone.</p>
     </div>
   </div>
 

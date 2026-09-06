@@ -30,7 +30,7 @@ export class AdventureIOApp extends HandlebarsApplicationMixin(ApplicationV2) {
     id: "adventure-io-app",
     classes: ["click-adventure", "adventure-io"],
     window: { title: "Export / Import Adventure" },
-    position: { width: 480, height: "auto" }
+    position: { width: 560, height: "auto" }
   };
 
   /** @override */

@@ -394,7 +394,7 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     // Orb style — per-client
     const orbStyle  = game.settings.get("click-adventure", "orbStyle");
     const orbType   = orbStyle.type     ?? "orb";
-    const orbColor  = orbStyle.color    ?? "#3355aa";
+    const orbColor  = orbStyle.color    ?? "#d4a017";
     const orbImage  = orbStyle.orbImage ?? "";
     const scale     = orbStyle.size     ?? 1;
     const baseOrb   = 80;   // mirrors --ca-orb-size: 80px

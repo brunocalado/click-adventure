@@ -26,7 +26,7 @@ export class GroupManagerApp extends foundry.applications.api.HandlebarsApplicat
       frame: true,
       positioned: true
     },
-    position: { width: 480, height: "auto" },
+    position: { width: 560, height: "auto" },
     actions: {
       activateGroup: GroupManagerApp.prototype._onActivateGroup,
       renameGroup:   GroupManagerApp.prototype._onRenameGroup,
@@ -139,9 +139,10 @@ export class GroupManagerApp extends foundry.applications.api.HandlebarsApplicat
 
     const confirmed = await foundry.applications.api.DialogV2.confirm({
       window: { title: "Delete Group" },
+      classes: ["click-adventure", "ca-dialog"],
       content: `<p>Delete group <strong>${label}</strong>? This cannot be undone.</p>`,
-      yes: { label: "Delete", icon: "fas fa-trash" },
-      no:  { label: "Cancel" }
+      yes: { label: "Delete", icon: "fas fa-trash", class: "ca-btn ca-btn--danger" },
+      no:  { label: "Cancel", class: "ca-btn ca-btn--quiet" }
     });
     if (!confirmed) return;
 
@@ -184,6 +185,7 @@ export class GroupManagerApp extends foundry.applications.api.HandlebarsApplicat
     try {
       name = await foundry.applications.api.DialogV2.prompt({
         window: { title: "New Group" },
+        classes: ["click-adventure", "ca-dialog"],
         content: `
           <div class="form-group">
             <label>Group Name</label>
@@ -195,6 +197,7 @@ export class GroupManagerApp extends foundry.applications.api.HandlebarsApplicat
         ok: {
           label: "Create",
           icon: "fas fa-plus",
+          class: "ca-btn ca-btn--accent",
           callback: (_ev, btn) => btn.form.elements.groupName.value.trim() || defaultName
         }
       });
@@ -243,6 +246,7 @@ export class GroupManagerApp extends foundry.applications.api.HandlebarsApplicat
     try {
       name = await foundry.applications.api.DialogV2.prompt({
         window: { title: "Rename Group" },
+        classes: ["click-adventure", "ca-dialog"],
         content: `
           <div class="form-group">
             <label>Group Name</label>
@@ -254,6 +258,7 @@ export class GroupManagerApp extends foundry.applications.api.HandlebarsApplicat
         ok: {
           label: "Rename",
           icon: "fas fa-pencil",
+          class: "ca-btn ca-btn--accent",
           callback: (_ev, btn) => btn.form.elements.groupName.value.trim() || null
         }
       });

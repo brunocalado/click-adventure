@@ -103,6 +103,7 @@ Each location is fully configurable: multiple images, linked scenes, macros, a j
 
 ### 🎨 Customization
 
+- **Unified Dark Interface** — Every window in the module shares one visual system: true-dark surfaces, an amber accent for confirming actions, blue for adding things, and green for on/default states. It stays dark regardless of your Foundry theme.
 - **Customizable HUD Button** — Choose the shape (orb or square), color, optional custom image, and size of the navigation button, with a live preview in the settings panel.
 - **HUD Visibility Control** — Show the HUD to all players or restrict it to GM only.
 - **Settings Panel** — Configure transition type, HUD visibility, token behavior, Guide Mode action, and more — organized into **Scenes**, **HUD**, **Tokens**, and **Danger** tabs, with sliding toggle switches for on/off options.

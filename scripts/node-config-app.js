@@ -185,7 +185,7 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     id: "node-config-app",
     classes: ["click-adventure", "node-config"],
     window: { title: "Node Configuration" },
-    position: { width: 660, height: "auto" }
+    position: { width: 820, height: "auto" }
   };
 
   /** @override */
@@ -338,9 +338,10 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
       const btn = html.querySelector("[data-action='toggle-start']");
       if (btn) {
-        btn.textContent = "★ Start Node";
+        btn.innerHTML = '<i class="fa-solid fa-star" aria-hidden="true"></i> Start Node';
         btn.title = "This is the start node (click another node to change)";
-        btn.classList.add("ca-toggle-start--active");
+        btn.classList.remove("ca-btn--toggle");
+        btn.classList.add("ca-btn--toggle-on");
       }
     });
 
@@ -821,15 +822,21 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     // ────────────────────────────────────────────────────────────────────
 
     // ── Tab switching ────────────────────────────────────────────────────
-    const tabs   = html.querySelectorAll(".ca-nc-tab");
-    const panels = html.querySelectorAll(".ca-nc-panel");
+    const tabs       = html.querySelectorAll(".ca-nc-tab");
+    const panels     = html.querySelectorAll(".ca-nc-panel");
+    // Global per-tab actions live on the tab row rather than inside the panel,
+    // so they have to follow the active tab themselves.
+    const tabActions = html.querySelectorAll("[data-tab-action]");
 
     const _activateTab = (tabName) => {
       tabs.forEach(t => {
-        t.classList.toggle("ca-nc-tab--active", t.dataset.tab === tabName);
+        t.classList.toggle("ca-tab--active", t.dataset.tab === tabName);
       });
       panels.forEach(p => {
         p.classList.toggle("ca-nc-panel--hidden", p.dataset.panel !== tabName);
+      });
+      tabActions.forEach(a => {
+        a.hidden = a.dataset.tabAction !== tabName;
       });
     };
 
@@ -1065,7 +1072,10 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
   async _deleteNode() {
     const confirmed = await foundry.applications.api.DialogV2.confirm({
       window: { title: "Delete Node" },
+      classes: ["click-adventure", "ca-dialog"],
       content: "<p>Delete this node, all its connections, and its Foundry Scene?</p>",
+      yes: { class: "ca-btn ca-btn--danger" },
+      no:  { class: "ca-btn ca-btn--quiet" },
       rejectClose: false
     });
     if (!confirmed) return;

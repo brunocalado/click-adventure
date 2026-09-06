@@ -1,293 +1,68 @@
+/*!
+ * Click Adventure
+ * Copyright (c) 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
+
 /* @section: settings-panel
-   @scope: Settings window (framed ApplicationV2)
-   @depends: --ca-bg-*, --ca-border-*, --ca-state-*, --ca-text-*, --ca-radius-*
+   @scope: .click-adventure.settings — the module Settings window
+   @depends: _tokens.css, _components.css
+
+   Tabs, cards, labels, hints, switches and segmented groups are primitives.
+   What is here is the setting-card layout: control inline with its label,
+   explanation underneath.
 
    @manifest:
-     .ca-settings-panel                 Card body (column layout)
-     .ca-settings-tabs                  Tab bar (Scenes / HUD / Tokens / Danger)
-     .ca-settings-tab                   Single tab button
-     .ca-settings-tab--active           Active tab modifier
-     .ca-settings-panel-tab             Per-tab content panel
-     .ca-settings-panel-tab--hidden     Inactive panel (display:none)
-     .ca-setting-card                   One setting grouped with its description
-     .ca-setting-card--danger           Danger-zone card variant
-     .ca-setting-card-main              Label + control row inside a card
-     .ca-setting-card-desc              Description text, owned by the card
-     .ca-settings-label                 Setting label
-     .ca-settings-transition            <select> dropdown for transition mode
-     .ca-btn-group / .ca-btn-group-btn  Exclusive button group + option
-     .ca-switch / .ca-switch-track/knob Sliding on/off toggle
-     .ca-switch--on                     Switch enabled modifier
-     .ca-capture-token-pos              Capture-positions action button
-     .ca-reset-graph                    Danger reset button
+     .ca-settings-panel        Root: padded, scrolls when the tab is tall
+     .ca-settings-panel-tab    One tab panel
+     .ca-setting-card          A single setting
+     .ca-setting-card-main     Label and its control on one line
 */
 
 .click-adventure.settings .ca-settings-panel {
-  background: var(--ca-bg-panel);
-  padding: 12px 14px;
-  color: var(--ca-text-primary);
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--ca-space-5);
+  padding: var(--ca-space-6);
 }
 
-/* ── Tabs ─────────────────────────────────────────────────────────────── */
-.click-adventure.settings .ca-settings-tabs {
-  display: flex;
-  gap: 2px;
-  border-bottom: 1px solid var(--ca-border-divider);
-}
-
-.click-adventure.settings .ca-settings-tab {
-  flex: 1;
-  padding: 7px 10px;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  color: var(--ca-text-muted);
-  background: transparent;
-  border: 1px solid transparent;
-  border-bottom: none;
-  border-radius: var(--ca-radius-md) var(--ca-radius-md) 0 0;
-  cursor: pointer;
-  transition: color 0.15s, background 0.15s;
-}
-
-.click-adventure.settings .ca-settings-tab:hover {
-  color: var(--ca-text-bright);
-  background: var(--ca-border-faint);
-}
-
-.click-adventure.settings .ca-settings-tab--active {
-  color: var(--ca-text-bright);
-  background: var(--ca-bg-toolbar);
-  border-color: var(--ca-border-divider);
-  border-bottom-color: var(--ca-bg-toolbar);
-}
-
-/* ── Tab panels ───────────────────────────────────────────────────────── */
 .click-adventure.settings .ca-settings-panel-tab {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--ca-space-3);
 }
 
 .click-adventure.settings .ca-settings-panel-tab--hidden {
   display: none;
 }
 
-/* ── Setting card (control + its description) ─────────────────────────── */
 .click-adventure.settings .ca-setting-card {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 10px 12px;
-  background: var(--ca-bg-deep);
-  border: 1px solid var(--ca-border-soft);
-  border-radius: var(--ca-radius-lg);
+  gap: var(--ca-space-3);
 }
 
 .click-adventure.settings .ca-setting-card-main {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
+  gap: var(--ca-space-4);
 }
 
 .click-adventure.settings .ca-setting-card-desc {
   margin: 0;
-  font-size: 12px;
-  line-height: 1.45;
-  color: var(--ca-text-muted);
 }
 
-.click-adventure.settings .ca-setting-card-desc strong {
-  color: var(--ca-text-primary);
-  font-weight: 600;
-}
-
-.click-adventure.settings .ca-settings-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ca-text-primary);
-  flex-shrink: 0;
-  min-width: 120px;
-}
-
-/* ── Transition select ────────────────────────────────────────────────── */
 .click-adventure.settings .ca-settings-transition {
-  flex: 1;
-  height: 30px;
-  padding: 0 8px;
-  background: var(--ca-bg-toolbar);
-  border: 1px solid var(--ca-border-toolbar);
-  border-radius: var(--ca-radius-md);
-  color: var(--ca-text-primary);
-  font-size: 13px;
-  cursor: pointer;
+  width: auto;
+  min-width: 200px;
 }
 
-.click-adventure.settings .ca-settings-transition:focus {
-  outline: none;
-  border-color: var(--ca-border-toolbar-hv);
-}
-
-/* ── Button group (exclusive toggle) ──────────────────────────────────── */
-.click-adventure.settings .ca-btn-group {
-  display: flex;
-  flex: 1;
-  gap: 0;
-  border-radius: var(--ca-radius-md);
-  overflow: hidden;
-  border: 1px solid var(--ca-border-toolbar);
-}
-
-.click-adventure.settings .ca-btn-group-btn {
-  flex: 1;
-  height: 30px;
-  padding: 0 8px;
-  background: var(--ca-bg-toolbar);
-  border: none;
-  border-right: 1px solid var(--ca-border-toolbar);
-  color: var(--ca-text-muted);
-  font-size: 12px;
-  cursor: pointer;
-  transition: background 120ms ease, color 120ms ease;
-  white-space: nowrap;
-}
-
-.click-adventure.settings .ca-btn-group-btn:last-child {
-  border-right: none;
-}
-
-.click-adventure.settings .ca-btn-group-btn:hover:not(.ca-btn-group-btn--active) {
-  background: var(--ca-bg-toolbar-hover);
-  color: var(--ca-text-primary);
-}
-
-.click-adventure.settings .ca-btn-group-btn--active {
-  background: var(--ca-border-toolbar);
-  color: var(--ca-text-bright);
-  cursor: default;
-}
-
-/* ── Sliding switch (Apple-style on/off) ──────────────────────────────── */
-.click-adventure.settings .ca-switch {
-  position: relative;
-  margin-left: auto;
-  flex-shrink: 0;
-  width: 40px;
-  height: 22px;
-  padding: 0;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-}
-
-.click-adventure.settings .ca-switch-track {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border-radius: 999px;
-  background: var(--ca-bg-toolbar);
-  border: 1px solid var(--ca-border-toolbar);
-  transition: background 160ms ease, border-color 160ms ease;
-}
-
-.click-adventure.settings .ca-switch-knob {
-  position: absolute;
-  top: 50%;
-  left: 3px;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--ca-text-bright);
-  transform: translateY(-50%);
-  transition: transform 160ms ease;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
-}
-
-.click-adventure.settings .ca-switch--on .ca-switch-track {
-  background: var(--ca-state-open);
-  border-color: var(--ca-state-open);
-}
-
-.click-adventure.settings .ca-switch--on .ca-switch-knob {
-  transform: translateY(-50%) translateX(18px);
-}
-
-.click-adventure.settings .ca-switch:focus-visible {
-  outline: none;
-}
-
-.click-adventure.settings .ca-switch:focus-visible .ca-switch-track {
-  outline: 2px solid var(--ca-border-toolbar-hv);
-  outline-offset: 2px;
-}
-
-/* ── Capture positions button ─────────────────────────────────────────── */
 .click-adventure.settings .ca-capture-token-pos {
-  width: 100%;
-  height: 30px;
-  padding: 0 10px;
-  background: var(--ca-bg-toolbar);
-  border: 1px solid var(--ca-border-toolbar);
-  border-radius: var(--ca-radius-md);
-  color: var(--ca-text-muted);
-  font-size: 12px;
-  cursor: pointer;
-  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  white-space: nowrap;
-}
-
-.click-adventure.settings .ca-capture-token-pos:hover {
-  background: var(--ca-bg-toolbar-hover);
-  color: var(--ca-text-primary);
-  border-color: var(--ca-border-toolbar-hv);
-}
-
-.click-adventure.settings .ca-capture-token-pos i {
-  font-size: 11px;
-  opacity: 0.85;
-}
-
-/* ── Danger zone ──────────────────────────────────────────────────────── */
-.click-adventure.settings .ca-setting-card--danger {
-  background: var(--ca-state-locked-tint);
-  border-color: var(--ca-state-locked-border);
-}
-
-.click-adventure.settings .ca-setting-card--danger .ca-settings-label {
-  color: var(--ca-state-danger-hv);
-}
-
-.click-adventure.settings .ca-reset-graph {
-  margin-left: auto;
-  flex-shrink: 0;
-  white-space: nowrap;
-  height: 30px;
-  padding: 0 12px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--ca-bg-panel);
-  border: 1px solid var(--ca-state-locked-border);
-  border-radius: var(--ca-radius-md);
-  color: var(--ca-state-danger-hv);
-  font-size: 12px;
-  cursor: pointer;
-  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
-}
-
-.click-adventure.settings .ca-reset-graph:hover {
-  background: var(--ca-state-locked);
-  border-color: var(--ca-state-locked);
-  color: var(--ca-text-bright);
-}
-
-.click-adventure.settings .ca-reset-graph i {
-  font-size: 11px;
+  align-self: flex-start;
 }

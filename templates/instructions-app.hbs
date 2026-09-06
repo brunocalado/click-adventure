@@ -1,20 +1,26 @@
 <div class="ca-instr-wrap">
 
   {{!-- Tab bar --}}
-  <nav class="ca-instr-tabs" role="tablist">
-    <button class="ca-instr-tab-btn {{#if (eq activeTab 'toolbar')}}ca-instr-tab-btn--active{{/if}}"
+  <div class="ca-tabs-header">
+    <nav class="ca-tabs-nav ca-instr-tabs" role="tablist">
+    <button class="ca-tab ca-instr-tab-btn {{#if (eq activeTab 'toolbar')}}ca-tab--active{{/if}}"
             data-tab="toolbar" role="tab" aria-selected="{{eq activeTab 'toolbar'}}">Toolbar</button>
-    <button class="ca-instr-tab-btn {{#if (eq activeTab 'canvas')}}ca-instr-tab-btn--active{{/if}}"
+    <button class="ca-tab ca-instr-tab-btn {{#if (eq activeTab 'canvas')}}ca-tab--active{{/if}}"
             data-tab="canvas" role="tab" aria-selected="{{eq activeTab 'canvas'}}">Canvas</button>
-    <button class="ca-instr-tab-btn {{#if (eq activeTab 'nodes')}}ca-instr-tab-btn--active{{/if}}"
+    <button class="ca-tab ca-instr-tab-btn {{#if (eq activeTab 'nodes')}}ca-tab--active{{/if}}"
             data-tab="nodes" role="tab" aria-selected="{{eq activeTab 'nodes'}}">Nodes</button>
-    <button class="ca-instr-tab-btn {{#if (eq activeTab 'links')}}ca-instr-tab-btn--active{{/if}}"
+    <button class="ca-tab ca-instr-tab-btn {{#if (eq activeTab 'links')}}ca-tab--active{{/if}}"
             data-tab="links" role="tab" aria-selected="{{eq activeTab 'links'}}">Links</button>
-    <button class="ca-instr-tab-btn {{#if (eq activeTab 'camera')}}ca-instr-tab-btn--active{{/if}}"
+    <button class="ca-tab ca-instr-tab-btn {{#if (eq activeTab 'camera')}}ca-tab--active{{/if}}"
             data-tab="camera" role="tab" aria-selected="{{eq activeTab 'camera'}}">Camera Room</button>
-    <button class="ca-instr-tab-btn {{#if (eq activeTab 'players')}}ca-instr-tab-btn--active{{/if}}"
+    <button class="ca-tab ca-instr-tab-btn {{#if (eq activeTab 'players')}}ca-tab--active{{/if}}"
             data-tab="players" role="tab" aria-selected="{{eq activeTab 'players'}}">Players</button>
-  </nav>
+    <button class="ca-tab ca-instr-tab-btn {{#if (eq activeTab 'groups')}}ca-tab--active{{/if}}"
+            data-tab="groups" role="tab" aria-selected="{{eq activeTab 'groups'}}">Groups</button>
+    <button class="ca-tab ca-instr-tab-btn {{#if (eq activeTab 'io')}}ca-tab--active{{/if}}"
+            data-tab="io" role="tab" aria-selected="{{eq activeTab 'io'}}">Export / Import</button>
+    </nav>
+  </div>
 
   {{!-- Tab: Toolbar --}}
   <section class="ca-instr-panel {{#if (eq activeTab 'toolbar')}}ca-instr-panel--active{{/if}}" data-panel="toolbar" role="tabpanel">
@@ -37,6 +43,7 @@
       <li><strong>Reset Macros (n)</strong> — resets all "Once" macros so they can fire again; the count shows pending resets and the button is disabled when there are none</li>
       <li><strong>⚙ Settings</strong> — opens module settings</li>
       <li><strong>Instructions</strong> — opens this help window</li>
+      <li>Two more GM-only screens live in Foundry's own <em>Configure Settings → Module Settings</em> rather than this toolbar: <em>Customize HUD Button Style…</em> and <em>Export / Import…</em> (see the <strong>Export / Import</strong> tab)</li>
     </ul>
   </section>
 
@@ -82,7 +89,7 @@
     <h3>Node Configuration</h3>
     <p>Double-click a node to open its window. A <strong>Default Scene Name</strong> field sits above six tabs:</p>
     <ul>
-      <li><strong>Images</strong> — <em>+ Add Media</em> adds images or videos; each entry has a Navigation Name, a <em>Set Default</em> button (picks the media shown on the node), <em>Remove Entry</em>, and a macro drop-zone (drop a macro, then Run / Open / Remove and choose its trigger)</li>
+      <li><strong>Images</strong> — <em>Add Media</em> (on the tab row) adds images or videos; each entry has a <em>Name</em>, a <em>Set Default</em> button (picks the media shown on the node), <em>Remove Entry</em>, and a macro drop-zone (drop a macro, then Run / Open / Remove and choose its trigger)</li>
       <li><strong>Linked Scenes</strong> — drag a Foundry scene onto the drop-zone to link it; each linked scene has a label, <em>Set Default</em>, <em>Remove Entry</em>, and its own macro drop-zone</li>
       <li><strong>Macros</strong> — drop node-level macros that fire on arrival; per macro set a trigger (<em>GM Activate</em>, <em>Player View</em>, <em>GM View</em>, <em>GM View or Activate</em>) and a mode (<em>Always</em> / <em>Once</em>). A fired "Once" macro shows an <em>Executed</em> badge with a <em>Reset</em> button. A <em>Player View</em> macro runs on the player's own client, so they must own the macro and their role must be allowed to use script macros in Foundry's <em>Configure Permissions</em></li>
       <li><strong>Journal</strong> — drag a journal page (or a whole entry) onto the drop-zone; it opens automatically on arrival, with a trigger of <em>On Scene View</em>, <em>On Scene Activate</em>, or <em>On View or Activate</em>. It writes to the scene's own journal field, and only users the page grants permission to will see it open</li>
@@ -119,16 +126,16 @@
 
     <h3>Direction Types</h3>
     <ul>
-      <li><strong style="color:#22c55e">⟷ Both ways</strong> — green — players can travel either direction</li>
-      <li><strong style="color:#f59e0b">→ Forward only</strong> — amber — one-way from source to target</li>
-      <li><strong style="color:#f59e0b">← Backward only</strong> — amber — one-way from target to source</li>
-      <li><strong style="color:#a855f7">✕ Blocked</strong> — purple — hidden from players; cannot be traversed</li>
-      <li><strong style="color:#ef4444">⊘ Locked</strong> — red — visible to players but not traversable (hints at a locked passage)</li>
+      <li><strong class="ca-swatch ca-swatch--open">⟷ Both ways</strong> — green — players can travel either direction</li>
+      <li><strong class="ca-swatch ca-swatch--directional">→ Forward only</strong> — amber — one-way from source to target</li>
+      <li><strong class="ca-swatch ca-swatch--directional">← Backward only</strong> — amber — one-way from target to source</li>
+      <li><strong class="ca-swatch ca-swatch--blocked">✕ Blocked</strong> — purple — hidden from players; cannot be traversed</li>
+      <li><strong class="ca-swatch ca-swatch--locked">⊘ Locked</strong> — red — visible to players but not traversable (hints at a locked passage)</li>
     </ul>
     <p>Clicking a single-passage link cycles through them in order: Both → Forward → Backward → Blocked → Locked.</p>
 
     <h3>Multi-Passage Links</h3>
-    <p><kbd>Shift</kbd> + click any link to open the passage editor and add multiple named passages between two nodes. Each passage has its own direction rule. Multi-passage links appear <strong style="color:#a855f7">purple</strong> with a thicker line and a ⊕ marker.</p>
+    <p><kbd>Shift</kbd> + click any link to open the passage editor and add multiple named passages between two nodes. Each passage has its own direction rule. Multi-passage links appear <strong class="ca-swatch ca-swatch--blocked">purple</strong> with a thicker line and a ⊕ marker.</p>
 
     <h3>Passage Editor</h3>
     <p>Each passage row has four controls:</p>
@@ -144,7 +151,7 @@
       <li><strong>Direction button</strong> — cycles the traversal direction for that passage</li>
       <li><strong>✕ button</strong> — removes the passage row</li>
     </ul>
-    <p>The footer offers <strong>+ Add passage</strong>, <strong>Save</strong>, and — on a multi-passage link — <strong>Convert to single</strong>, which keeps only the first passage and restores simple link behaviour.</p>
+    <p>The footer holds <strong>Add passage</strong> on the left — plus <strong>Convert to single</strong> on a multi-passage link, which keeps only the first passage and restores simple link behaviour — and <strong>Save</strong> on the right.</p>
   </section>
 
   {{!-- Tab: Camera Room --}}
@@ -159,11 +166,11 @@
       <li>Optionally, fill in the <strong>Button Label</strong> field — this is the text shown on the HUD button for this room (defaults to <em>Cameras</em>). You can rename it to anything (e.g. <em>Monitors</em>, <em>Scrying Pool</em>).</li>
       <li>Click <strong>Save</strong>.</li>
     </ol>
-    <p>As soon as any node in the graph is a camera room, small <strong>teal corner anchors</strong> appear at the four corners of every node.</p>
+    <p>As soon as any node in the graph is a camera room, small <strong class="ca-swatch ca-swatch--peek">teal corner anchors</strong> appear at the four corners of every node.</p>
 
     <h3>Creating Peek Links</h3>
     <ul>
-      <li>Drag from a <strong>teal corner anchor</strong> on a camera room node to a corner anchor on any other node — this creates a <strong>peek link</strong> (teal dashed line with an 👁 marker).</li>
+      <li>Drag from a <strong class="ca-swatch ca-swatch--peek">teal corner anchor</strong> on a camera room node to a corner anchor on any other node — this creates a <strong>peek link</strong> (teal dashed line with an 👁 marker).</li>
       <li>Corner anchors can only connect to other corner anchors — they cannot be used as regular navigation anchors.</li>
       <li>Right-click a peek link to delete it.</li>
     </ul>
@@ -223,6 +230,58 @@
       <li>Pending requests appear in the drawer (Requests button in the toolbar)</li>
       <li>Approve or reject individual requests, or approve all at once</li>
       <li>A new request from the same player overwrites their previous one</li>
+    </ul>
+  </section>
+
+  {{!-- Tab: Groups --}}
+  <section class="ca-instr-panel {{#if (eq activeTab 'groups')}}ca-instr-panel--active{{/if}}" data-panel="groups" role="tabpanel">
+    <h3>What Is a Group?</h3>
+    <p>A group is one complete, self-contained scene graph — its own nodes, its own links, and its own start node. A world can hold as many as you like, but the Manager and the player HUD always work on the <strong>active</strong> group; the others sit dormant and untouched. Use them to keep separate adventures, chapters, or a dungeon and the town above it apart from one another.</p>
+
+    <h3>Opening the Group Manager</h3>
+    <ul>
+      <li><strong>Groups</strong> button — in the <em>Scenes</em> sidebar header, next to the <em>Click Adventure</em> button</li>
+      <li>Or a script macro: <kbd>ClickAdventure.Groups();</kbd></li>
+    </ul>
+
+    <h3>The List</h3>
+    <ul>
+      <li>The group currently in play carries an <strong>Active</strong> badge and a green edge</li>
+      <li><strong>Activate</strong> — makes that group the active one and reopens the Manager on it. Every online player is moved to the group's start node, but <em>only</em> if that start node already has a Foundry scene; a new or scene-less group still activates and players simply stay where they are</li>
+      <li><strong>Pencil</strong> — rename the group</li>
+      <li><strong>Trash</strong> — delete the group. It also removes that group's own scene folder and the scenes inside it, so nothing is left orphaned, and it cannot be undone. The button is disabled for the active group and whenever only one group exists — there is always at least one group, and you can never delete the one you are standing in</li>
+      <li><strong>New Group</strong> — creates an empty group; you are asked for a name and offered <em>New Group 1</em>, <em>2</em>, … as a default</li>
+    </ul>
+
+    <h3>Before Activating</h3>
+    <p>Set the destination group's start node first (node <em>Settings</em> tab → <em>Set as Start</em>) and run <strong>Create Scenes</strong> for it. Activating a group whose start node has no scene leaves everyone standing in the old adventure, which looks like nothing happened.</p>
+  </section>
+
+  {{!-- Tab: Export / Import --}}
+  <section class="ca-instr-panel {{#if (eq activeTab 'io')}}ca-instr-panel--active{{/if}}" data-panel="io" role="tabpanel">
+    <h3>Where It Lives</h3>
+    <p>Export and import are GM-only and sit in Foundry's own settings, not in the Manager toolbar: <em>Configure Settings → Module Settings → Click Adventure → Export / Import…</em></p>
+
+    <h3>Exporting</h3>
+    <ul>
+      <li>Tick the groups to include — <strong>All</strong> and <strong>None</strong> set the whole list at once</li>
+      <li><strong>Export</strong> downloads a JSON file named <em>click-adventure-export-&lt;timestamp&gt;.json</em></li>
+      <li>The file carries each group's nodes, links, images, linked scenes, macros, journal, music, and camera room settings. It does <strong>not</strong> carry the image files themselves — a world that imports it needs those assets at the same paths</li>
+    </ul>
+
+    <h3>Importing</h3>
+    <ul>
+      <li><strong>Choose file…</strong> picks an exported JSON, then tick the groups you want and press <strong>Import</strong>; <strong>Cancel</strong> backs out without touching the world</li>
+      <li>Imported groups are <strong>added</strong> to the world — nothing existing is replaced or overwritten</li>
+      <li>Foundry scenes are created automatically for the imported nodes</li>
+    </ul>
+
+    <h3>How References Survive the Trip</h3>
+    <p>Macros, journals, playlists and linked scenes are written to the file with both their ID and their name. On import each one is resolved by ID first — which matches instantly when the file came from this same world — and falls back to matching by name anywhere else.</p>
+    <ul>
+      <li>A journal whose page is missing keeps the entry, and the whole entry opens instead</li>
+      <li>A playlist whose track is missing keeps the playlist, and Foundry follows the playlist's own playback mode</li>
+      <li>Both of those raise a warning rather than failing; only a missing root document clears the reference entirely</li>
     </ul>
   </section>
 

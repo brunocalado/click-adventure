@@ -20,13 +20,13 @@
 */
 
 .click-adventure.manager .ca-requests-btn--active {
-  background: rgba(245, 158, 11, 0.15);
+  background: var(--ca-accent-glow);
   border-color: var(--ca-state-warning);
   color: var(--ca-text-warm);
 }
 
 .click-adventure.manager .ca-requests-btn--active:hover {
-  background: rgba(245, 158, 11, 0.25);
+  background: var(--ca-accent);
 }
 
 .click-adventure.manager .ca-requests-drawer {
@@ -51,7 +51,7 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--ca-text-section);
-  border-bottom: 1px solid rgba(100, 130, 200, 0.15);
+  border-bottom: 1px solid var(--ca-border);
   flex-shrink: 0;
 }
 
@@ -70,7 +70,7 @@
 }
 
 .click-adventure.manager .ca-request-item:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--ca-border-faint);
 }
 
 .click-adventure.manager .ca-request-dot {
@@ -113,25 +113,25 @@
 }
 
 .click-adventure.manager .ca-request-approve {
-  background: rgba(34, 197, 94, 0.12);
-  border: 1px solid rgba(34, 197, 94, 0.35);
+  background: var(--ca-state-open-tint);
+  border: 1px solid var(--ca-state-open-border);
   color: var(--ca-state-open);
 }
 
 .click-adventure.manager .ca-request-approve:hover {
-  background: rgba(34, 197, 94, 0.25);
-  border-color: rgba(34, 197, 94, 0.6);
+  background: var(--ca-state-open-tint-hover);
+  border-color: var(--ca-state-open);
 }
 
 .click-adventure.manager .ca-request-reject {
-  background: rgba(160, 40, 40, 0.15);
-  border: 1px solid rgba(200, 80, 80, 0.35);
+  background: var(--ca-fn-red-ghost);
+  border: 1px solid var(--ca-fn-red-border);
   color: var(--ca-state-danger);
 }
 
 .click-adventure.manager .ca-request-reject:hover {
-  background: rgba(160, 40, 40, 0.3);
-  border-color: rgba(220, 80, 80, 0.6);
+  background: var(--ca-fn-red);
+  border-color: var(--ca-fn-red);
   color: var(--ca-state-danger-hv);
 }
 
@@ -149,7 +149,7 @@
   background: var(--ca-state-open-tint);
   border: 1px solid var(--ca-state-open-border);
   border-radius: var(--ca-radius-md);
-  color: #86efac;
+  color: var(--ca-state-open);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -157,7 +157,7 @@
 }
 
 .click-adventure.manager .ca-approve-all-btn:hover {
-  background: rgba(34, 197, 94, 0.28);
-  border-color: rgba(34, 197, 94, 0.7);
-  color: #bbf7d0;
+  background: var(--ca-fn-green);
+  border-color: var(--ca-fn-green);
+  color: var(--ca-text-bright);
 }

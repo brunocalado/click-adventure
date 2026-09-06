@@ -1,95 +1,107 @@
 <div class="ca-node-config">
 
-  {{!-- Top field: always visible above tabs --}}
-  <div class="ca-nc-field-group">
-    <label class="ca-nc-label" for="ca-node-label-input">Default Scene Name</label>
-    <div class="ca-nc-field-input-row">
-      <input type="text" id="ca-node-label-input"
-             class="ca-node-label-input"
-             value="{{nodeLabel}}"
-             maxlength="100"/>
-      <span class="ca-nc-hint">max 100</span>
-    </div>
+  {{!-- Top field: always visible above tabs. Label rides the same line as the input. --}}
+  <div class="ca-field ca-nc-field-group">
+    <label class="ca-label ca-nc-label" for="ca-node-label-input">Default Scene Name</label>
+    <input type="text" id="ca-node-label-input"
+           class="ca-input ca-node-label-input"
+           value="{{nodeLabel}}"
+           maxlength="100"/>
   </div>
 
-  {{!-- Tab bar --}}
-  <div class="ca-nc-tabs" role="tablist">
-    <button class="ca-nc-tab ca-nc-tab--active" data-tab="images"        role="tab">Images</button>
-    <button class="ca-nc-tab"                   data-tab="linked-scenes" role="tab">Linked Scenes</button>
-    <button class="ca-nc-tab"                   data-tab="macros"        role="tab">Macros</button>
-    <button class="ca-nc-tab"                   data-tab="journal"       role="tab">Journal</button>
-    <button class="ca-nc-tab"                   data-tab="music"         role="tab">Music</button>
-    <button class="ca-nc-tab"                   data-tab="settings"      role="tab">Settings</button>
+  {{!-- Tab bar. Global per-tab actions share this row instead of claiming a line
+        of their own; _activateTab toggles their hidden attribute. --}}
+  <div class="ca-tabs-header">
+    <nav class="ca-tabs-nav" role="tablist">
+      <button class="ca-tab ca-nc-tab ca-tab--active" data-tab="images"        role="tab" type="button">Images</button>
+      <button class="ca-tab ca-nc-tab"                data-tab="linked-scenes" role="tab" type="button">Linked Scenes</button>
+      <button class="ca-tab ca-nc-tab"                data-tab="macros"        role="tab" type="button">Macros</button>
+      <button class="ca-tab ca-nc-tab"                data-tab="journal"       role="tab" type="button">Journal</button>
+      <button class="ca-tab ca-nc-tab"                data-tab="music"         role="tab" type="button">Music</button>
+      <button class="ca-tab ca-nc-tab"                data-tab="settings"      role="tab" type="button">Settings</button>
+    </nav>
+    <div class="ca-tabs-actions">
+      <button type="button" class="ca-btn ca-btn--blue" data-action="add-image" data-tab-action="images">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i> Add Media
+      </button>
+    </div>
   </div>
 
   {{!-- TAB: Images --}}
   <div class="ca-nc-panel" data-panel="images">
-    <div class="ca-images-header">
-      <button type="button" data-action="add-image">+ Add Media</button>
-    </div>
     {{#if images.length}}
     <ul class="ca-images-list">
       {{#each images}}
-      <li class="ca-image-item {{#if isActive}}ca-image-item--active{{/if}}">
-        <div class="ca-image-left">
-          {{#if isVideo}}
-          <div class="ca-image-thumb ca-image-thumb--video"
-               data-src="{{src}}"
-               data-index="{{index}}"
-               role="button"
-               aria-label="Preview or replace: {{label}}"
-               title="Click to replace">
-            <video src="{{src}}" muted loop autoplay playsinline class="ca-thumb-video"></video>
-            <span class="ca-video-badge">&#9654; Video</span>
+      <li class="ca-card ca-image-item {{#if isActive}}ca-card--default ca-image-item--active{{/if}}">
+        {{#if isVideo}}
+        <div class="ca-image-thumb ca-image-thumb--video"
+             data-src="{{src}}"
+             data-index="{{index}}"
+             role="button"
+             aria-label="Preview or replace: {{label}}"
+             title="Click to replace">
+          <video src="{{src}}" muted loop autoplay playsinline class="ca-thumb-video"></video>
+          <span class="ca-video-badge">&#9654; Video</span>
+        </div>
+        {{else}}
+        <div class="ca-image-thumb"
+             style="background-image: url('{{src}}');"
+             data-src="{{src}}"
+             data-index="{{index}}"
+             role="button"
+             aria-label="Preview or replace: {{label}}"
+             title="Click to replace"></div>
+        {{/if}}
+
+        <div class="ca-image-info">
+          <div class="ca-field">
+            <span class="ca-label ca-image-nav-label">Name</span>
+            <input type="text" class="ca-input ca-image-label-input" data-index="{{index}}"
+                   value="{{label}}" maxlength="100"
+                   title="Name players see for this image when navigating"/>
           </div>
-          {{else}}
-          <div class="ca-image-thumb"
-               style="background-image: url('{{src}}');"
-               data-src="{{src}}"
-               data-index="{{index}}"
-               role="button"
-               aria-label="Preview or replace: {{label}}"
-               title="Click to replace"></div>
-          {{/if}}
-          <div class="ca-image-info">
-            <span class="ca-image-nav-label">Navigation Name</span>
-            <input type="text" class="ca-image-label-input" data-index="{{index}}"
-                   value="{{label}}" maxlength="100"/>
-            <div class="ca-image-actions">
-              {{#unless isActive}}
-              <button type="button" data-action="set-active" data-index="{{index}}"
-                      title="Use this image as the default for this node">&#9733; Set Default</button>
-              {{else}}
-              <span class="ca-image-active-badge">&#9679; Default</span>
-              {{/unless}}
-              <button type="button" data-action="remove-image" data-index="{{index}}"
-                      class="ca-btn-remove ca-btn-remove--labeled"
-                      title="Remove this image from the node">Remove Entry</button>
-            </div>
+          <div class="ca-image-actions">
+            {{#unless isActive}}
+            <button type="button" class="ca-btn ca-btn--toggle" data-action="set-active" data-index="{{index}}"
+                    title="Use this image as the default for this node">
+              <i class="fa-regular fa-star" aria-hidden="true"></i> Set Default
+            </button>
+            {{else}}
+            <span class="ca-btn ca-btn--toggle-on ca-image-active-badge">
+              <i class="fa-solid fa-check" aria-hidden="true"></i> Default
+            </span>
+            {{/unless}}
+            <button type="button" class="ca-btn ca-btn--ghost-danger ca-btn-remove ca-btn-remove--labeled"
+                    data-action="remove-image" data-index="{{index}}"
+                    title="Remove this image from the node">Remove Entry</button>
           </div>
         </div>
+
         {{!-- Macro column --}}
         <div class="ca-item-macro-col">
           {{#if hasMacro}}
             <div class="ca-item-macro-zone ca-item-macro-zone--filled">
               <span class="ca-item-macro-name" title="{{macroName}}">{{macroName}}</span>
               <div class="ca-item-macro-row">
-                <button type="button" data-action="execute-image-macro" data-index="{{index}}"
-                        title="Execute macro now">&#9654; Run</button>
-                <button type="button" data-action="open-image-macro" data-index="{{index}}"
-                        title="Open macro to edit">&#9741; Open</button>
-                <button type="button" data-action="remove-image-macro" data-index="{{index}}"
-                        class="ca-btn-remove ca-btn-remove--labeled"
-                        title="Remove macro from this image">Remove Macro</button>
+                <button type="button" class="ca-btn ca-btn--quiet ca-btn--sm"
+                        data-action="execute-image-macro" data-index="{{index}}"
+                        title="Execute macro now"><i class="fa-solid fa-play" aria-hidden="true"></i> Run</button>
+                <button type="button" class="ca-btn ca-btn--quiet ca-btn--sm"
+                        data-action="open-image-macro" data-index="{{index}}"
+                        title="Open macro to edit">Open</button>
+                <button type="button" class="ca-btn ca-btn--ghost-danger ca-btn--sm ca-btn-remove ca-btn-remove--labeled"
+                        data-action="remove-image-macro" data-index="{{index}}"
+                        title="Remove macro from this image">Remove</button>
               </div>
-              <select class="ca-image-macro-trigger" data-index="{{index}}">
+              <select class="ca-input ca-image-macro-trigger" data-index="{{index}}">
                 {{#each triggerOptions}}
                 <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
                 {{/each}}
               </select>
             </div>
           {{else}}
-            <div class="ca-image-macro-dropzone ca-item-macro-zone" data-index="{{index}}">
+            <div class="ca-dropzone ca-image-macro-dropzone ca-item-macro-zone" data-index="{{index}}">
+              <i class="fa-solid fa-bolt" aria-hidden="true"></i>
               <span>Drop macro</span>
             </div>
           {{/if}}
@@ -98,59 +110,69 @@
       {{/each}}
     </ul>
     {{else}}
-    <div class="ca-images-empty">No images yet. Click "+ Add Image" to browse.</div>
+    <div class="ca-images-empty">No images yet. Click "Add Media" to browse.</div>
     {{/if}}
   </div>
 
   {{!-- TAB: Linked Scenes --}}
   <div class="ca-nc-panel ca-nc-panel--hidden" data-panel="linked-scenes">
-    <div class="ca-linked-scenes-dropzone" data-action="drop-scene">
+    <div class="ca-dropzone ca-linked-scenes-dropzone" data-action="drop-scene">
+      <i class="fa-solid fa-map" aria-hidden="true"></i>
       <span>Drag a scene here</span>
     </div>
     {{#if linkedScenes.length}}
     <ul class="ca-linked-scenes-list">
       {{#each linkedScenes}}
-      <li class="ca-linked-scene-item">
-        <div class="ca-linked-scene-left">
-          <div class="ca-linked-scene-info">
-            <input type="text" class="ca-linked-scene-label-input" data-index="{{index}}"
+      <li class="ca-card ca-linked-scene-item {{#if isActive}}ca-card--default{{/if}}">
+        <div class="ca-linked-scene-info">
+          <div class="ca-field">
+            <span class="ca-label">Name</span>
+            <input type="text" class="ca-input ca-linked-scene-label-input" data-index="{{index}}"
                    value="{{label}}" maxlength="100"/>
-            <span class="ca-linked-scene-name">{{sceneName}}</span>
           </div>
+          <span class="ca-linked-scene-name" title="{{sceneName}}">{{sceneName}}</span>
           <div class="ca-linked-scene-actions">
             {{#unless isActive}}
-            <button type="button" data-action="use-linked-scene" data-index="{{index}}"
-                    title="Use this scene as the default for this node">&#9733; Set Default</button>
+            <button type="button" class="ca-btn ca-btn--toggle" data-action="use-linked-scene" data-index="{{index}}"
+                    title="Use this scene as the default for this node">
+              <i class="fa-regular fa-star" aria-hidden="true"></i> Set Default
+            </button>
             {{else}}
-            <span class="ca-image-active-badge">&#9679; Default</span>
+            <span class="ca-btn ca-btn--toggle-on ca-image-active-badge">
+              <i class="fa-solid fa-check" aria-hidden="true"></i> Default
+            </span>
             {{/unless}}
-            <button type="button" data-action="remove-linked-scene" data-index="{{index}}"
-                    class="ca-btn-remove ca-btn-remove--labeled"
+            <button type="button" class="ca-btn ca-btn--ghost-danger ca-btn-remove ca-btn-remove--labeled"
+                    data-action="remove-linked-scene" data-index="{{index}}"
                     title="Remove this linked scene">Remove Entry</button>
           </div>
         </div>
+
         {{!-- Macro column --}}
         <div class="ca-item-macro-col">
           {{#if hasMacro}}
             <div class="ca-item-macro-zone ca-item-macro-zone--filled">
               <span class="ca-item-macro-name" title="{{macroName}}">{{macroName}}</span>
               <div class="ca-item-macro-row">
-                <button type="button" data-action="execute-linked-scene-macro" data-index="{{index}}"
-                        title="Execute macro now">&#9654; Run</button>
-                <button type="button" data-action="open-linked-scene-macro" data-index="{{index}}"
-                        title="Open macro to edit">&#9741; Open</button>
-                <button type="button" data-action="remove-linked-scene-macro" data-index="{{index}}"
-                        class="ca-btn-remove ca-btn-remove--labeled"
-                        title="Remove macro from this scene">Remove Macro</button>
+                <button type="button" class="ca-btn ca-btn--quiet ca-btn--sm"
+                        data-action="execute-linked-scene-macro" data-index="{{index}}"
+                        title="Execute macro now"><i class="fa-solid fa-play" aria-hidden="true"></i> Run</button>
+                <button type="button" class="ca-btn ca-btn--quiet ca-btn--sm"
+                        data-action="open-linked-scene-macro" data-index="{{index}}"
+                        title="Open macro to edit">Open</button>
+                <button type="button" class="ca-btn ca-btn--ghost-danger ca-btn--sm ca-btn-remove ca-btn-remove--labeled"
+                        data-action="remove-linked-scene-macro" data-index="{{index}}"
+                        title="Remove macro from this scene">Remove</button>
               </div>
-              <select class="ca-linked-scene-macro-trigger" data-index="{{index}}">
+              <select class="ca-input ca-linked-scene-macro-trigger" data-index="{{index}}">
                 {{#each triggerOptions}}
                 <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
                 {{/each}}
               </select>
             </div>
           {{else}}
-            <div class="ca-linked-scene-macro-dropzone ca-item-macro-zone" data-index="{{index}}">
+            <div class="ca-dropzone ca-linked-scene-macro-dropzone ca-item-macro-zone" data-index="{{index}}">
+              <i class="fa-solid fa-bolt" aria-hidden="true"></i>
               <span>Drop macro</span>
             </div>
           {{/if}}
@@ -163,35 +185,39 @@
 
   {{!-- TAB: Macros --}}
   <div class="ca-nc-panel ca-nc-panel--hidden" data-panel="macros">
-    <div class="ca-node-macro-drop" data-action="drop-node-macro">
+    <div class="ca-dropzone ca-node-macro-drop" data-action="drop-node-macro">
+      <i class="fa-solid fa-bolt" aria-hidden="true"></i>
       <span>Drop a macro here</span>
     </div>
     {{#each nodeMacros}}
-    <div class="ca-node-macro-item">
+    <div class="ca-card ca-node-macro-item">
       <div class="ca-node-macro-header">
         <span class="ca-node-macro-name" title="{{macroName}}">{{macroName}}</span>
         {{#if showExecutedBadge}}
         <span class="ca-node-macro-executed-badge">Executed</span>
-        <button type="button" data-action="reset-node-macro" data-macro-id="{{id}}">Reset</button>
+        <button type="button" class="ca-btn ca-btn--quiet ca-btn--sm"
+                data-action="reset-node-macro" data-macro-id="{{id}}">Reset</button>
         {{/if}}
       </div>
       <div class="ca-node-macro-controls">
-        <select data-action="set-node-macro-trigger" data-macro-id="{{id}}">
+        <select class="ca-input" data-action="set-node-macro-trigger" data-macro-id="{{id}}">
           {{#each triggerOptions}}
           <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
           {{/each}}
         </select>
-        <select data-action="set-node-macro-mode" data-macro-id="{{id}}">
+        <select class="ca-input" data-action="set-node-macro-mode" data-macro-id="{{id}}">
           {{#each modeOptions}}
           <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
           {{/each}}
         </select>
       </div>
       <div class="ca-item-macro-row">
-        <button type="button" data-action="run-node-macro"    data-macro-id="{{id}}">&#9654; Run</button>
-        <button type="button" data-action="open-node-macro"   data-macro-id="{{id}}">&#9741; Open</button>
-        <button type="button" data-action="remove-node-macro" data-macro-id="{{id}}"
-                class="ca-btn-remove ca-btn-remove--labeled">Remove</button>
+        <button type="button" class="ca-btn ca-btn--quiet ca-btn--sm"
+                data-action="run-node-macro"  data-macro-id="{{id}}"><i class="fa-solid fa-play" aria-hidden="true"></i> Run</button>
+        <button type="button" class="ca-btn ca-btn--quiet ca-btn--sm"
+                data-action="open-node-macro" data-macro-id="{{id}}">Open</button>
+        <button type="button" class="ca-btn ca-btn--ghost-danger ca-btn--sm ca-btn-remove ca-btn-remove--labeled"
+                data-action="remove-node-macro" data-macro-id="{{id}}">Remove</button>
       </div>
     </div>
     {{/each}}
@@ -199,27 +225,29 @@
 
   {{!-- TAB: Journal --}}
   <div class="ca-nc-panel ca-nc-panel--hidden" data-panel="journal">
-    <p class="ca-nc-hint ca-media-hint">
+    <p class="ca-hint ca-media-hint">
       Shortcut for the Scene’s own journal field. Whoever has permission on the page sees it;
       everyone else gets nothing.
       {{#unless hasScene}}<strong>This node has no scene yet</strong> — the choice is kept and
       written to the scene as soon as Create Scenes runs.{{/unless}}
     </p>
 
-    <div class="ca-media-drop" data-action="drop-journal">
+    <div class="ca-dropzone ca-media-drop" data-action="drop-journal">
+      <i class="fa-solid fa-book" aria-hidden="true"></i>
       <span>Drag a journal page here</span>
     </div>
 
     {{#if journal.has}}
-    <div class="ca-media-item">
+    <div class="ca-card ca-media-item">
       <div class="ca-media-header">
         <span class="ca-media-name" title="{{journal.title}}">{{journal.title}}</span>
-        <button type="button" data-action="open-journal" title="Open it now">&#9741; Open</button>
-        <button type="button" data-action="remove-journal"
-                class="ca-btn-remove ca-btn-remove--labeled">Remove</button>
+        <button type="button" class="ca-btn ca-btn--quiet ca-btn--sm"
+                data-action="open-journal" title="Open it now">Open</button>
+        <button type="button" class="ca-btn ca-btn--ghost-danger ca-btn--sm ca-btn-remove ca-btn-remove--labeled"
+                data-action="remove-journal">Remove</button>
       </div>
       <div class="ca-media-controls">
-        <select data-action="set-journal-trigger">
+        <select class="ca-input" data-action="set-journal-trigger">
           {{#each journal.triggerOptions}}
           <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
           {{/each}}
@@ -231,23 +259,24 @@
 
   {{!-- TAB: Music --}}
   <div class="ca-nc-panel ca-nc-panel--hidden" data-panel="music">
-    <p class="ca-nc-hint ca-media-hint">
+    <p class="ca-hint ca-media-hint">
       Shortcut for the Scene’s own playlist field. Foundry starts it when the scene is
       <em>activated</em> — viewing a scene from the HUD does not play it.
       {{#unless hasScene}}<strong>This node has no scene yet</strong> — the choice is kept and
       written to the scene as soon as Create Scenes runs.{{/unless}}
     </p>
 
-    <div class="ca-media-drop" data-action="drop-music">
+    <div class="ca-dropzone ca-media-drop" data-action="drop-music">
+      <i class="fa-solid fa-music" aria-hidden="true"></i>
       <span>Drag a playlist or a track here</span>
     </div>
 
     {{#if music.has}}
-    <div class="ca-media-item">
+    <div class="ca-card ca-media-item">
       <div class="ca-media-header">
         <span class="ca-media-name" title="{{music.title}}">{{music.title}}</span>
-        <button type="button" data-action="remove-music"
-                class="ca-btn-remove ca-btn-remove--labeled">Remove</button>
+        <button type="button" class="ca-btn ca-btn--ghost-danger ca-btn--sm ca-btn-remove ca-btn-remove--labeled"
+                data-action="remove-music">Remove</button>
       </div>
     </div>
     {{/if}}
@@ -255,52 +284,56 @@
 
   {{!-- TAB: Settings --}}
   <div class="ca-nc-panel ca-nc-panel--hidden" data-panel="settings">
-    <div class="ca-nc-settings-row">
-      <div class="ca-nc-settings-item">
-        <span class="ca-nc-settings-label">Start Node</span>
-        <span class="ca-nc-settings-desc">Used when this group is activated — teleports online players here.</span>
+    <div class="ca-card ca-nc-settings-row">
+      <div class="ca-nc-settings-main">
+        <span class="ca-label ca-nc-settings-label">Start Node</span>
+        <button type="button"
+                class="ca-btn ca-toggle-start {{#if isStartNode}}ca-btn--toggle-on{{else}}ca-btn--toggle{{/if}}"
+                data-action="toggle-start"
+                title="{{#if isStartNode}}This is the start node{{else}}Set as start node for this group{{/if}}">
+          <i class="fa-solid fa-star" aria-hidden="true"></i> {{#if isStartNode}}Start Node{{else}}Set as Start{{/if}}
+        </button>
       </div>
-      <button type="button" data-action="toggle-start"
-              class="ca-toggle-start {{#if isStartNode}}ca-toggle-start--active{{/if}}"
-              title="{{#if isStartNode}}This is the start node{{else}}Set as start node for this group{{/if}}">
-        {{#if isStartNode}}&#9733; Start Node{{else}}&#9734; Set as Start{{/if}}
-      </button>
+      <p class="ca-hint ca-nc-settings-desc">Used when this group is activated — teleports online players here.</p>
     </div>
 
-    <div class="ca-nc-settings-row">
-      <div class="ca-nc-settings-item">
-        <span class="ca-nc-settings-label">Camera Room</span>
-        <span class="ca-nc-settings-desc">Players in this room gain a button to peek at linked rooms via corner peek anchors without navigating.</span>
+    <div class="ca-card ca-nc-settings-row">
+      <div class="ca-nc-settings-main">
+        <span class="ca-label ca-nc-settings-label">Camera Room</span>
+        <button type="button"
+                class="ca-btn ca-toggle-camera-room {{#if isCameraRoom}}ca-btn--toggle-on{{else}}ca-btn--toggle{{/if}}"
+                data-action="toggle-camera-room"
+                title="{{#if isCameraRoom}}Camera Room enabled — click to disable{{else}}Camera Room disabled — click to enable{{/if}}">
+          <i class="fa-solid fa-camera" aria-hidden="true"></i> {{#if isCameraRoom}}Camera: ON{{else}}Camera: OFF{{/if}}
+        </button>
       </div>
-      <button type="button" data-action="toggle-camera-room"
-              class="ca-toggle-camera-room {{#if isCameraRoom}}ca-toggle-camera-room--active{{/if}}"
-              title="{{#if isCameraRoom}}Camera Room enabled — click to disable{{else}}Camera Room disabled — click to enable{{/if}}">
-        <i class="fa-solid fa-camera"></i> {{#if isCameraRoom}}Camera: ON{{else}}Camera: OFF{{/if}}
-      </button>
+      <p class="ca-hint ca-nc-settings-desc">Players in this room gain a button to peek at linked rooms via corner peek anchors without navigating.</p>
     </div>
 
     {{#if isCameraRoom}}
-    <div class="ca-nc-settings-row">
-      <div class="ca-nc-settings-item">
-        <span class="ca-nc-settings-label">Button Label</span>
-        <span class="ca-nc-settings-desc">Text shown on the HUD button for this camera room.</span>
+    <div class="ca-card ca-nc-settings-row">
+      <div class="ca-field ca-nc-settings-main">
+        <span class="ca-label ca-nc-settings-label">Button Label</span>
+        <input type="text" class="ca-input ca-camera-label-input"
+               value="{{cameraLabel}}" maxlength="40" placeholder="Cameras"/>
       </div>
-      <input type="text" class="ca-camera-label-input"
-             value="{{cameraLabel}}" maxlength="40" placeholder="Cameras"/>
+      <p class="ca-hint ca-nc-settings-desc">Text shown on the HUD button for this camera room.</p>
     </div>
     {{/if}}
 
-    <div class="ca-config-section">
-      <div class="ca-config-section-title">Auto-Lock</div>
-      <div class="ca-btn-group" data-field="autolockMode">
-        <button class="ca-btn-group-btn {{#if (eq autolockMode 'open')}}ca-btn-group-btn--active{{/if}}"
-                type="button" data-value="open">Open</button>
-        <button class="ca-btn-group-btn {{#if (eq autolockMode 'inherit')}}ca-btn-group-btn--active{{/if}}"
-                type="button" data-value="inherit">Inherit</button>
-        <button class="ca-btn-group-btn {{#if (eq autolockMode 'locked')}}ca-btn-group-btn--active{{/if}}"
-                type="button" data-value="locked">Locked</button>
+    <div class="ca-card ca-config-section">
+      <div class="ca-nc-settings-main">
+        <span class="ca-label ca-config-section-title">Auto-Lock</span>
+        <div class="ca-btn-group" data-field="autolockMode">
+          <button class="ca-btn-group-btn {{#if (eq autolockMode 'open')}}ca-btn-group-btn--active{{/if}}"
+                  type="button" data-value="open">Open</button>
+          <button class="ca-btn-group-btn {{#if (eq autolockMode 'inherit')}}ca-btn-group-btn--active{{/if}}"
+                  type="button" data-value="inherit">Inherit</button>
+          <button class="ca-btn-group-btn {{#if (eq autolockMode 'locked')}}ca-btn-group-btn--active{{/if}}"
+                  type="button" data-value="locked">Locked</button>
+        </div>
       </div>
-      <p class="ca-config-hint">
+      <p class="ca-hint ca-config-hint">
         <strong>Open:</strong> players are never locked here.<br>
         <strong>Locked:</strong> players are always locked upon arrival.<br>
         <strong>Inherit:</strong> follows the global Autolock toggle in the Manager.
@@ -309,9 +342,9 @@
   </div>
 
   {{!-- Footer actions: always visible --}}
-  <div class="ca-node-config-actions">
-    <button type="button" class="ca-btn-save"   data-action="save">Save</button>
-    <button type="button" class="ca-btn-delete" data-action="delete-node">Delete Node</button>
+  <div class="ca-win-footer ca-node-config-actions">
+    <button type="button" class="ca-btn ca-btn--accent ca-btn-save"   data-action="save">Save</button>
+    <button type="button" class="ca-btn ca-btn--danger ca-btn-delete" data-action="delete-node">Delete Node</button>
   </div>
 
 </div>

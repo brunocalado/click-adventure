@@ -1,4 +1,28 @@
-/* @section: node-config — redesigned */
+/*!
+ * Click Adventure
+ * Copyright (c) 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
+
+/* @section: node-config
+   @scope: .click-adventure.node-config — the Node Configuration window
+   @depends: _tokens.css, _components.css
+
+   Buttons, tabs, inputs, cards and dropzones all come from _components.css.
+   What is left here is the layout that is genuinely specific to this window:
+   the three-column media row, the macro column, and the settings rows.
+
+   @manifest:
+     .ca-node-config              Root: padded body, full-bleed footer
+     .ca-nc-panel                 One tab panel; the visible one scrolls
+     .ca-image-item               100px thumb | details | 200px macro column
+     .ca-linked-scene-item        details | 200px macro column
+     .ca-item-macro-*             The macro column, empty (dropzone) or filled
+     .ca-nc-settings-row          Setting card: control inline, description under
+     .ca-image-preview-tooltip    Hover preview, appended to document.body by JS
+*/
 
 .click-adventure.node-config {
   background: var(--ca-bg-panel);
@@ -6,184 +30,78 @@
 
 /* ── Root layout ──────────────────────────────────────────────────── */
 .click-adventure.node-config .ca-node-config {
-  padding: 14px 14px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-/* ── Default Scene Name field ─────────────────────────────────────── */
-.click-adventure.node-config .ca-nc-field-group {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  padding: 8px 10px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--ca-border-mid);
-  border-radius: var(--ca-radius-lg);
-}
-
-.click-adventure.node-config .ca-nc-label {
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--ca-text-muted);
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-}
-
-.click-adventure.node-config .ca-nc-field-input-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.click-adventure.node-config .ca-node-label-input {
   flex: 1;
-  min-width: 0;
-  font-size: 13px;
-  font-weight: 600;
-  background: var(--ca-bg-toolbar);
-  border: 1px solid var(--ca-border-toolbar);
-  border-radius: var(--ca-radius-md);
-  color: var(--ca-text-bright);
-  padding: 5px 8px;
-  box-sizing: border-box;
-  transition: border-color 0.15s;
-}
-
-.click-adventure.node-config .ca-node-label-input:focus {
-  border-color: var(--ca-border-toolbar-hv);
-  outline: none;
-}
-
-.click-adventure.node-config .ca-nc-hint {
-  font-size: 10px;
-  color: var(--ca-text-muted);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-/* ── Tab bar ──────────────────────────────────────────────────────── */
-.click-adventure.node-config .ca-nc-tabs {
+  min-height: 0;
   display: flex;
-  gap: 2px;
-  border-bottom: 1px solid var(--ca-border-divider);
-  padding-bottom: 0;
+  flex-direction: column;
+  gap: var(--ca-space-5);
+  padding: var(--ca-space-6) var(--ca-space-6) 0;
 }
 
-.click-adventure.node-config .ca-nc-tab {
-  padding: 5px 14px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  color: var(--ca-text-muted);
-  background: transparent;
-  border: 1px solid transparent;
-  border-bottom: none;
-  border-radius: var(--ca-radius-md) var(--ca-radius-md) 0 0;
-  cursor: pointer;
-  transition: color 0.15s, background 0.15s;
-}
-
-.click-adventure.node-config .ca-nc-tab:hover {
-  color: var(--ca-text-primary);
-  background: rgba(255,255,255,0.05);
-}
-
-.click-adventure.node-config .ca-nc-tab--active {
-  color: var(--ca-text-bright);
-  background: var(--ca-bg-toolbar);
-  border-color: var(--ca-border-divider);
-  border-bottom-color: var(--ca-bg-toolbar);
+/* The footer band spans the full window width while the body stays padded, so
+   it pulls back out over the root's own horizontal padding. */
+.click-adventure.node-config .ca-node-config-actions {
+  margin: 0 calc(-1 * var(--ca-space-6));
 }
 
 /* ── Tab panels ───────────────────────────────────────────────────── */
 .click-adventure.node-config .ca-nc-panel {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--ca-space-3);
 }
 
 .click-adventure.node-config .ca-nc-panel--hidden {
   display: none;
 }
 
-/* ── Images header ────────────────────────────────────────────────── */
-.click-adventure.node-config .ca-images-header {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-}
-
-.click-adventure.node-config .ca-images-header button {
-  padding: 3px 10px;
-  background: rgba(40, 60, 120, 0.6);
-  border: 1px solid rgba(100, 140, 220, 0.4);
-  border-radius: var(--ca-radius-md);
-  color: var(--ca-text-primary);
-  font-size: 11px;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.click-adventure.node-config .ca-images-header button:hover {
-  background: rgba(60, 90, 180, 0.75);
-}
-
-/* ── Images list ──────────────────────────────────────────────────── */
-.click-adventure.node-config .ca-images-list {
+/* ── Images and linked scenes ─────────────────────────────────────── */
+.click-adventure.node-config .ca-images-list,
+.click-adventure.node-config .ca-linked-scenes-list {
   list-style: none;
   padding: 0;
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  max-height: 320px;
-  overflow-y: auto;
-  padding-right: 2px;
+  gap: var(--ca-space-3);
 }
 
+/* minmax(0, …) on the flexible column, because a grid track's default `auto`
+   minimum is the content's min-content size — which would let a long macro name
+   or a wide button pair push the row past the window instead of shrinking. */
 .click-adventure.node-config .ca-image-item {
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  gap: 6px;
-  padding: 6px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--ca-radius-lg);
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr) 200px;
+  gap: var(--ca-space-5);
+  align-items: start;
 }
 
-.click-adventure.node-config .ca-image-item--active {
-  border-color: var(--ca-state-open-border);
-  background: var(--ca-state-open-tint);
-}
-
-/* ── Image left column ────────────────────────────────────────────── */
-.click-adventure.node-config .ca-image-left {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  flex: 1;
-  min-width: 0;
-  gap: 8px;
+.click-adventure.node-config .ca-linked-scene-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 200px;
+  gap: var(--ca-space-5);
+  align-items: start;
 }
 
 .click-adventure.node-config .ca-image-thumb {
-  width: 60px;
-  height: 44px;
+  position: relative;
+  width: 100px;
+  height: 100px;
   border-radius: var(--ca-radius-md);
+  border: 1px solid var(--ca-border);
+  background-color: var(--ca-bg-card-empty);
   background-size: cover;
   background-position: center;
-  background-color: rgba(255, 255, 255, 0.05);
-  flex-shrink: 0;
+  overflow: hidden;
   cursor: pointer;
+  transition: border-color 0.15s ease;
 }
 
-.click-adventure.node-config .ca-image-thumb--video {
-  position: relative;
-  overflow: hidden;
-  background-color: #111;
+.click-adventure.node-config .ca-image-thumb:hover {
+  border-color: var(--ca-accent);
 }
 
 .click-adventure.node-config .ca-thumb-video {
@@ -191,668 +109,209 @@
   height: 100%;
   object-fit: cover;
   display: block;
-  pointer-events: none;
 }
 
 .click-adventure.node-config .ca-video-badge {
   position: absolute;
-  bottom: 2px;
-  right: 3px;
-  font-size: 0.6rem;
-  font-weight: 700;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.6);
-  padding: 1px 4px;
-  border-radius: 3px;
-  line-height: 1.4;
-  pointer-events: none;
-}
-
-/* Floating preview tooltip — positioned via JS and appended to document.body,
-   so it cannot be scoped inside .click-adventure.node-config. */
-.ca-image-preview-tooltip {
-  position: fixed;
-  z-index: var(--ca-z-popover);
-  pointer-events: none;
-  border-radius: var(--ca-radius-lg);
-  border: 2px solid var(--ca-border-toolbar-hv);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.7);
-  background-color: var(--ca-bg-panel);
-  overflow: hidden;
-  width: 220px;
-  height: 160px;
-  background-size: cover;
-  background-position: center;
-  transition: opacity 0.12s;
-  opacity: 0;
-}
-
-.ca-image-preview-tooltip.ca-tooltip--visible {
-  opacity: 1;
-}
-
-.click-adventure.node-config .ca-image-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.click-adventure.node-config .ca-image-nav-label {
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--ca-text-muted);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.click-adventure.node-config .ca-image-label-input {
-  font-size: 11px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid var(--ca-border-mid);
+  left: 4px;
+  bottom: 4px;
+  padding: 1px 5px;
   border-radius: var(--ca-radius-sm);
-  color: var(--ca-text-primary);
-  padding: 2px 6px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.click-adventure.node-config .ca-image-actions {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-}
-
-.click-adventure.node-config .ca-image-actions button:not(.ca-btn-remove) {
-  padding: 2px 7px;
-  font-size: 11px;
-  cursor: pointer;
-  background: rgba(40, 60, 120, 0.5);
-  border: 1px solid rgba(100, 140, 220, 0.3);
-  border-radius: var(--ca-radius-sm);
-  color: var(--ca-text-primary);
-  transition: background 0.15s;
-}
-
-.click-adventure.node-config .ca-image-actions button:not(.ca-btn-remove):hover {
-  background: rgba(60, 90, 180, 0.7);
-}
-
-.click-adventure.node-config .ca-image-active-badge {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--ca-state-open);
-}
-
-/* ── Remove buttons (labeled) ─────────────────────────────────────── */
-.click-adventure.node-config .ca-btn-remove {
-  color: var(--ca-state-danger) !important;
-  background: none !important;
-  border: none !important;
-  padding: 0 4px !important;
-  cursor: pointer;
-  transition: color 0.15s;
-}
-
-.click-adventure.node-config .ca-btn-remove:hover {
-  color: var(--ca-state-danger-hv) !important;
-}
-
-.click-adventure.node-config .ca-btn-remove--labeled {
-  font-size: 11px !important;
-  color: var(--ca-state-danger-hv) !important;
-  padding: 2px 6px !important;
-  border: 1px solid rgba(255, 170, 170, 0.35) !important;
-  border-radius: var(--ca-radius-sm) !important;
-  background: rgba(200, 80, 80, 0.1) !important;
-  white-space: nowrap;
-  font-weight: 600 !important;
-}
-
-.click-adventure.node-config .ca-btn-remove--labeled:hover {
-  background: rgba(200, 80, 80, 0.22) !important;
-  border-color: var(--ca-state-danger-hv) !important;
-  color: #ffd0d0 !important;
-}
-
-.click-adventure.node-config .ca-images-empty {
-  font-size: 11px;
+  background: var(--ca-bg-badge);
   color: var(--ca-text-muted);
-  padding: 12px 0;
-  text-align: center;
+  font-size: 9px;
+  font-weight: 700;
 }
 
-/* ── Linked Scenes tab ────────────────────────────────────────────── */
-.click-adventure.node-config .ca-linked-scenes-dropzone {
-  border: 2px dashed var(--ca-border-mid);
-  border-radius: var(--ca-radius-md);
-  padding: 10px;
-  text-align: center;
-  color: var(--ca-text-muted);
-  font-size: 12px;
-  cursor: default;
-  transition: border-color 0.15s, background 0.15s;
-}
-
-.click-adventure.node-config .ca-linked-scenes-dropzone--over {
-  border-color: var(--ca-state-open);
-  background: var(--ca-state-open-tint);
-}
-
-.click-adventure.node-config .ca-linked-scenes-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  max-height: 320px;
-  overflow-y: auto;
-  padding-right: 2px;
-}
-
-.click-adventure.node-config .ca-linked-scene-item {
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  gap: 6px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--ca-radius-md);
-  padding: 5px 6px;
-}
-
-.click-adventure.node-config .ca-linked-scene-left {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  flex: 1;
-  min-width: 0;
-  gap: 6px;
-}
-
+.click-adventure.node-config .ca-image-info,
 .click-adventure.node-config .ca-linked-scene-info {
   display: flex;
   flex-direction: column;
-  flex: 1;
+  gap: var(--ca-space-3);
   min-width: 0;
-  gap: 2px;
-}
-
-.click-adventure.node-config .ca-linked-scene-info input {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--ca-text-primary);
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid var(--ca-border-mid);
-  padding: 1px 2px;
-  width: 100%;
-  box-sizing: border-box;
 }
 
 .click-adventure.node-config .ca-linked-scene-name {
-  font-size: 10px;
-  color: var(--ca-text-muted);
+  font-size: var(--ca-fs-label);
+  color: var(--ca-text-faint);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+/* Wraps rather than overflowing on a narrow window: once the row overflows,
+   margin-left:auto on the remove button resolves to 0 and the destructive action
+   ends up sitting flush against the one the user actually wants. */
+.click-adventure.node-config .ca-image-actions,
 .click-adventure.node-config .ca-linked-scene-actions {
   display: flex;
-  gap: 4px;
-  flex-shrink: 0;
   align-items: center;
+  flex-wrap: wrap;
+  gap: var(--ca-space-2) var(--ca-space-3);
 }
 
-.click-adventure.node-config .ca-linked-scene-actions button:not(.ca-btn-remove) {
-  padding: 2px 7px;
-  font-size: 11px;
-  cursor: pointer;
-  background: rgba(40, 60, 120, 0.5);
-  border: 1px solid rgba(100, 140, 220, 0.3);
-  border-radius: var(--ca-radius-sm);
-  color: var(--ca-text-primary);
-  transition: background 0.15s;
-}
-
-.click-adventure.node-config .ca-linked-scene-actions button:not(.ca-btn-remove):hover {
-  background: rgba(60, 90, 180, 0.7);
+.click-adventure.node-config .ca-images-empty {
+  padding: var(--ca-space-6);
+  text-align: center;
+  color: var(--ca-text-mute-row);
+  font-size: var(--ca-fs-label);
 }
 
 /* ── Macro column ─────────────────────────────────────────────────── */
 .click-adventure.node-config .ca-item-macro-col {
-  width: 200px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  justify-content: center;
+  min-width: 0;
 }
 
+/* The empty dropzone is a fixed 100px so an entry row keeps the thumbnail's
+   height; the filled zone only takes that as a floor, because Run/Open/Remove
+   plus the trigger select need more than 100px once the buttons wrap. */
 .click-adventure.node-config .ca-item-macro-zone {
-  border-radius: var(--ca-radius-md);
-  border: 1px solid rgba(100, 140, 220, 0.2);
-  background: rgba(20, 30, 60, 0.5);
-  padding: 5px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-height: 40px;
-}
-
-.click-adventure.node-config .ca-image-macro-dropzone,
-.click-adventure.node-config .ca-linked-scene-macro-dropzone {
-  border-style: dashed;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  color: var(--ca-text-muted);
-  cursor: copy;
-  transition: border-color 120ms, background 120ms;
-}
-
-.click-adventure.node-config .ca-image-macro-dropzone.ca-macro-dropzone--over,
-.click-adventure.node-config .ca-linked-scene-macro-dropzone.ca-macro-dropzone--over {
-  border-color: var(--ca-border-toolbar-hv);
-  border-style: solid;
-  background: rgba(58, 90, 170, 0.2);
+  min-height: 100px;
 }
 
 .click-adventure.node-config .ca-item-macro-zone--filled {
-  background: rgba(26, 38, 78, 0.7);
-  border-color: rgba(100, 140, 220, 0.35);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--ca-space-2);
+  padding: var(--ca-space-2);
+  border: 1px solid var(--ca-border);
+  border-radius: var(--ca-radius-md);
+  background: var(--ca-border-faint);
 }
 
 .click-adventure.node-config .ca-item-macro-name {
-  display: block;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--ca-text-bright);
+  font-size: var(--ca-fs-label);
+  font-weight: 600;
+  color: var(--ca-text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  width: 100%;
-  margin-bottom: 3px;
 }
 
+/* Three labelled buttons do not fit the 200px macro column on one line. */
 .click-adventure.node-config .ca-item-macro-row {
   display: flex;
   align-items: center;
-  gap: 4px;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
+  gap: var(--ca-space-1);
 }
 
-.click-adventure.node-config .ca-item-macro-row button:not(.ca-btn-remove) {
-  padding: 2px 7px;
-  font-size: 10px;
-  font-weight: 600;
-  cursor: pointer;
-  background: rgba(40, 60, 120, 0.55);
-  border: 1px solid rgba(100, 140, 220, 0.35);
-  border-radius: var(--ca-radius-sm);
-  color: var(--ca-text-primary);
-  flex-shrink: 0;
-  transition: background 0.15s;
+/* Remove is last in this row already; the primitive's auto margin would strand
+   it on a line of its own once the row wraps. */
+.click-adventure.node-config .ca-item-macro-row .ca-btn--ghost-danger {
+  margin-left: 0;
 }
 
-.click-adventure.node-config .ca-item-macro-row button:not(.ca-btn-remove):hover {
-  background: rgba(60, 90, 180, 0.75);
+/* JS marks an active drag target with its own per-zone class; they all mean the
+   same thing as .ca-dropzone--over. */
+.click-adventure.node-config .ca-macro-dropzone--over,
+.click-adventure.node-config .ca-linked-scenes-dropzone--over,
+.click-adventure.node-config .ca-node-macro-drop--over,
+.click-adventure.node-config .ca-media-drop--over {
+  border-color: var(--ca-accent);
+  color: var(--ca-accent);
+  background: var(--ca-accent-glow);
 }
 
-.click-adventure.node-config .ca-image-macro-trigger,
-.click-adventure.node-config .ca-linked-scene-macro-trigger {
-  width: 100%;
-  height: 22px;
-  padding: 0 4px;
-  font-size: 10px;
-  font-family: inherit;
-  background: var(--ca-bg-toolbar) !important;
-  border: 1px solid var(--ca-border-toolbar) !important;
-  border-radius: var(--ca-radius-sm) !important;
-  color: var(--ca-text-primary) !important;
-  cursor: pointer;
-  box-shadow: none !important;
-  outline: none !important;
+.click-adventure.node-config .ca-linked-scenes-dropzone,
+.click-adventure.node-config .ca-node-macro-drop,
+.click-adventure.node-config .ca-media-drop {
+  min-height: 72px;
 }
 
-.click-adventure.node-config .ca-image-macro-trigger:focus,
-.click-adventure.node-config .ca-linked-scene-macro-trigger:focus {
-  border-color: var(--ca-border-toolbar-hv) !important;
-}
-
-/* ── Settings tab ─────────────────────────────────────────────────── */
-.click-adventure.node-config .ca-nc-settings-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: var(--ca-radius-lg);
-}
-
-.click-adventure.node-config .ca-nc-settings-item {
+/* ── Node macros and media cards ──────────────────────────────────── */
+.click-adventure.node-config .ca-node-macro-item,
+.click-adventure.node-config .ca-media-item {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--ca-space-3);
 }
 
-.click-adventure.node-config .ca-nc-settings-label {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--ca-text-primary);
-}
-
-.click-adventure.node-config .ca-nc-settings-desc {
-  font-size: 10px;
-  color: var(--ca-text-muted);
-  max-width: 220px;
-}
-
-/* ── Shared: star-glyph action buttons (Set Default, Use Scene, Set as Start) */
-.click-adventure.node-config .ca-image-actions button[data-action="set-active"],
-.click-adventure.node-config .ca-linked-scene-actions button[data-action="use-linked-scene"],
-.click-adventure.node-config .ca-toggle-start {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  line-height: 1;
-  padding: 4px 10px;
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  background: rgba(40, 60, 120, 0.5);
-  border: 1px solid rgba(100, 140, 220, 0.4);
-  border-radius: var(--ca-radius-md);
-  color: var(--ca-text-primary);
-  transition: background 0.15s, border-color 0.15s;
-  white-space: nowrap;
-}
-
-.click-adventure.node-config .ca-image-actions button[data-action="set-active"]:hover,
-.click-adventure.node-config .ca-linked-scene-actions button[data-action="use-linked-scene"]:hover,
-.click-adventure.node-config .ca-toggle-start:hover {
-  background: rgba(60, 90, 180, 0.7);
-  border-color: rgba(140, 180, 255, 0.7);
-}
-
-/* ── Start toggle ─────────────────────────────────────────────────── */
-.click-adventure.node-config .ca-toggle-start--active {
-  background: var(--ca-state-open-tint);
-  border-color: var(--ca-state-open-border);
-  color: var(--ca-state-open);
-  cursor: default;
-}
-
-/* ── Camera room toggle ───────────────────────────────────────────── */
-.click-adventure.node-config .ca-toggle-camera-room {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  line-height: 1;
-  padding: 4px 10px;
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  background: rgba(40, 60, 120, 0.5);
-  border: 1px solid rgba(100, 140, 220, 0.4);
-  border-radius: var(--ca-radius-md);
-  color: var(--ca-text-primary);
-  transition: background 0.15s, border-color 0.15s;
-  white-space: nowrap;
-
-  &:hover {
-    background: rgba(60, 90, 180, 0.7);
-    border-color: rgba(140, 180, 255, 0.7);
-  }
-}
-
-.click-adventure.node-config .ca-toggle-camera-room--active {
-  background: rgba(10, 45, 35, 0.82);
-  border-color: rgba(20, 180, 140, 0.7);
-  color: rgba(20, 220, 160, 0.95);
-  box-shadow: 0 0 6px rgba(20, 200, 150, 0.35);
-}
-
-/* ── Footer actions ───────────────────────────────────────────────── */
-.click-adventure.node-config .ca-node-config-actions {
-  display: flex;
-  gap: 8px;
-  padding-top: 8px;
-  justify-content: flex-end;
-  border-top: 1px solid var(--ca-border-divider);
-}
-
-.click-adventure.node-config .ca-btn-save {
-  padding: 6px 18px;
-  background: #2a4a7a;
-  border: 1px solid #4a6aaa;
-  border-radius: var(--ca-radius-md);
-  color: var(--ca-text-primary);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.click-adventure.node-config .ca-btn-save:hover { background: #3a5a9a; }
-
-.click-adventure.node-config .ca-btn-delete {
-  padding: 6px 18px;
-  background: rgba(90, 26, 26, 0.8);
-  border: 1px solid #aa3a3a;
-  border-radius: var(--ca-radius-md);
-  color: #f4b4b4;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.click-adventure.node-config .ca-btn-delete:hover { background: rgba(122, 42, 42, 0.9); }
-
-/* ── Macros tab ───────────────────────────────────────────────────── */
-.click-adventure.node-config .ca-node-macro-drop {
-  border: 2px dashed var(--ca-border-mid);
-  border-radius: var(--ca-radius-md);
-  padding: 10px;
-  text-align: center;
-  color: var(--ca-text-muted);
-  font-size: 12px;
-  cursor: copy;
-  transition: border-color 0.15s, background 0.15s;
-}
-
-.click-adventure.node-config .ca-node-macro-drop--over {
-  border-color: var(--ca-state-open);
-  background: var(--ca-state-open-tint);
-}
-
-.click-adventure.node-config .ca-node-macro-item {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  padding: 7px 8px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--ca-radius-md);
-}
-
-.click-adventure.node-config .ca-node-macro-header {
+.click-adventure.node-config .ca-node-macro-header,
+.click-adventure.node-config .ca-media-header {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--ca-space-2);
 }
 
-.click-adventure.node-config .ca-node-macro-name {
+.click-adventure.node-config .ca-node-macro-name,
+.click-adventure.node-config .ca-media-name {
   flex: 1;
   min-width: 0;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--ca-text-bright);
+  font-size: var(--ca-fs-body);
+  font-weight: 600;
+  color: var(--ca-text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .click-adventure.node-config .ca-node-macro-executed-badge {
-  flex-shrink: 0;
-  font-size: 10px;
-  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--ca-radius-pill);
+  background: var(--ca-fn-green-tint);
+  border: 1px solid var(--ca-fn-green);
   color: var(--ca-state-open);
-  background: var(--ca-state-open-tint);
-  border: 1px solid var(--ca-state-open-border);
-  border-radius: var(--ca-radius-sm);
-  padding: 1px 6px;
-  white-space: nowrap;
-}
-
-.click-adventure.node-config .ca-node-macro-header button[data-action="reset-node-macro"] {
-  flex-shrink: 0;
-  padding: 2px 7px;
-  font-size: 10px;
+  font-size: var(--ca-fs-micro);
   font-weight: 600;
-  cursor: pointer;
-  background: rgba(40, 60, 120, 0.5);
-  border: 1px solid rgba(100, 140, 220, 0.35);
-  border-radius: var(--ca-radius-sm);
-  color: var(--ca-text-primary);
-  transition: background 0.15s;
 }
 
-.click-adventure.node-config .ca-node-macro-header button[data-action="reset-node-macro"]:hover {
-  background: rgba(60, 90, 180, 0.75);
-}
-
-.click-adventure.node-config .ca-node-macro-controls {
+.click-adventure.node-config .ca-node-macro-controls,
+.click-adventure.node-config .ca-media-controls {
   display: flex;
-  gap: 6px;
+  gap: var(--ca-space-2);
 }
 
-.click-adventure.node-config .ca-node-macro-controls select {
-  flex: 1;
-  min-width: 0;
-  height: 22px;
-  padding: 0 4px;
-  font-size: 10px;
-  font-family: inherit;
-  background: var(--ca-bg-toolbar) !important;
-  border: 1px solid var(--ca-border-toolbar) !important;
-  border-radius: var(--ca-radius-sm) !important;
-  color: var(--ca-text-primary) !important;
-  cursor: pointer;
-  box-shadow: none !important;
-  outline: none !important;
-}
-
-.click-adventure.node-config .ca-node-macro-controls select:focus {
-  border-color: var(--ca-border-toolbar-hv) !important;
-}
-
-/* ── Auto-Lock config section ─────────────────────────────────── */
-.click-adventure.node-config .ca-config-section {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 10px;
-  border: 1px solid var(--ca-border-soft, rgba(255,255,255,0.08));
-  border-radius: var(--ca-radius-md, 6px);
-  margin-top: 8px;
-}
-.click-adventure.node-config .ca-config-section-title {
-  font-size: 0.72rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--ca-text-muted, #aaa);
-}
-.click-adventure.node-config .ca-btn-group {
-  display: flex;
-  gap: 4px;
-}
-.click-adventure.node-config .ca-btn-group-btn {
-  flex: 1;
-  padding: 4px 8px;
-  background: var(--ca-bg-overlay, rgba(0,0,0,0.35));
-  border: 1px solid var(--ca-border-soft, rgba(255,255,255,0.08));
-  border-radius: var(--ca-radius-md, 6px);
-  color: var(--ca-text-muted, #aaa);
-  cursor: pointer;
-  font-size: 0.8rem;
-  transition: background 0.15s, color 0.15s;
-}
-.click-adventure.node-config .ca-btn-group-btn--active {
-  background: var(--ca-bg-toolbar-hv, rgba(255,255,255,0.12));
-  color: var(--ca-text-bright, #eee);
-  border-color: var(--ca-border-toolbar-hv, rgba(255,255,255,0.25));
-}
-.click-adventure.node-config .ca-config-hint {
-  font-size: 0.72rem;
-  color: var(--ca-text-muted, #999);
-  line-height: 1.5;
+.click-adventure.node-config .ca-media-hint {
   margin: 0;
 }
 
-/* ── Journal & Music tabs ─────────────────────────────────────────── */
-/* Both tabs are shortcuts for fields the Scene document already owns, so they
-   deliberately look lighter than the Images/Macros tabs: one drop zone, one row. */
-.click-adventure.node-config .ca-media-hint {
-  margin: 0 0 8px;
-  line-height: 1.45;
-}
-
-.click-adventure.node-config .ca-media-drop {
-  border: 2px dashed var(--ca-border-mid);
-  border-radius: var(--ca-radius-md);
-  padding: 14px 10px;
-  text-align: center;
-  color: var(--ca-text-muted);
-  font-size: 12px;
-  cursor: copy;
-  transition: border-color 0.15s, background 0.15s;
-}
-
-.click-adventure.node-config .ca-media-drop--over {
-  border-color: var(--ca-state-open);
-  background: var(--ca-state-open-tint);
-}
-
-.click-adventure.node-config .ca-media-item {
+/* ── Settings tab ─────────────────────────────────────────────────── */
+.click-adventure.node-config .ca-nc-settings-row,
+.click-adventure.node-config .ca-config-section {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-top: 8px;
-  padding: 8px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--ca-radius-md);
+  gap: var(--ca-space-3);
 }
 
-.click-adventure.node-config .ca-media-header {
+.click-adventure.node-config .ca-nc-settings-main {
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: space-between;
+  gap: var(--ca-space-4);
 }
 
-.click-adventure.node-config .ca-media-name {
-  flex: 1;
-  min-width: 0;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--ca-text-bright);
-  white-space: nowrap;
+/* The camera-label row is a .ca-field, so its input must still stretch. */
+.click-adventure.node-config .ca-field.ca-nc-settings-main {
+  justify-content: flex-start;
+}
+
+.click-adventure.node-config .ca-nc-settings-desc,
+.click-adventure.node-config .ca-config-hint {
+  margin: 0;
+}
+
+/* ── Floating preview tooltip ─────────────────────────────────────── */
+/* Positioned by JS and appended to document.body, so it cannot be scoped
+   inside .click-adventure.node-config. */
+.ca-image-preview-tooltip {
+  position: fixed;
+  z-index: var(--ca-z-popover);
+  pointer-events: none;
+  width: 220px;
+  height: 160px;
+  border-radius: var(--ca-radius-lg);
+  border: 2px solid var(--ca-border);
+  box-shadow: var(--ca-shadow-modal);
+  background-color: var(--ca-bg-panel);
+  background-size: cover;
+  background-position: center;
   overflow: hidden;
-  text-overflow: ellipsis;
+  opacity: 0;
+  transition: opacity 0.12s ease;
 }
 
-.click-adventure.node-config .ca-media-controls select {
-  width: 100%;
-  font-size: 11px;
+.ca-image-preview-tooltip.ca-tooltip--visible {
+  opacity: 1;
 }
