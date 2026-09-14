@@ -38,9 +38,12 @@
             data-secret="{{#if secret}}true{{else}}false{{/if}}"
             type="button">
       <span class="ca-hud-dest-text">
-        {{#if secret}}<i class="fa-solid fa-mask"></i>{{/if}}
-        {{#if autolocked}}<i class="fa-solid fa-lock"></i>{{/if}}
-        {{#if isOrigin}}<span class="ca-hud-origin-icon" title="You came from here">↩</span>{{/if}}{{label}}
+        <span class="ca-hud-dest-name">
+          {{#if secret}}<i class="fa-solid fa-mask"></i>{{/if}}
+          {{#if autolocked}}<i class="fa-solid fa-lock"></i>{{/if}}
+          {{#if isOrigin}}<span class="ca-hud-origin-icon" title="You came from here">↩</span>{{/if}}{{label}}
+        </span>
+        {{#if sublabel}}<span class="ca-hud-dest-sub">{{sublabel}}</span>{{/if}}
       </span>
       {{#if previewSrc}}
       <span class="ca-hud-preview-eye" data-preview-src="{{previewSrc}}" data-is-video="{{isVideo}}">

@@ -14,6 +14,7 @@
      .ca-hud-destinations                               Hidden until --open
      .ca-hud-destinations--open                         Visible state (toggled via JS)
      .ca-hud-dest-btn                                   Single destination button
+     .ca-hud-dest-name / .ca-hud-dest-sub               Node name over passage name
      .ca-hud-dest-btn--locked                           Locked destination (red, not clickable)
      .ca-hud-orb                                        Circular hitbox containing the orb
      .ca-hud-orb--dragging                              Orb being dragged (cursor + pressed-in inner)
@@ -59,6 +60,12 @@
 
 .click-adventure.nav-hud .ca-hud-dest-btn {
   width: 100%;
+  /* Foundry gives every <button> a fixed height; a two-line label would be
+     clipped by the overflow:hidden below without these. flex-shrink:0 keeps the
+     column panel from squeezing the taller buttons back down. */
+  height: auto;
+  min-height: 0;
+  flex: 0 0 auto;
   padding: 6px 14px;
   background: var(--ca-bg-hud-item);
   border: 1px solid var(--ca-border-mid);
@@ -83,6 +90,36 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Destination labels stack the node name over the passage name: joined on one
+   line the pair truncates before the passage text is readable. Scoped to the
+   destination buttons — the node-switcher and peek items reuse .ca-hud-dest-text
+   as a plain single-line label and need the ellipsis to stay on the container. */
+.click-adventure.nav-hud .ca-hud-dest-btn .ca-hud-dest-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  white-space: normal;
+}
+
+/* Both lines wrap rather than ellipsize: a truncated passage name is exactly the
+   problem the two-line layout exists to solve. overflow-wrap:anywhere also breaks
+   a long unbroken string, which no word-level wrapping would. */
+.click-adventure.nav-hud .ca-hud-dest-name,
+.click-adventure.nav-hud .ca-hud-dest-sub {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* Inherits the button's state colour (locked red, secret purple) instead of a
+   fixed grey, so it stays readable on every destination variant. */
+.click-adventure.nav-hud .ca-hud-dest-sub {
+  font-size: 11px;
+  font-style: italic;
+  opacity: 0.7;
 }
 
 .click-adventure.nav-hud .ca-hud-preview-eye {

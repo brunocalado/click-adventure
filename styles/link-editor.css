@@ -45,7 +45,7 @@
   background: var(--ca-bg-input);
   border: 1px solid var(--ca-border);
   color: var(--ca-text-primary);
-  font-size: var(--ca-fs-label);
+  font-size: var(--ca-fs-body);
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;

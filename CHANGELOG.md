@@ -1,3 +1,9 @@
+# 0.2.2
+
+## [Changed]
+- **HUD destination buttons put the passage name on its own line.** A destination reached through a named passage was labelled `Node name (Passage name)` on a single line, and the HUD panel is only 200px wide, so the passage name — the part that distinguishes two buttons leading to the same room — was almost always the half that got cut off. The node name now sits on the first line and the passage name in italic underneath it. Long text wraps instead of truncating, including text with no spaces to break on, and the button grows to fit however many lines it needs. Passages shown in *Path Name only* mode are unchanged: the passage name is still the single label, with no second line.
+- **The two node badges in the Link Editor header are 14px**, up from 12px, matching the arrow between them.
+
 # 0.2.1
 
 ## [Changed]

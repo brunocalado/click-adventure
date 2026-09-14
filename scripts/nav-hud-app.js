@@ -209,12 +209,11 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
             if (!other) continue;
             const navName = other.label || game.scenes.get(other.sceneId)?.name || other.id;
             const isPathOnly = !game.user.isGM && passage.displayMode === "path-only";
-            const label = isPathOnly
-              ? (passage.label || navName)
-              : passage.label
-                  ? `${navName} (${passage.label})`
-                  : navName;
-            availableDestinations.push({ id: other.id, label, locked: passLocked, secret: passSecret });
+            // Node name and passage name are kept apart so the HUD can stack them on
+            // two lines — joined on one line they truncate before the passage is readable.
+            const label    = isPathOnly ? (passage.label || navName) : navName;
+            const sublabel = isPathOnly ? null : (passage.label || null);
+            availableDestinations.push({ id: other.id, label, sublabel, locked: passLocked, secret: passSecret });
           }
         } else {
           // Single-passage: existing direction logic; dedup so the same node appears only once
