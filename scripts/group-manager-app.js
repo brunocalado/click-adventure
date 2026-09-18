@@ -13,6 +13,7 @@
  */
 
 import { MODULE_ID } from "./constants.js";
+import { setUserCurrentNode } from "./node-utils.js";
 import { getGroupFolder, deleteGroupSceneFolder } from "./manager-scene-ops.js";
 
 export class GroupManagerApp extends foundry.applications.api.HandlebarsApplicationMixin(
@@ -100,7 +101,7 @@ export class GroupManagerApp extends foundry.applications.api.HandlebarsApplicat
       const players = game.users.filter(u => !u.isGM && u.active);
       for (const user of players) {
         await user.unsetFlag(MODULE_ID, "previousNodeId");
-        await user.setFlag(MODULE_ID, "currentNodeId", startNode.id);
+        await setUserCurrentNode(user, startNode);
         globalThis.ClickAdventure._socket.teleportUser(startNode.sceneId, user.id, startNode.id);
       }
     }

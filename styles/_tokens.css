@@ -86,9 +86,10 @@
   --ca-fn-red-border:     rgba(211, 47, 47, 0.45);
 
   /* Semantic graph states — stay vivid, see the note above */
-  --ca-state-open:        #22c55e;   /* both / active node / approve */
-  --ca-state-locked:      #ef4444;   /* locked passage */
-  --ca-state-blocked:     #a855f7;   /* blocked passage */
+  --ca-state-open:        #22c55e;   /* open passage / active node / approve */
+  --ca-state-blocked:     #ef4444;   /* blocked passage — visible, not traversable */
+  --ca-state-secret:      #a855f7;   /* secret passage — hidden from players */
+  --ca-state-custom:      #3b82f6;   /* custom passage — key-gated */
   --ca-state-multi:       #a855f7;   /* multi-passage link */
   --ca-state-multi-hover: #c084fc;
   --ca-state-directional: #f59e0b;   /* forward/backward / start icon */
@@ -106,11 +107,12 @@
   --ca-state-open-tint:        rgba(34, 197, 94, 0.12);
   --ca-state-open-tint-hover:  rgba(34, 197, 94, 0.20);
   --ca-state-open-border:      rgba(34, 197, 94, 0.45);
-  --ca-state-locked-tint:      rgba(239, 68, 68, 0.12);
-  --ca-state-locked-border:    rgba(239, 68, 68, 0.55);
+  --ca-state-blocked-tint:     rgba(239, 68, 68, 0.12);
+  --ca-state-blocked-border:   rgba(239, 68, 68, 0.55);
   --ca-state-peek-tint:        rgba(20, 180, 140, 0.18);
   --ca-state-peek-border:      rgba(20, 180, 140, 0.55);
-  --ca-state-blocked-tint:     rgba(168, 85, 247, 0.20);
+  --ca-state-secret-tint:      rgba(168, 85, 247, 0.20);
+  --ca-state-custom-tint:      rgba(59, 130, 246, 0.18);
 
   /* Text */
   --ca-text-primary:      #ffffff;   /* user content */

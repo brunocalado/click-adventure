@@ -22,7 +22,7 @@
  */
 
 import { MODULE_ID } from "./constants.js";
-import { getGraphData, getActiveGroup, saveGraphData, fireActiveItemMacro, fireNodeMacros } from "./node-utils.js";
+import { getGraphData, getActiveGroup, saveGraphData, fireActiveItemMacro, fireNodeMacros, setUserCurrentNode } from "./node-utils.js";
 import { lockUser, unlockUser } from "./autolock-utils.js";
 import { openNodeJournal } from "./node-media.js";
 
@@ -370,12 +370,11 @@ export class AdventureSocketManager {
       if (scene) await scene.view();
     }
 
-    await game.user.setFlag(MODULE_ID,"currentNodeId", toNodeId);
-
     if (toNodeId) {
       const { nodes } = getGraphData();
       const node = nodes.find(n => n.id === toNodeId);
       if (node) {
+        await setUserCurrentNode(game.user, node);
         await fireActiveItemMacro(node, "player-view", sceneId ?? null);
         await fireNodeMacros(node, "player-view");
         await openNodeJournal(node, "view");

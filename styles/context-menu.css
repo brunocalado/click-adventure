@@ -12,6 +12,7 @@
      .ca-context-menu-item--send-all             Highlighted "send all" variant
      .ca-context-menu-dot                        Color dot prefix
      .ca-context-menu-badge                      Right-aligned badge (e.g. ACTIVE)
+     .ca-reset-menu-wrapper / .ca-reset-menu     Toolbar dropdown variant, anchored to its button
 */
 
 .ca-context-menu {
@@ -86,4 +87,20 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+/* Toolbar dropdown variant — anchored under its button instead of at the cursor, so the
+   base .ca-context-menu's position:fixed has to be overridden here. */
+.ca-reset-menu-wrapper {
+  position: relative;
+}
+
+.ca-reset-menu-wrapper .ca-reset-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+}
+
+.ca-reset-menu[hidden] {
+  display: none;
 }

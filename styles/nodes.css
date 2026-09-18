@@ -10,6 +10,7 @@
    @manifest:
      .ca-node                              Scene card, var(--ca-node-size) square, base styles
      .ca-node[data-active="true"]          Active scene (green border + glow)
+     .ca-node--dead-end                    No open passage out — GM-only warning outline
      .ca-node-image                        Top portion of card, holds the scene image
      .ca-node-image::after                 Subtle dark gradient for button legibility
      .ca-node-image--empty                 Placeholder fill when no image is set
@@ -56,6 +57,14 @@
 .click-adventure.manager .ca-node[data-active="true"] {
   border-color: var(--ca-state-open);
   box-shadow: 0 0 0 2px var(--ca-state-open-border), var(--ca-shadow-node);
+}
+
+/* Dead end — no passage out of this node is crossable by a player. A warning only: the
+   node behaves normally, it is just easy to miss when a graph gets large. The active
+   node's own green outline wins, since where the GM is standing matters more. */
+.click-adventure.manager .ca-node--dead-end:not([data-active="true"]) {
+  border-color: var(--ca-state-blocked);
+  box-shadow: 0 0 0 2px var(--ca-state-blocked-border), var(--ca-shadow-node);
 }
 
 /* Image fills the top of the card, flush with rounded corners. */
@@ -341,7 +350,7 @@
    When a node is simultaneously selected AND highlighted, both outlines
    stack visually because this rule uses outline-offset: 7px vs highlighted's 3px. */
 .click-adventure.manager .ca-node--selected {
-  outline: 2px solid var(--ca-state-blocked);
+  outline: 2px solid var(--ca-state-secret);
   outline-offset: 7px;
   animation: ca-node-wobble 0.7s ease-in-out infinite alternate;
 }
@@ -350,7 +359,7 @@
    the purple outline clears the amber one. */
 .click-adventure.manager .ca-node--selected.ca-node--highlighted,
 .click-adventure.manager .ca-node[data-active="true"].ca-node--selected.ca-node--highlighted {
-  outline: 2px solid var(--ca-state-blocked);
+  outline: 2px solid var(--ca-state-secret);
   outline-offset: 10px;
 }
 

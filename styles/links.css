@@ -1,6 +1,6 @@
 /* @section: links
    @scope: SVG link layer between nodes — paths, hit areas, direction indicators
-   @depends: --ca-state-open, --ca-state-locked, --ca-state-blocked, --ca-state-multi*,
+   @depends: --ca-state-open, --ca-state-blocked, --ca-state-secret, --ca-state-multi*,
              --ca-state-directional, --ca-state-link-base, --ca-state-link-hover,
              --ca-state-temp, --ca-z-link
 
@@ -8,17 +8,17 @@
      .ca-links-layer                              SVG layer overlaid on the canvas (pointer-events: none)
      .ca-link                                     Visible link path
      .ca-link.ca-link--hover                      Hover highlight (toggled via JS classList)
-     .ca-link[data-direction="both"]              Bidirectional (open) — green
-     .ca-link[data-direction="forward"|"backward"]   One-way — amber
-     .ca-link[data-direction="blocked"]           Blocked — purple, dashed
-     .ca-link[data-direction="locked"]            Locked — red, dashed
-     .ca-link[data-multi="true"]                  Multi-passage link — thicker, purple
-     .ca-link[data-multi="true"].ca-link--hover   Multi link hover state
+     .ca-link[data-state="open"]                  Open — green
+     .ca-link[data-state="blocked"]               Blocked — red, dashed (visible, not crossable)
+     .ca-link[data-state="secret"]                Secret — purple, dashed (hidden from players)
+     .ca-link[data-state="custom"]                Custom — cyan, dashed (key-gated)
+     .ca-link[data-direction="forward"|"backward"]   One-way — overrides the open colour with amber
+     .ca-link--thin                               One passage of a stacked multi-passage link
      .ca-link-hit                                 Invisible wider hit-target for click handling
      .ca-temp-link                                Dashed amber preview while user drags from anchor
-     .ca-link-direction                           Text indicator at path midpoint (eg. "↔" or "✕")
-     .ca-link-direction[data-direction="..."]    Per-state fill colors for the indicator
-     .ca-link-direction-arrow                     Polygon arrow used for forward/backward states
+     .ca-link-direction                           Glyph at path midpoint, one per bidirectional passage
+     .ca-link-direction[data-state="..."]         Per-state fill colors for the glyph
+     .ca-link-direction-arrow                     Polygon arrow drawn for a one-way passage
 */
 
 .click-adventure.manager .ca-links-layer {
@@ -57,59 +57,77 @@
   stroke-linecap: round;
 }
 
-/* Text indicators (↔ and ✕) shown at the path midpoint. */
+/* Midpoint glyphs, drawn only for a bidirectional passage — a one-way one gets an arrow. */
 .click-adventure.manager .ca-link-direction {
   font-size: 13px;
   font-family: sans-serif;
   pointer-events: none;
 }
 
-.click-adventure.manager .ca-link-direction[data-direction="both"]    { fill: var(--ca-state-open); }
-.click-adventure.manager .ca-link-direction[data-direction="blocked"] { fill: var(--ca-state-blocked); }
-.click-adventure.manager .ca-link-direction[data-direction="locked"]  { fill: var(--ca-state-locked); }
-
-/* Directional arrow polygon. */
-.click-adventure.manager .ca-link-direction-arrow {
-  pointer-events: none;
+/* Secret and Custom use Font Awesome glyphs (mask, key) rather than emoji: a colour emoji
+   ignores SVG `fill`, so the state colour never reached them. Foundry v14 ships Font
+   Awesome 7; the older families are listed behind it for hosts still on an earlier core. */
+.click-adventure.manager .ca-link-direction[data-state="secret"],
+.click-adventure.manager .ca-link-direction[data-state="custom"] {
+  font-family: "Font Awesome 7 Pro", "Font Awesome 7 Free", "Font Awesome 6 Pro", "Font Awesome 6 Free", "FontAwesome";
+  font-weight: 900;
+  font-size: 11px;
 }
 
-.click-adventure.manager .ca-link-direction-arrow[data-direction="forward"],
-.click-adventure.manager .ca-link-direction-arrow[data-direction="backward"] {
+.click-adventure.manager .ca-link-direction[data-state="open"]    { fill: var(--ca-state-open); }
+.click-adventure.manager .ca-link-direction[data-state="blocked"] { fill: var(--ca-state-blocked); }
+.click-adventure.manager .ca-link-direction[data-state="secret"]  { fill: var(--ca-state-secret); }
+.click-adventure.manager .ca-link-direction[data-state="custom"]  { fill: var(--ca-state-custom); }
+
+/* Directional arrow polygon — an open one-way keeps the amber "directional" colour, a
+   gated one takes its state colour so the arrow and the line agree. */
+.click-adventure.manager .ca-link-direction-arrow {
+  pointer-events: none;
   fill: var(--ca-state-directional);
 }
 
-/* Link path color varies by direction state. */
-.click-adventure.manager .ca-link[data-direction="both"] {
+.click-adventure.manager .ca-link-direction-arrow[data-state="blocked"] { fill: var(--ca-state-blocked); }
+.click-adventure.manager .ca-link-direction-arrow[data-state="secret"]  { fill: var(--ca-state-secret); }
+.click-adventure.manager .ca-link-direction-arrow[data-state="custom"]  { fill: var(--ca-state-custom); }
+
+/* Link colour follows the state; a one-way OPEN passage is amber instead of green so the
+   arrow reads as "one-way" at a glance. A gated passage keeps its state colour either way. */
+.click-adventure.manager .ca-link[data-state="open"] {
   stroke: var(--ca-state-open);
 }
 
-.click-adventure.manager .ca-link[data-direction="forward"],
-.click-adventure.manager .ca-link[data-direction="backward"] {
+.click-adventure.manager .ca-link[data-state="open"][data-direction="forward"],
+.click-adventure.manager .ca-link[data-state="open"][data-direction="backward"] {
   stroke: var(--ca-state-directional);
 }
 
-.click-adventure.manager .ca-link[data-direction="blocked"] {
+.click-adventure.manager .ca-link[data-state="blocked"] {
   stroke: var(--ca-state-blocked);
   stroke-dasharray: 6 4;
 }
 
-.click-adventure.manager .ca-link[data-direction="locked"] {
-  stroke: var(--ca-state-locked);
+.click-adventure.manager .ca-link[data-state="secret"] {
+  stroke: var(--ca-state-secret);
   stroke-dasharray: 6 4;
 }
 
-/* Multi-passage link visual. */
-.click-adventure.manager .ca-link[data-multi="true"] {
-  stroke-width: 4px;
-  stroke: var(--ca-state-multi);
+.click-adventure.manager .ca-link[data-state="custom"] {
+  stroke: var(--ca-state-custom);
+  stroke-dasharray: 6 4;
 }
 
-.click-adventure.manager .ca-link[data-multi="true"].ca-link--hover {
-  stroke: var(--ca-state-multi-hover);
-  stroke-width: 5px;
+/* One passage of a multi-passage link: thin and dotted, so a stack of them reads as a
+   bundle of separate routes rather than one thick line. */
+.click-adventure.manager .ca-link--thin {
+  stroke-width: 1.5px;
+  stroke-dasharray: 3 3;
 }
 
-.click-adventure.manager .ca-link-direction[data-direction="multi"] {
+.click-adventure.manager .ca-link--thin.ca-link--hover {
+  stroke-width: 2.5px;
+}
+
+.click-adventure.manager .ca-link-direction[data-state="multi"] {
   fill: var(--ca-state-multi);
   font-size: 14px;
 }
@@ -126,7 +144,7 @@
   stroke-width: 3px;
 }
 
-.click-adventure.manager .ca-link-direction[data-direction="peek"] {
+.click-adventure.manager .ca-link-direction[data-state="peek"] {
   fill: var(--ca-state-peek);
   font-size: 11px;
 }

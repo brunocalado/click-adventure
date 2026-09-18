@@ -45,11 +45,22 @@
     {{!-- Spacer pushes Reset and Instructions to the far right --}}
     <span class="ca-toolbar-spacer"></span>
 
-    <button class="ca-reset-macros ca-toolbar-pill" type="button"
-            title="Reset all once-executed macros across all nodes"
-            {{#unless resetMacrosCount}}disabled{{/unless}}>
-      Reset Macros ({{resetMacrosCount}})
-    </button>
+    <div class="ca-reset-menu-wrapper">
+      <button class="ca-reset-menu-toggle ca-toolbar-pill" type="button" title="Reset options">
+        Reset <i class="fa-solid fa-caret-down" aria-hidden="true"></i>
+      </button>
+      <div class="ca-reset-menu ca-context-menu" hidden>
+        <button class="ca-reset-macros ca-context-menu-item" type="button"
+                title="Reset all once-executed macros across all nodes"
+                {{#unless resetMacrosCount}}disabled{{/unless}}>
+          Reset Macros ({{resetMacrosCount}})
+        </button>
+        <button class="ca-reset-visited-scenes ca-context-menu-item" type="button"
+                title="Clear every player's visited-scene history, re-locking any 'scene visited' key condition">
+          Reset Visited Scenes
+        </button>
+      </div>
+    </div>
     <span class="ca-toolbar-sep"></span>
     <button class="ca-settings-btn" type="button" aria-label="Settings" title="Settings">
       <i class="fa-solid fa-gear" aria-hidden="true"></i>
@@ -157,9 +168,10 @@
     <div class="ca-canvas">
     <svg class="ca-links-layer" xmlns="http://www.w3.org/2000/svg" width="8000" height="8000"></svg>
     {{#each nodes}}
-    <div class="ca-node" data-node-id="{{id}}" style="left: {{x}}px; top: {{y}}px;"
+    <div class="ca-node{{#if noPlayerExit}} ca-node--dead-end{{/if}}" data-node-id="{{id}}" style="left: {{x}}px; top: {{y}}px;"
          {{#if (eq id ../startNodeId)}}data-start="true"{{/if}}
-         {{#if (eq id ../activeNodeId)}}data-active="true"{{/if}}>
+         {{#if (eq id ../activeNodeId)}}data-active="true"{{/if}}
+         {{#if noPlayerExit}}title="Dead end — every passage out of this node is Blocked or Secret, so a player who arrives here cannot leave."{{/if}}>
 
       {{!-- Image — flush no topo, border-radius superior via CSS --}}
       {{#if imageSrc}}

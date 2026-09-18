@@ -6,7 +6,10 @@
  * access `app.element`, `app._navRequests`, and trigger renders.
  */
 
-import { getGraphData } from "./node-utils.js";
+import { MODULE_ID } from "./constants.js";
+import {
+  getGraphData, setUserCurrentNode, clearVisitedScenes, getNodeActiveSceneId
+} from "./node-utils.js";
 import { isUserLocked, lockUser, unlockUser, shouldLockOnArrival } from "./autolock-utils.js";
 
 // ---------------------------------------------------------------------------
@@ -270,13 +273,13 @@ export async function approveRequest(app, userId, toNodeId) {
     } else {
       await user.unsetFlag("click-adventure", "previousNodeId");
     }
-    await user.setFlag("click-adventure", "currentNodeId", toNodeId);
   }
 
   const { nodes } = getGraphData();
   const targetNode = nodes.find(n => n.id === toNodeId);
+  if (user && targetNode) await setUserCurrentNode(user, targetNode);
 
-  globalThis.ClickAdventure._socket.approveNavRequest(userId, toNodeId, targetNode?.sceneId ?? null);
+  globalThis.ClickAdventure._socket.approveNavRequest(userId, toNodeId, targetNode ? getNodeActiveSceneId(targetNode) : null);
   patchOccupantAvatars(app);
   patchRequestsDrawer(app);
 }
@@ -394,7 +397,10 @@ export function patchRequestsDrawer(app) {
  */
 export async function onSetActiveNode(app, nodeId) {
   if (!nodeId) return;
-  await game.user.setFlag("click-adventure", "currentNodeId", nodeId);
+  const { nodes } = getGraphData();
+  const node = nodes.find(n => n.id === nodeId);
+  if (!node) return;
+  await setUserCurrentNode(game.user, node);
   app.render({ force: true });
   globalThis.ClickAdventure._hud?.render({ force: true });
 }
@@ -498,13 +504,13 @@ export async function onSendAllToNode(app, targetNode, players) {
   const { nodes } = getGraphData();
   for (const user of players) {
     // Capture origin BEFORE overwriting the flag.
-    const fromNodeId  = user.getFlag("click-adventure", "currentNodeId") ?? null;
+    const fromNodeId  = user.getFlag(MODULE_ID, "currentNodeId") ?? null;
     const fromNode    = nodes.find(n => n.id === fromNodeId);
-    const fromSceneId = fromNode?.sceneId ?? null;
+    const fromSceneId = fromNode ? getNodeActiveSceneId(fromNode) : null;
 
     // Teleport clears the "came from" context
-    await user.unsetFlag("click-adventure", "previousNodeId");
-    await user.setFlag("click-adventure", "currentNodeId", targetNode.id);
+    await user.unsetFlag(MODULE_ID, "previousNodeId");
+    await setUserCurrentNode(user, targetNode);
 
     // Apply autolock if the destination node requires it (Risk: teleport bypasses player-side check)
     if (shouldLockOnArrival(targetNode)) {
@@ -564,6 +570,35 @@ export async function unlockAllPlayers(app) {
 }
 
 /**
+ * Clears every player's visited-scene history, re-locking any "scene visited" key
+ * condition so a playthrough can start over. Confirms first, mirroring onResetMacros.
+ *
+ * @returns {Promise<void>}
+ */
+export async function onResetVisitedScenes() {
+  const players = game.users.filter(u => !u.isGM);
+  const affected = players.filter(u => (u.getFlag(MODULE_ID, "visitedSceneIds") ?? []).length > 0);
+
+  if (affected.length === 0) {
+    ui.notifications.info("Click Adventure: No visited-scene history to reset.");
+    return;
+  }
+
+  const confirmed = await foundry.applications.api.DialogV2.confirm({
+    window: { title: "Reset Visited Scenes" },
+    classes: ["click-adventure", "ca-dialog"],
+    content: `<p>Clear the visited-scene history for <strong>${affected.length} player(s)</strong>? Any "scene visited" key condition will lock again.</p>`,
+    yes: { class: "ca-btn ca-btn--danger" },
+    no:  { class: "ca-btn ca-btn--quiet" },
+    rejectClose: false
+  });
+  if (!confirmed) return;
+
+  for (const user of affected) await clearVisitedScenes(user);
+  ui.notifications.info(`Click Adventure: Visited-scene history cleared for ${affected.length} player(s).`);
+}
+
+/**
  * Teleports a specific player to a target node.
  * Updates their currentNodeId flag and notifies their client via socket.
  * @param {ManagerApp} app
@@ -577,13 +612,13 @@ export async function onTeleportPlayer(app, user, nodeId) {
   if (!targetNode) return;
 
   // Capture origin BEFORE overwriting the flag.
-  const fromNodeId  = user.getFlag("click-adventure", "currentNodeId") ?? null;
+  const fromNodeId  = user.getFlag(MODULE_ID, "currentNodeId") ?? null;
   const fromNode    = nodes.find(n => n.id === fromNodeId);
-  const fromSceneId = fromNode?.sceneId ?? null;
+  const fromSceneId = fromNode ? getNodeActiveSceneId(fromNode) : null;
 
   // Teleport clears the "came from" context
-  await user.unsetFlag("click-adventure", "previousNodeId");
-  await user.setFlag("click-adventure", "currentNodeId", nodeId);
+  await user.unsetFlag(MODULE_ID, "previousNodeId");
+  await setUserCurrentNode(user, targetNode);
 
   // Apply autolock if the destination node requires it (Risk: teleport bypasses player-side check)
   if (shouldLockOnArrival(targetNode)) {

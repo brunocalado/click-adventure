@@ -9,7 +9,11 @@
  */
 
 import { MODULE_ID } from "./constants.js";
-import { isMultiPassage, getEffectiveDirection, getGraphData, fireActiveItemMacro, fireNodeMacros, setNodeActiveImageIndex } from "./node-utils.js";
+import {
+  getGraphData, fireActiveItemMacro, fireNodeMacros, setNodeActiveImageIndex,
+  setNodeActiveLinkedScene, getNodeActiveSceneId, setUserCurrentNode,
+  iterPassagesFrom, evaluatePassageKeys
+} from "./node-utils.js";
 import { shouldLockOnArrival, isUserLocked } from "./autolock-utils.js";
 import { openNodeJournal } from "./node-media.js";
 
@@ -109,9 +113,11 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   /**
-   * Returns true if the current node has at least one traversable link to targetNodeId.
-   * Used to validate whether the "came from" indicator is still valid.
-   * Handles single-passage and multi-passage links, all direction states.
+   * Returns true if the current node has at least one passage back to targetNodeId that
+   * this user could actually cross. Used to decide whether the "came from" indicator is
+   * still meaningful. A Blocked passage is visible but impassable, so it is not a route;
+   * a Custom one is, because the key may well be satisfied.
+   *
    * @param {string} targetNodeId
    * @returns {boolean}
    */
@@ -120,34 +126,10 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     if (!node || !targetNodeId) return false;
     const { links } = getGraphData();
 
-    for (const link of links) {
-      if (link.type === "peek") continue;
-      if (isMultiPassage(link)) {
-        for (const passage of link.passages) {
-          const passDir = passage.direction ?? "both";
-          if (passDir === "blocked") continue;
-          if (passDir === "both") {
-            if ((link.sourceId === node.id && link.targetId === targetNodeId) ||
-                (link.targetId === node.id && link.sourceId === targetNodeId)) return true;
-          } else if (passDir === "forward" && link.sourceId === node.id && link.targetId === targetNodeId) {
-            return true;
-          } else if (passDir === "backward" && link.targetId === node.id && link.sourceId === targetNodeId) {
-            return true;
-          }
-        }
-      } else {
-        const dir = getEffectiveDirection(link);
-        if (dir === "blocked") continue;
-        if (dir === "both") {
-          if ((link.sourceId === node.id && link.targetId === targetNodeId) ||
-              (link.targetId === node.id && link.sourceId === targetNodeId)) return true;
-        } else if (dir === "forward" && link.sourceId === node.id && link.targetId === targetNodeId) {
-          return true;
-        } else if (dir === "backward" && link.targetId === node.id && link.sourceId === targetNodeId) {
-          return true;
-        }
-        // "locked" direction: link is visible but not navigable — NOT a valid back route
-      }
+    for (const { otherId, state } of iterPassagesFrom(node.id, links)) {
+      if (otherId !== targetNodeId) continue;
+      if (game.user.isGM) return true;
+      if (state === "open" || state === "custom") return true;
     }
     return false;
   }
@@ -169,84 +151,52 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const { nodes, links } = getGraphData();
 
     if (node) {
-      // seen deduplicates destinations that appear via multiple single-passage links
+      // A Blocked passage is hidden from players when another passage on the SAME link
+      // already offers them a way to the same place — it would just be a disabled
+      // duplicate of a door that leads nowhere useful from here. GMs always see every one.
+      const linkHasOpenRoute = new Map();
+      for (const { link, state } of iterPassagesFrom(node.id, links)) {
+        if (state === "open" || state === "custom") linkHasOpenRoute.set(link, true);
+      }
+
+      // seen deduplicates destinations reached through several single-passage links
       const seen = new Set();
 
-      for (const link of links) {
-        // Peek links are not navigation options — handled separately below
-        if (link.type === "peek") continue;
-        if (isMultiPassage(link)) {
-          // Each passage is listed as its own destination button (no dedup — distinct traversal options)
-          for (const passage of link.passages) {
-            const passDir = passage.direction ?? "both";
-            // Non-GMs never see blocked passages; GMs see them as "secret"
-            if (passDir === "blocked" && !game.user.isGM) continue;
-            let otherId = null;
-
-            let passLocked = false;
-            let passSecret = false;
-            if (passDir === "both") {
-              if (link.sourceId === node.id)      otherId = link.targetId;
-              else if (link.targetId === node.id) otherId = link.sourceId;
-            } else if (passDir === "forward" && link.sourceId === node.id) {
-              otherId = link.targetId;
-            } else if (passDir === "backward" && link.targetId === node.id) {
-              otherId = link.sourceId;
-            } else if (passDir === "locked") {
-              // Visible in HUD but not navigable — mirrors single-passage "locked" behaviour
-              if (link.sourceId === node.id)      otherId = link.targetId;
-              else if (link.targetId === node.id) otherId = link.sourceId;
-              passLocked = true;
-            } else if (passDir === "blocked") {
-              // Only reached by GM — shown as secret (purple + mask icon), fully navigable
-              if (link.sourceId === node.id)      otherId = link.targetId;
-              else if (link.targetId === node.id) otherId = link.sourceId;
-              passSecret = true;
-            }
-
-            if (!otherId) continue;
-            const other = nodes.find(n => n.id === otherId);
-            if (!other) continue;
-            const navName = other.label || game.scenes.get(other.sceneId)?.name || other.id;
-            const isPathOnly = !game.user.isGM && passage.displayMode === "path-only";
-            // Node name and passage name are kept apart so the HUD can stack them on
-            // two lines — joined on one line they truncate before the passage is readable.
-            const label    = isPathOnly ? (passage.label || navName) : navName;
-            const sublabel = isPathOnly ? null : (passage.label || null);
-            availableDestinations.push({ id: other.id, label, sublabel, locked: passLocked, secret: passSecret });
-          }
-        } else {
-          // Single-passage: existing direction logic; dedup so the same node appears only once
-          const dir = getEffectiveDirection(link);
-          // Non-GMs never see blocked links; GMs see them as "secret"
-          if (dir === "blocked" && !game.user.isGM) continue;
-          let otherId = null;
-
-          if (dir === "both") {
-            if (link.sourceId === node.id)      otherId = link.targetId;
-            else if (link.targetId === node.id) otherId = link.sourceId;
-          } else if (dir === "forward" && link.sourceId === node.id) {
-            otherId = link.targetId;
-          } else if (dir === "backward" && link.targetId === node.id) {
-            otherId = link.sourceId;
-          } else if (dir === "locked") {
-            // Visible in HUD but not navigable — resolve otherId normally
-            if (link.sourceId === node.id)      otherId = link.targetId;
-            else if (link.targetId === node.id) otherId = link.sourceId;
-          } else if (dir === "blocked") {
-            // Only reached by GM — shown as secret (purple + mask icon), fully navigable
-            if (link.sourceId === node.id)      otherId = link.targetId;
-            else if (link.targetId === node.id) otherId = link.sourceId;
-          }
-
-          if (!otherId) continue;
-          const other = nodes.find(n => n.id === otherId);
-          if (other && !seen.has(other.id)) {
-            seen.add(other.id);
-            const navName = other.label || game.scenes.get(other.sceneId)?.name || other.id;
-            availableDestinations.push({ id: other.id, label: navName, locked: dir === "locked", secret: dir === "blocked" });
-          }
+      for (const { link, passage, otherId, state, multi } of iterPassagesFrom(node.id, links)) {
+        if (!game.user.isGM) {
+          if (state === "secret") continue;
+          if (state === "blocked" && linkHasOpenRoute.get(link)) continue;
+          // A Custom passage set to stay hidden until unlocked is left out while its keys
+          // are unsatisfied. Macro keys are not run here — see evaluatePassageKeys.
+          if (state === "custom" && passage.lockedVisibility === "secret"
+              && !(await evaluatePassageKeys(passage, { runMacros: false }))) continue;
         }
+
+        // Multi-passage links list every passage separately: they are distinct routes,
+        // and collapsing them would hide the one the player is looking for.
+        if (!multi) {
+          if (seen.has(otherId)) continue;
+          seen.add(otherId);
+        }
+
+        const other = nodes.find(n => n.id === otherId);
+        if (!other) continue;
+        const navName = other.label || game.scenes.get(other.sceneId)?.name || other.id;
+        const isPathOnly = multi && !game.user.isGM && passage.displayMode === "path-only";
+        // Node name and passage name are kept apart so the HUD can stack them on
+        // two lines — joined on one line they truncate before the passage is readable.
+        const label    = isPathOnly ? (passage.label || navName) : navName;
+        const sublabel = (multi && !isPathOnly) ? (passage.label || null) : null;
+
+        availableDestinations.push({
+          id: other.id,
+          label,
+          sublabel,
+          passage,
+          blocked: state === "blocked",
+          secret:  state === "secret",
+          custom:  state === "custom"
+        });
       }
     }
 
@@ -302,10 +252,14 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     // ─────────────────────────────────────────────────────────────────────
 
     // ── Mark destinations blocked when the player is currently locked ─────
+    // Autolock (the GM is holding this player in place) and Blocked (the passage itself
+    // is shut) are unrelated conditions. Setting autolocked for both stacked a padlock on
+    // top of the ban icon a Blocked destination already carries; the click guard below
+    // handles Blocked on its own.
     const playerIsLocked = !game.user.isGM && isUserLocked(game.userId);
     context.playerIsLocked = playerIsLocked;
     for (const dest of availableDestinations) {
-      dest.autolocked = playerIsLocked || dest.locked;
+      dest.autolocked = playerIsLocked;
     }
     // ─────────────────────────────────────────────────────────────────────
 
@@ -325,6 +279,12 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
       dest.isVideo    = destSrc ? /\.(webm|mp4|ogg|ogv|mov)$/i.test(destSrc) : false;
     }
     // ─────────────────────────────────────────────────────────────────────
+
+    // Kept on the instance so the click handler can reach the passage behind a button —
+    // a Custom passage's keys are evaluated on the attempt to cross, not on render, and
+    // the passage object itself never goes into the template.
+    this._lastDestinations = availableDestinations;
+    availableDestinations.forEach((dest, i) => { dest.destIndex = i; });
 
     context.availableDestinations = availableDestinations;
     context.hasAnyDirection = availableDestinations.length > 0;
@@ -364,6 +324,9 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
       const images         = Array.isArray(currentNode?.images) ? currentNode.images : [];
       const linkedScenes   = Array.isArray(currentNode?.linkedScenes) ? currentNode.linkedScenes : [];
       const activeIdx      = currentNode?.activeImageIndex ?? 0;
+      // An active linked scene wins over the image: what the node is showing is that
+      // scene, so no image should carry the active badge while one is selected.
+      const activeLinkedId = currentNode?.activeLinkedSceneId ?? null;
 
       context.nodeImages = images.map((img, i) => {
         const src = img.src ?? null;
@@ -372,16 +335,18 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
           label:    img.label || `Image ${i + 1}`,
           src,
           isVideo:  src ? /\.(webm|mp4|ogg|ogv|mov)$/i.test(src) : false,
-          isActive: i === activeIdx
+          isActive: !activeLinkedId && i === activeIdx
         };
       });
       context.nodeLinkedScenes = linkedScenes.map((ls, i) => {
         const scene = game.scenes.get(ls.sceneId);
         return {
           index:      i,
+          id:         ls.id,
           sceneId:    ls.sceneId,
           label:      ls.label || scene?.name || `Scene ${i + 1}`,
-          previewSrc: scene?.thumbnail ?? null
+          previewSrc: scene?.thumbnail ?? null,
+          isActive:   ls.id === activeLinkedId
         };
       });
       context.hasNodeSwitcher = images.length > 1 || (images.length > 0 && linkedScenes.length > 0);
@@ -492,15 +457,25 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const html = this.element;
 
     html.querySelectorAll(".ca-hud-dest-btn").forEach(btn => {
-      btn.addEventListener("click", (e) => {
+      btn.addEventListener("click", async (e) => {
         if (e.target.closest(".ca-hud-preview-eye")) return;
-        if (!game.user.isGM && btn.dataset.locked === "true") {
+        if (!game.user.isGM && btn.dataset.blocked === "true") {
           ui.notifications.warn("This path is not accessible.");
           return;
         }
         if (!game.user.isGM && btn.dataset.autolocked === "true") {
           ui.notifications.warn("This path is locked. Wait for the GM to release you.");
           return;
+        }
+        // Custom passages are checked here and nowhere else: this is the only moment the
+        // player has actually tried to cross, so a key macro's side effects fire once,
+        // on a real attempt, rather than every time the HUD lists its destinations.
+        if (!game.user.isGM && btn.dataset.custom === "true") {
+          const dest = this._lastDestinations?.[parseInt(btn.dataset.destIndex, 10)];
+          if (!(await evaluatePassageKeys(dest?.passage))) {
+            ui.notifications.warn("You don't have what's needed to pass.");
+            return;
+          }
         }
         const nodeId = btn.dataset.nodeId;
         const { nodes } = getGraphData();
@@ -576,8 +551,13 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const idx  = parseInt(btn.dataset.index, 10);
         const node = this._currentNode();
         if (!node) return;
-        await setNodeActiveImageIndex(node.id, idx);
-        this.render({ force: true });
+        await this._guardSwitch(async () => {
+          // Choosing an image cancels whichever linked scene was showing, so the two
+          // switchers cannot both claim to be active.
+          if (node.activeLinkedSceneId) await setNodeActiveLinkedScene(node.id, null);
+          await setNodeActiveImageIndex(node.id, idx);
+          this.render({ force: true });
+        });
       });
     });
 
@@ -591,18 +571,13 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
           return;
         }
         const node = this._currentNode();
-
-        // GM: switch view locally
-        await scene.view();
-
-        // Players on this node: send via socket
-        if (node) {
-          for (const user of game.users) {
-            if (user.isGM || !user.active) continue;
-            if (user.getFlag("click-adventure", "currentNodeId") !== node.id) continue;
-            await globalThis.ClickAdventure._socket.viewSceneForUser(sceneId, user.id);
-          }
-        }
+        await this._guardSwitch(async () => {
+          // Persist the choice, the same way picking an image already does — otherwise
+          // navigating away and back silently reverts to the node's own scene.
+          if (node) await setNodeActiveLinkedScene(node.id, btn.dataset.linkedId ?? null);
+          await this._showSceneForNode(scene, node);
+          this.render({ force: true });
+        });
       });
     });
 
@@ -699,6 +674,57 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
         orb.classList.add("ca-hud-orb--dragging");
       }, 200);
     });
+  }
+
+  /**
+   * Runs a scene/image switch, ignoring the click if the previous one is still in flight.
+   *
+   * Each switch is a chain of awaits — scene.view() or scene.activate(), then a socket
+   * message per player on the node. Two overlapping chains can interleave and land out of
+   * order on a player's client, leaving their canvas on the scene that was picked first
+   * until they navigate away and back. A click during a switch is dropped rather than
+   * queued: the GM double-clicking a switcher means "show this", not "show both".
+   *
+   * @param {() => Promise<void>} run
+   * @returns {Promise<void>}
+   */
+  async _guardSwitch(run) {
+    if (this._switchBusy) return;
+    this._switchBusy = true;
+    try { await run(); }
+    finally { this._switchBusy = false; }
+  }
+
+  /**
+   * Shows a scene to the GM and to every player standing on the given node.
+   *
+   * Which mechanism is used follows Guide Mode's own setting rather than always falling
+   * back to per-client viewing: under "Activate (global)" the scene is activated, which
+   * is also what starts a scene-bound playlist. Node-to-node navigation already honoured
+   * that setting; switching a node's linked scenes did not, so scene music never played.
+   *
+   * @param {Scene} scene
+   * @param {object|null} node - the node whose occupants should follow
+   * @returns {Promise<void>}
+   */
+  async _showSceneForNode(scene, node) {
+    const activateGlobally = game.user.isGM
+      && game.settings.get(MODULE_ID, "gmNavigationMode") === "guide"
+      && game.settings.get(MODULE_ID, "guideModeAction") === "activate";
+
+    if (activateGlobally) {
+      // scene.activate() is GM-only and reaches every connected client on its own.
+      await scene.activate();
+      return;
+    }
+
+    await scene.view();
+    if (!node) return;
+    for (const user of game.users) {
+      if (user.isGM || !user.active) continue;
+      if (user.getFlag(MODULE_ID, "currentNodeId") !== node.id) continue;
+      await globalThis.ClickAdventure._socket.viewSceneForUser(scene.id, user.id);
+    }
   }
 
   /**
@@ -869,16 +895,20 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
     // ──────────────────────────────────────────────────────────────────
 
-    if (targetNode.sceneId) {
+    // The node shows whichever linked scene was last picked for it, falling back to its
+    // own scene — so arriving looks the same as when the GM left it.
+    const targetSceneId = getNodeActiveSceneId(targetNode);
+
+    if (targetSceneId) {
       // Per-client scene view — does not affect other players' screens
       await globalThis.ClickAdventure._socket.viewSceneForUser(
-        targetNode.sceneId,
+        targetSceneId,
         game.userId
       );
     }
 
     // Per-user position — does not affect other players' currentNodeId flags
-    await game.user.setFlag("click-adventure", "currentNodeId", targetNode.id);
+    await setUserCurrentNode(game.user, targetNode);
 
     // ── Request autolock if the destination node requires it ──────────────
     // Non-GM only: ask the GM (server) to register the lock since only GM
@@ -893,10 +923,10 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     // ── Fire arrival macros ───────────────────────────────────────────────
     if (game.user.isGM) {
-      await fireActiveItemMacro(targetNode, "gm-view", targetNode.sceneId ?? null);
+      await fireActiveItemMacro(targetNode, "gm-view", targetSceneId);
       await fireNodeMacros(targetNode, "gm-view");
     } else {
-      await fireActiveItemMacro(targetNode, "player-view", targetNode.sceneId ?? null);
+      await fireActiveItemMacro(targetNode, "player-view", targetSceneId);
       await fireNodeMacros(targetNode, "player-view");
     }
     // Arriving is a scene view for whoever navigated, GM or player alike.
@@ -905,8 +935,8 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     // Request GM to move this player's token between scenes.
     if (!game.user.isGM) {
-      const fromSceneId = currentNode?.sceneId ?? null;
-      const toSceneId   = targetNode.sceneId   ?? null;
+      const fromSceneId = currentNode ? getNodeActiveSceneId(currentNode) : null;
+      const toSceneId   = targetSceneId;
       if (toSceneId) {
         globalThis.ClickAdventure._socket.emitMoveToken({
           userId:      game.userId,
@@ -920,14 +950,14 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     if (game.user.isGM && game.settings.get("click-adventure", "gmNavigationMode") === "guide") {
       const guideModeAction = game.settings.get("click-adventure", "guideModeAction");
 
-      if (guideModeAction === "activate" && targetNode.sceneId) {
+      if (guideModeAction === "activate" && targetSceneId) {
         // Activate the scene globally — Foundry handles view for all connected users.
         // No per-player socket messages needed; scene.activate() is GM-only and
         // triggers canvasReady on all clients automatically.
-        const scene = game.scenes.get(targetNode.sceneId);
+        const scene = game.scenes.get(targetSceneId);
         if (scene) await scene.activate();
 
-        await fireActiveItemMacro(targetNode, "gm-activate", targetNode.sceneId ?? null);
+        await fireActiveItemMacro(targetNode, "gm-activate", targetSceneId);
         await fireNodeMacros(targetNode, "gm-activate");
         await openNodeJournal(targetNode, "activate");
         globalThis.ClickAdventure._socket.emitOpenJournal(targetNode.id);
@@ -937,18 +967,18 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const players = game.users.filter(u => !u.isGM && u.active);
         for (const user of players) {
           // Capture origin BEFORE overwriting the flag.
-          const fromNodeId  = user.getFlag("click-adventure", "currentNodeId") ?? null;
+          const fromNodeId  = user.getFlag(MODULE_ID, "currentNodeId") ?? null;
           const fromNode    = guideNodes.find(n => n.id === fromNodeId);
-          const fromSceneId = fromNode?.sceneId ?? null;
+          const fromSceneId = fromNode ? getNodeActiveSceneId(fromNode) : null;
 
-          await user.unsetFlag("click-adventure", "previousNodeId");
-          await user.setFlag("click-adventure", "currentNodeId", targetNode.id);
+          await user.unsetFlag(MODULE_ID, "previousNodeId");
+          await setUserCurrentNode(user, targetNode);
 
           // GM is the executor — call directly (socket.io does not echo to emitter).
           await globalThis.ClickAdventure._socket._handleMoveToken({
             userId: user.id,
             fromSceneId,
-            toSceneId: targetNode.sceneId
+            toSceneId: targetSceneId
           });
         }
 
@@ -958,21 +988,21 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const players = game.users.filter(u => !u.isGM && u.active);
         for (const user of players) {
           // Capture origin BEFORE overwriting the flag.
-          const fromNodeId  = user.getFlag("click-adventure", "currentNodeId") ?? null;
+          const fromNodeId  = user.getFlag(MODULE_ID, "currentNodeId") ?? null;
           const fromNode    = nodes.find(n => n.id === fromNodeId);
-          const fromSceneId = fromNode?.sceneId ?? null;
+          const fromSceneId = fromNode ? getNodeActiveSceneId(fromNode) : null;
 
-          await user.unsetFlag("click-adventure", "previousNodeId");
-          await user.setFlag("click-adventure", "currentNodeId", targetNode.id);
+          await user.unsetFlag(MODULE_ID, "previousNodeId");
+          await setUserCurrentNode(user, targetNode);
 
-          if (targetNode.sceneId) {
-            globalThis.ClickAdventure._socket.teleportUser(targetNode.sceneId, user.id, targetNode.id);
+          if (targetSceneId) {
+            globalThis.ClickAdventure._socket.teleportUser(targetSceneId, user.id, targetNode.id);
             // GM is already the executor — call the handler directly instead of emitting
             // to self (socket.io does not echo to the emitter).
             await globalThis.ClickAdventure._socket._handleMoveToken({
               userId:     user.id,
               fromSceneId,
-              toSceneId:  targetNode.sceneId
+              toSceneId:  targetSceneId
             });
           } else {
             globalThis.ClickAdventure._socket.notifyHudRefresh(user.id);

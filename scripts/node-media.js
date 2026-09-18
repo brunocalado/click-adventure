@@ -24,6 +24,7 @@
  * a staging area, never a second source of truth, and cleared as soon as they are applied.
  */
 
+import { MODULE_ID } from "./constants.js";
 import { getGraphData, saveGraphData } from "./node-utils.js";
 
 /**
@@ -159,6 +160,11 @@ export async function setNodeMusic(node, ref) {
  * @returns {Promise<void>}
  */
 export async function openNodeJournal(node, trigger) {
+  // Global off switch. Deliberately checked before the per-node trigger rather than
+  // replacing it: turning auto-open off must leave every node's own configuration intact
+  // so it comes straight back when the setting is turned on again.
+  if (!game.settings.get(MODULE_ID, "journalAutoOpen")) return;
+
   const configured = node?.journalTrigger ?? DEFAULT_JOURNAL_TRIGGER;
   if (configured !== trigger && configured !== "both") return;
 

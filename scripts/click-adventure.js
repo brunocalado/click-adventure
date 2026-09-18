@@ -214,10 +214,24 @@ Hooks.on("ready", async () => {
 Hooks.on("init", () => {
   Handlebars.registerHelper("eq", (a, b) => a === b);
 
-  // Returns a Unicode glyph for a passage direction value.
-  Handlebars.registerHelper("caDirectionIcon", dir => {
-    const icons = { both: "⟷", forward: "→", backward: "←", blocked: "✕", locked: "⊘" };
-    return icons[dir] ?? "?";
+  // Glyph for a passage's direction axis (both/forward/backward).
+  Handlebars.registerHelper("caDirectionAxisIcon", direction => {
+    const icons = { both: "⟷", forward: "→", backward: "←" };
+    return icons[direction] ?? "?";
+  });
+
+  // Glyph for a passage's state axis. "secret" and "custom" are absent on purpose — the
+  // template renders real Font Awesome mask/key icons for those, because a colour emoji
+  // would ignore the state colour applied to it.
+  Handlebars.registerHelper("caStateAxisIcon", state => {
+    const icons = { open: "○", blocked: "⊘" };
+    return icons[state] ?? "?";
+  });
+
+  // Icon for a key condition's document type, used in the Passage Editor's key chips.
+  Handlebars.registerHelper("caKeyTypeIcon", type => {
+    const icons = { item: "🎒", actor: "👤", macro: "⚡", scene: "🗺️" };
+    return icons[type] ?? "?";
   });
 
   // Legacy single-graph setting — kept registered so existing data is never orphaned.
@@ -310,6 +324,15 @@ Hooks.on("init", () => {
     config: false,
     type: Boolean,
     default: false
+  });
+
+  game.settings.register(MODULE_ID, "journalAutoOpen", {
+    name: "Journal Auto-Open",
+    hint: "Opens a node's journal page automatically when its trigger condition is met. Turn off during setup and testing, or once the adventure is well known and the pop-ups are in the way. Per-node triggers are left untouched.",
+    scope: "world",
+    config: false,
+    type: Boolean,
+    default: true
   });
 
   game.settings.register(MODULE_ID,"orbStyle", {

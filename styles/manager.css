@@ -286,7 +286,7 @@
 }
 
 .click-adventure.manager .ca-player-group--offline .ca-player-group-label {
-  color: var(--ca-state-locked);
+  color: var(--ca-state-blocked);
 }
 
 .click-adventure.manager .ca-player-group--gm {

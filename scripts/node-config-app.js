@@ -8,7 +8,8 @@
  * Lifecycle hook: renderNodeConfigApp
  */
 
-import { syncNodeTile, getGraphData, saveGraphData, fireNodeMacros } from "./node-utils.js";
+import { MODULE_ID } from "./constants.js";
+import { syncNodeTile, getGraphData, saveGraphData, fireNodeMacros, setNodeActiveLinkedScene } from "./node-utils.js";
 import {
   getNodeJournal, getNodeMusic, setNodeJournal, setNodeMusic,
   buildJournalTriggerOptions, DEFAULT_JOURNAL_TRIGGER, getNodeScene
@@ -217,8 +218,6 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this._pendingStartNode = null;
     /** @type {Array<{id:string, sceneId:string, label:string}>|null} */
     this._pendingLinkedScenes = null;
-    /** @type {string|null} ID da linked scene entry atualmente "em uso" (substitui o badge Active das imagens) */
-    this._activeLinkedSceneId = null;
     /** @type {string} Persists the active tab across force-renders */
     this._activeTab = "images";
     /** @type {Array<{id:string, macroId:string, trigger:string, executeMode:string, executedOnce:boolean}>|null} */
@@ -259,7 +258,10 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
     context.node = node;
     context.nodeLabel = this._pendingLabel ?? node.label ?? "Scene";
     context.isStartNode = this._pendingStartNode ?? (startNodeId === this.nodeId);
-    const linkedSceneInUse = this._activeLinkedSceneId !== null;
+    // Which linked scene is in use lives on the node, not on this app: the choice has to
+    // survive closing this window and navigating away, same as the active image does.
+    const activeLinkedSceneId = node.activeLinkedSceneId ?? null;
+    const linkedSceneInUse = activeLinkedSceneId !== null;
     context.images = workingImages.map((img, i) => ({
       ...img,
       index:          i,
@@ -277,7 +279,7 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
       ...ls,
       index:          i,
       sceneName:      game.scenes.get(ls.sceneId)?.name ?? "(Scene not found)",
-      isActive:       ls.id === this._activeLinkedSceneId,
+      isActive:       ls.id === activeLinkedSceneId,
       hasMacro:       !!ls.macro,
       macroName:      ls.macro ? (game.macros.get(ls.macro.macroId)?.name ?? "(not found)") : null,
       triggerOptions: ls.macro ? buildTriggerOptions(ls.macro.trigger) : []
@@ -364,7 +366,9 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
       btn.addEventListener("click", async () => {
         const idx = parseInt(btn.dataset.index, 10);
         this._pendingActiveIndex = idx;
-        this._activeLinkedSceneId = null;   // limpa o estado de linked scene ativa
+        // Picking an image cancels whichever linked scene was in use, so only one of the
+        // two ever carries the Active badge.
+        await setNodeActiveLinkedScene(this.nodeId, null);
         await this._saveActiveIndex(idx);
         this.render({ force: true });
       });
@@ -457,9 +461,20 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
           return;
         }
 
-        // Mark this linked scene as active, clearing image active badge
-        this._activeLinkedSceneId = entry.id;
+        // Persist the choice so it survives closing this window and navigating away.
+        await setNodeActiveLinkedScene(this.nodeId, entry.id);
         this.render({ force: true });
+
+        // Under Guide Mode's "Activate (global)" the scene is activated rather than
+        // viewed per client — that is also what starts a scene-bound playlist.
+        const activateGlobally =
+          game.settings.get(MODULE_ID, "gmNavigationMode") === "guide" &&
+          game.settings.get(MODULE_ID, "guideModeAction") === "activate";
+
+        if (activateGlobally) {
+          await scene.activate();
+          return;
+        }
 
         // GM: switch view locally
         await scene.view();
@@ -467,7 +482,7 @@ export class NodeConfigApp extends HandlebarsApplicationMixin(ApplicationV2) {
         // Players on this node: send via socket
         for (const user of game.users) {
           if (user.isGM || !user.active) continue;
-          const userNodeId = user.getFlag("click-adventure", "currentNodeId");
+          const userNodeId = user.getFlag(MODULE_ID, "currentNodeId");
           if (userNodeId !== this.nodeId) continue;
           await globalThis.ClickAdventure._socket.viewSceneForUser(entry.sceneId, user.id);
         }

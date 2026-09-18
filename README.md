@@ -49,8 +49,9 @@ Each location is fully configurable: multiple images, linked scenes, macros, a j
 
 ### 🔗 Links
 
-- **Five-Direction States** — Every link between nodes can be set to: **Bidirectional**, **Forward only**, **Backward only**, **Locked** (visible but impassable — shows a hint to players), or **Blocked** (hidden entirely; the GM sees it marked as secret).
-- **Multi-Passage Links** — A single connection between two nodes can hold multiple named passages, each with its own direction and display. Simple links cycle direction on click; multi-passage links open a dedicated editor.
+- **Direction & State** — Every passage has an independent **Direction** (Bidirectional, Forward only, Backward only) and **State** (**Open**; **Blocked** — visible but impassable; **Secret** — hidden from players entirely, GM-only; **Custom** — crossable only once key conditions are met). Plain click cycles direction, Ctrl/Cmd+click cycles state. A one-way passage simply does not exist on its other side; to give the two ends different states, put two passages on the same link.
+- **Custom Keys** — Gate a Custom passage behind conditions: drag an **Item** (the character must own it), **Actor** (must be it), **Macro** (must run and `return true`), or **Scene** (must have been visited) onto it, and require all of them (**AND**) or just one (**OR**). Each player is checked individually against their own assigned character, and only when they actually try to cross — so a key macro's side effects never fire just from having the HUD open. The GM always bypasses the check. A Custom passage can also stay hidden entirely until it unlocks.
+- **Multi-Passage Links** — A single connection between two nodes can hold multiple named passages, each with its own direction, state and display. Simple links cycle on click; multi-passage links open a dedicated editor and render as a tight stack of thin dotted lines, one per passage, coloured by that passage's own state.
 - **Peek Links** — A special link type drawn corner-to-corner (shown as a teal dashed line). Used by the Camera Room feature to let players silently observe other rooms without changing scenes.
 
 ---
@@ -68,6 +69,7 @@ Each location is fully configurable: multiple images, linked scenes, macros, a j
 - **Camera Rooms & Peek Links** — Mark any node as a Camera Room. Teal corner anchors appear on all nodes; drag corner-to-corner to create a peek link. Players inside a camera room see a **Cameras** button in their HUD — clicking a room swaps their background tile locally to show that room's image. No scene change, no broadcast. Resets on navigation.
 - **Node Context Menu** — Right-click any node to set it as the active location, lock or unlock all players there, or delete it.
 - **Occupant Badges** — Nodes display color-coded player badges so you can see at a glance who is where.
+- **Dead-End Warning** — If every passage out of a node is Blocked or Secret, its card gets a red outline and a tooltip saying so. A GM-only hint — nothing is blocked or auto-fixed.
 
 ---
 
@@ -176,6 +178,14 @@ https://raw.githubusercontent.com/brunocalado/click-adventure/main/module.json
 Found a bug or have an idea? Open an issue on GitHub:
 
 👉 https://github.com/brunocalado/click-adventure/issues
+
+---
+
+## 🙏 Contributors
+
+Thanks to everyone who has taken the time to improve Click Adventure.
+
+- **[@mordachai](https://github.com/mordachai)** — [#14](https://github.com/brunocalado/click-adventure/pull/14))
 
 ---
 

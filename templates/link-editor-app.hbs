@@ -9,14 +9,53 @@
   <ul class="ca-passages-list">
     {{#each passages}}
     <li class="ca-card ca-passage-row" data-index="{{index}}">
-      <input class="ca-input ca-passage-label" type="text" value="{{label}}" placeholder="Passage name (optional)" maxlength="100" />
-      <button class="ca-btn ca-btn--quiet ca-btn--sm ca-display-mode-toggle" type="button"
-              title="{{#if displayModeIsPathOnly}}Players see: Path Name only{{else}}Players see: Full Name (Path Name){{/if}}">
-        {{#if displayModeIsPathOnly}}P{{else}}F{{/if}}
-      </button>
-      <button class="ca-btn ca-btn--quiet ca-btn--sm ca-passage-direction" type="button" title="Click to cycle direction"
-              data-direction="{{direction}}">{{caDirectionIcon direction}}</button>
-      <button class="ca-btn ca-btn--ghost-danger ca-btn--sm ca-passage-remove" type="button" title="Remove passage">✕</button>
+      <div class="ca-passage-main">
+        <input class="ca-input ca-passage-label" type="text" value="{{label}}" placeholder="Passage name (optional)" maxlength="100" />
+        <button class="ca-btn ca-btn--quiet ca-btn--sm ca-display-mode-toggle" type="button"
+                title="{{#if displayModeIsPathOnly}}Players see: Path Name only{{else}}Players see: Full Name (Path Name){{/if}}">
+          {{#if displayModeIsPathOnly}}P{{else}}F{{/if}}
+        </button>
+        <button class="ca-btn ca-btn--quiet ca-btn--sm ca-passage-direction" type="button"
+                title="Direction — click to cycle: Both ways / Forward / Backward"
+                data-direction="{{direction}}">{{caDirectionAxisIcon direction}}</button>
+        <button class="ca-btn ca-btn--quiet ca-btn--sm ca-passage-state" type="button"
+                title="State — click to cycle: Open / Blocked / Secret / Custom"
+                data-state="{{state}}">
+          {{#if (eq state "secret")}}<i class="fa-solid fa-mask" aria-hidden="true"></i>
+          {{else if (eq state "custom")}}<i class="fa-solid fa-key" aria-hidden="true"></i>
+          {{else}}{{caStateAxisIcon state}}{{/if}}
+        </button>
+        <button class="ca-btn ca-btn--ghost-danger ca-btn--sm ca-passage-remove" type="button" title="Remove passage">✕</button>
+      </div>
+
+      {{#if isCustom}}
+      <div class="ca-passage-keys">
+        <div class="ca-passage-keys-head">
+          <span class="ca-label">Keys</span>
+          <button class="ca-btn ca-btn--quiet ca-btn--sm ca-passage-key-mode" type="button" data-index="{{index}}"
+                  title="{{#if (eq keyMode 'OR')}}Any one key is enough{{else}}Every key is required{{/if}}">{{keyMode}}</button>
+          <button class="ca-btn ca-btn--quiet ca-btn--sm ca-passage-locked-visibility" type="button" data-index="{{index}}"
+                  title="{{#if (eq lockedVisibility 'secret')}}Hidden from players until unlocked{{else}}Visible to players with a key icon before unlocking{{/if}}">
+            {{#if (eq lockedVisibility "secret")}}<i class="fa-solid fa-mask" aria-hidden="true"></i> Hidden
+            {{else}}<i class="fa-solid fa-key" aria-hidden="true"></i> Visible{{/if}}
+          </button>
+        </div>
+
+        <div class="ca-dropzone ca-passage-key-dropzone" data-index="{{index}}">
+          <i class="fa-solid fa-key" aria-hidden="true"></i>
+          <span>Drag an Item, Actor, Macro or Scene here</span>
+        </div>
+
+        {{#each keys}}
+        <div class="ca-passage-key-row">
+          <span class="ca-passage-key-icon">{{caKeyTypeIcon type}}</span>
+          <span class="ca-passage-key-name" title="{{label}}">{{label}}</span>
+          <button class="ca-btn ca-btn--ghost-danger ca-btn--sm ca-passage-key-remove" type="button"
+                  data-index="{{../index}}" data-key-index="{{keyIndex}}" title="Remove this key">✕</button>
+        </div>
+        {{/each}}
+      </div>
+      {{/if}}
     </li>
     {{/each}}
   </ul>

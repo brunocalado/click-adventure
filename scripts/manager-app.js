@@ -15,7 +15,7 @@
 
 import { InstructionsApp } from "./instructions-app.js";
 import { SettingsApp } from "./settings-app.js";
-import { getNodeActiveImage, getGraphData, saveGraphData, isMultiPassage, getEffectiveDirection } from "./node-utils.js";
+import { getNodeActiveImage, getGraphData, saveGraphData, iterPassagesFrom, nodeHasNoPlayerExit } from "./node-utils.js";
 
 const _VIDEO_EXT = new Set(["webm", "mp4"]);
 /** @param {string} src @returns {boolean} */
@@ -35,7 +35,7 @@ import {
   buildOccupants, buildPlayerPanelData, patchOccupantAvatars, patchRequestsDrawer,
   approveRequest, onApproveAll, rejectRequest,
   onNodeContextMenu,
-  lockAllPlayers, unlockAllPlayers
+  lockAllPlayers, unlockAllPlayers, onResetVisitedScenes
 } from "./manager-players.js";
 import {
   onAddNode, onImportFolder, onSyncScenes, onResetMacros,
@@ -185,56 +185,27 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const seen = new Set();
     const options = [];
 
-    for (const link of links) {
-      // Peek links are not navigation options
-      if (link.type === "peek") continue;
-      if (isMultiPassage(link)) {
-        for (const passage of link.passages) {
-          const dir = passage.direction ?? "both";
-          if (dir === "blocked" || dir === "locked") continue;
-          let otherId = null;
-          if (dir === "both") {
-            if (link.sourceId === gmNodeId)      otherId = link.targetId;
-            else if (link.targetId === gmNodeId) otherId = link.sourceId;
-          } else if (dir === "forward" && link.sourceId === gmNodeId) {
-            otherId = link.targetId;
-          } else if (dir === "backward" && link.targetId === gmNodeId) {
-            otherId = link.sourceId;
-          }
-          if (!otherId) continue;
-          const other = nodes.find(n => n.id === otherId);
-          if (!other) continue;
-          const navName = other.label || game.scenes.get(other.sceneId)?.name || other.id;
-          const text = passage.label ? `${navName} (${passage.label})` : navName;
-          const imgs = Array.isArray(other.images) ? other.images : [];
-          const imgSrc = imgs[other.activeImageIndex ?? 0]?.src ?? null;
-          const option = { text };
-          if (imgSrc) option.image = imgSrc;
-          options.push(option);
-        }
-      } else {
-        const dir = getEffectiveDirection(link);
-        if (dir === "blocked" || dir === "locked") continue;
-        let otherId = null;
-        if (dir === "both") {
-          if (link.sourceId === gmNodeId)      otherId = link.targetId;
-          else if (link.targetId === gmNodeId) otherId = link.sourceId;
-        } else if (dir === "forward" && link.sourceId === gmNodeId) {
-          otherId = link.targetId;
-        } else if (dir === "backward" && link.targetId === gmNodeId) {
-          otherId = link.sourceId;
-        }
-        if (!otherId || seen.has(otherId)) continue;
-        const other = nodes.find(n => n.id === otherId);
-        if (!other) continue;
+    // Only routes a player could actually take become poll options: Blocked and Secret
+    // are not choices to offer, while Custom is (the key may well be satisfied).
+    for (const { passage, otherId, state, multi } of iterPassagesFrom(gmNodeId, links)) {
+      if (state !== "open" && state !== "custom") continue;
+
+      const other = nodes.find(n => n.id === otherId);
+      if (!other) continue;
+      const navName = other.label || game.scenes.get(other.sceneId)?.name || other.id;
+
+      // A multi-passage link offers each passage as its own option, named after the
+      // passage; single-passage links collapse to one option per destination.
+      if (!multi) {
+        if (seen.has(otherId)) continue;
         seen.add(otherId);
-        const text = other.label || game.scenes.get(other.sceneId)?.name || other.id;
-        const imgs = Array.isArray(other.images) ? other.images : [];
-        const imgSrc = imgs[other.activeImageIndex ?? 0]?.src ?? null;
-        const option = { text };
-        if (imgSrc) option.image = imgSrc;
-        options.push(option);
       }
+
+      const imgs = Array.isArray(other.images) ? other.images : [];
+      const imgSrc = imgs[other.activeImageIndex ?? 0]?.src ?? null;
+      const option = { text: (multi && passage.label) ? `${navName} (${passage.label})` : navName };
+      if (imgSrc) option.image = imgSrc;
+      options.push(option);
     }
 
     if (options.length < 2) {
@@ -278,7 +249,8 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
         ...n,
         imageSrc,
         isVideo: isVideoSrc(imageSrc),
-        occupants: occupants.get(n.id) ?? []
+        occupants: occupants.get(n.id) ?? [],
+        noPlayerExit: nodeHasNoPlayerExit(n.id, links)
       };
     });
     context.links = links;
@@ -390,7 +362,29 @@ export class ManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     html.querySelector(".ca-import-folder")?.addEventListener("click", () => onImportFolder(this));
     html.querySelector(".ca-sync-scenes")?.addEventListener("click", () => onSyncScenes(this));
 
-    html.querySelector(".ca-reset-macros")?.addEventListener("click", () => onResetMacros(this));
+    // Reset dropdown. The outside-click listener is attached only while the menu is open
+    // and removes itself on close, so repeated renders never stack document listeners.
+    const resetMenu = html.querySelector(".ca-reset-menu");
+    const closeResetMenu = e => {
+      if (resetMenu.contains(e.target)) return;
+      resetMenu.hidden = true;
+      document.removeEventListener("mousedown", closeResetMenu);
+    };
+    html.querySelector(".ca-reset-menu-toggle")?.addEventListener("click", e => {
+      e.stopPropagation();
+      if (!resetMenu) return;
+      resetMenu.hidden = !resetMenu.hidden;
+      // Deferred, or this same click would immediately close the menu it just opened.
+      if (!resetMenu.hidden) setTimeout(() => document.addEventListener("mousedown", closeResetMenu), 0);
+    });
+    resetMenu?.querySelector(".ca-reset-macros")?.addEventListener("click", () => {
+      resetMenu.hidden = true;
+      onResetMacros(this);
+    });
+    resetMenu?.querySelector(".ca-reset-visited-scenes")?.addEventListener("click", () => {
+      resetMenu.hidden = true;
+      onResetVisitedScenes();
+    });
 
     html.querySelector(".ca-autolock-toggle")?.addEventListener("click", async () => {
       const current = game.settings.get("click-adventure", "autolockDefault");

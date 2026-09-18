@@ -1,3 +1,28 @@
+# 0.3.0
+
+## [Added]
+- **Passage Direction and State are now two independent controls.** Which side(s) a passage exists on (Both ways / Forward / Backward) and what happens there (Open / Blocked / Secret / Custom) used to share one click-cycle. They are now separate: plain click on a single-passage link cycles direction, Ctrl/Cmd+click cycles state, and the Passage Editor grows a second button for the same reason. Every combination is reachable — previously a named passage could not be Blocked at all.
+- **Custom passages — crossable only with a key.** Set a passage to Custom and drag an **Item** (the character must own it), an **Actor** (must be it), a **Macro** (must run and `return true`), or a **Scene** (must have been visited) onto its key panel, with an **AND / OR** toggle. Each player is evaluated on their own assigned character, and only at the moment they click the destination — so a key macro's side effects fire on a real attempt and never once per HUD render. The GM always bypasses the check, and an empty key list behaves like Open. A second toggle chooses whether players see the passage with a key icon before it unlocks, or nothing at all.
+- **Per-player visited-scene tracking**, recorded on every arrival — the data behind the Scene key. Every path that moves a player now goes through one shared function, so it stays accurate however they got there.
+- **Reset Visited Scenes.** The Manager toolbar's Reset button is now a dropdown; the new entry clears every player's visited-scene history so a playthrough can start fresh.
+- **Journal Auto-Open switch** (Settings → HUD). Turns off the automatic journal pop-up globally without touching any node's own trigger. On by default.
+- **Dead-end warning.** A node whose every exit is Blocked or Secret gets a red outline and a tooltip in the Manager. GM-only signal; nothing is blocked or auto-fixed.
+
+## [Changed]
+- **The two non-Open states are renamed to match what they do.** What was *Locked* (visible to players, not traversable) is now **Blocked**, keeping its red ⊘. What was *Blocked* (hidden from players) is now **Secret**, with a mask icon — "blocked" reads more naturally as the visible-but-shut state than the hidden one. **Existing worlds are unaffected:** old data is read through a mapping that preserves what each link already did, so a passage that was Locked stays visible-and-shut and one that was Blocked stays hidden. No migration, no prompt, nothing rewritten — a link simply converts to the new format the first time you touch it.
+- **Multi-passage links show every passage's state at a glance.** Instead of one thick line, a multi-passage link now draws one thin dotted line per passage, stacked side by side, each coloured by its own state.
+- **A one-way passage no longer has a phantom open side.** The non-designated side of a Forward/Backward passage now has no route at all, instead of being silently treated as Open.
+- **Secret and Custom glyphs on the canvas take their state colour.** They were emoji (🎭/🔑), and a colour emoji ignores SVG `fill`, so both always rendered in their fixed default colour. They are real Font Awesome mask/key glyphs now.
+- **Linked scenes remember the last one picked.** Choosing a linked scene — from the HUD switcher or Node Configuration — now persists on the node, the same way choosing an image already did. Navigating away and back keeps showing it.
+- The Links tab of the Instructions window was rewritten for the two-axis model and the key conditions.
+
+## [Fixed]
+- **Guide Mode's "Activate (global)" was ignored when switching a node's linked scenes.** It applied to node-to-node navigation only, so cycling a node's linked scenes always fell back to per-client viewing — and a scene-bound playlist therefore never started. Linked-scene switching now honours the same setting.
+- **Rapid clicks on the image / linked-scene switcher could race.** Clicking again before the previous switch's `scene.view()`/socket chain settled could land the two out of order on a player's client, leaving a stale canvas until they navigated away and back. A click during a switch is now ignored.
+- **Blocked destinations in the player HUD no longer also show a padlock.** The "the GM is holding this player" flag was being set for merely-Blocked destinations too, stacking a lock icon on top of the ban icon they already carry. The two are unrelated.
+- **A Blocked passage is hidden from players when another passage on the same link already gets them there** — it was only ever a disabled duplicate of a door that leads nowhere useful from that side. GMs still see every passage.
+- **A key macro the player cannot execute now says so.** Foundry declines the run without throwing, which read as "key not satisfied" and left no trace; the console now names the macro and points at its Ownership.
+
 # 0.2.2
 
 ## [Changed]

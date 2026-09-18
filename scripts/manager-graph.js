@@ -7,7 +7,13 @@
  */
 
 import { LinkEditorApp } from "./link-editor-app.js";
-import { getGraphData, saveGraphData, isMultiPassage, getEffectiveDirection, DIRECTION_CYCLE } from "./node-utils.js";
+import {
+  getGraphData, saveGraphData, isMultiPassage, getFirstPassage,
+  decomposeDirection, cyclePassageDirection, cyclePassageState
+} from "./node-utils.js";
+
+/** Perpendicular gap between the stacked lines of a multi-passage link, in canvas px. */
+const MULTI_LINE_GAP = 3;
 
 /**
  * Fixed node dimensions — must match CSS --ca-node-size.
@@ -119,6 +125,110 @@ export function pathTangentAngle(p1, c1, p2, c2) {
 // ---------------------------------------------------------------------------
 
 /**
+ * Splits a passage into its two axes, accepting both the current two-field shape and the
+ * pre-0.3.0 combined string. Rendering is the one place that still meets raw legacy data
+ * head-on, because a graph is drawn before anything has been touched in the editor.
+ *
+ * @param {object} passage
+ * @returns {{direction: string, state: string}}
+ */
+function passageAxes(passage) {
+  if (passage?.state !== undefined) {
+    return { direction: passage.direction ?? "both", state: passage.state };
+  }
+  const { dirAxis, stateAxis } = decomposeDirection(passage?.direction ?? "both");
+  return { direction: dirAxis, state: stateAxis };
+}
+
+/**
+ * Builds the cubic Bézier `d` attribute for a link, optionally displaced sideways so the
+ * passages of a multi-passage link stack as parallel lines instead of overlapping. The
+ * offset is perpendicular to the straight chord between the two anchors — exact enough at
+ * these gaps, and far cheaper than offsetting the curve properly.
+ *
+ * @param {{x: number, y: number}} p1
+ * @param {{dx: number, dy: number}} c1
+ * @param {{x: number, y: number}} p2
+ * @param {{dx: number, dy: number}} c2
+ * @param {number} [offset] - perpendicular displacement in canvas px
+ * @returns {string}
+ */
+function bezierPath(p1, c1, p2, c2, offset = 0) {
+  let ox = 0;
+  let oy = 0;
+  if (offset !== 0) {
+    const dx = p2.x - p1.x;
+    const dy = p2.y - p1.y;
+    const len = Math.hypot(dx, dy) || 1;
+    ox = (-dy / len) * offset;
+    oy = ( dx / len) * offset;
+  }
+  return `M ${p1.x + ox},${p1.y + oy} `
+    + `C ${p1.x + c1.dx + ox},${p1.y + c1.dy + oy} `
+    + `${p2.x + c2.dx + ox},${p2.y + c2.dy + oy} `
+    + `${p2.x + ox},${p2.y + oy}`;
+}
+
+/**
+ * Appends one visible link path to the SVG layer.
+ *
+ * @param {SVGElement} svg
+ * @param {string} d
+ * @param {{direction: string, state: string, peek?: boolean, thin?: boolean}} opts
+ * @returns {SVGPathElement}
+ */
+function appendLinkPath(svg, d, opts) {
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path.classList.add("ca-link");
+  if (opts.peek) path.classList.add("ca-link--peek");
+  if (opts.thin) path.classList.add("ca-link--thin");
+  path.setAttribute("d", d);
+  path.dataset.direction = opts.direction;
+  path.dataset.state     = opts.state;
+  path.style.pointerEvents = "none";
+  svg.appendChild(path);
+  return path;
+}
+
+/**
+ * Appends the midpoint marker for one passage: a rotated arrowhead for a one-way passage,
+ * or a state glyph for a bidirectional one. Secret uses a real Font Awesome mask path
+ * rather than the 🎭 emoji — a colour emoji ignores SVG `fill`, so the state colour never
+ * reached it.
+ *
+ * @param {SVGElement} svg
+ * @param {{x: number, y: number}} mid
+ * @param {number} angle - curve tangent at the midpoint, in degrees
+ * @param {{direction: string, state: string}} axes
+ */
+function appendPassageMarker(svg, mid, angle, { direction, state }) {
+  if (direction !== "both") {
+    const arrow = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+    arrow.classList.add("ca-link-direction-arrow");
+    arrow.dataset.direction = direction;
+    arrow.dataset.state     = state;
+    arrow.setAttribute("points", "8,0 -6,-5 -6,5");
+    arrow.setAttribute("transform",
+      `translate(${mid.x}, ${mid.y}) rotate(${direction === "forward" ? angle : angle + 180})`);
+    arrow.style.pointerEvents = "none";
+    svg.appendChild(arrow);
+    return;
+  }
+
+  const glyphs = { open: "⟷", blocked: "⊘", secret: "", custom: "" };
+  const indicator = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  indicator.classList.add("ca-link-direction");
+  indicator.setAttribute("x", mid.x);
+  indicator.setAttribute("y", mid.y);
+  indicator.setAttribute("text-anchor", "middle");
+  indicator.setAttribute("dominant-baseline", "central");
+  indicator.dataset.state = state;
+  indicator.style.pointerEvents = "none";
+  indicator.textContent = glyphs[state] ?? "⟷";
+  svg.appendChild(indicator);
+}
+
+/**
  * Redraws all persistent SVG link lines from the current setting state.
  * Lines connect named anchor dots. Called from _onRender and after every graph mutation.
  * @param {ManagerApp} app
@@ -149,21 +259,29 @@ export function renderLinks(app) {
     const p2 = anchorPoint(tgtEl, targetAnchor, wsRect, app._pan, zoom);
     const c1 = bezierOffset(sourceAnchor);
     const c2 = bezierOffset(targetAnchor);
-    // Cubic Bézier: M start C cp1 cp2 end
-    const d = `M ${p1.x},${p1.y} C ${p1.x + c1.dx},${p1.y + c1.dy} ${p2.x + c2.dx},${p2.y + c2.dy} ${p2.x},${p2.y}`;
+    const d = bezierPath(p1, c1, p2, c2);
 
-    // Visible path — pointer events disabled so the hit area path on top handles interactions
     const isPeek = link.type === "peek";
-    const direction = isPeek ? "peek" : getEffectiveDirection(link);
     const multi = !isPeek && isMultiPassage(link);
-    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    path.classList.add("ca-link");
-    if (isPeek) path.classList.add("ca-link--peek");
-    path.setAttribute("d", d);
-    path.dataset.direction = direction;
-    if (multi) path.dataset.multi = "true";
-    path.style.pointerEvents = "none";
-    svg.appendChild(path);
+    // Passages are drawn individually so a multi-passage link shows each one's own state
+    // side by side, instead of collapsing them into one line plus a "worst state" badge.
+    const passages = isPeek ? [] : (link.passages?.length ? link.passages : [getFirstPassage(link)]);
+
+    // Visible path(s) — pointer events disabled so the hit area path on top handles interactions
+    const drawnPaths = [];
+    if (isPeek) {
+      // "peek" rather than a real state: a [data-state] rule outweighs .ca-link--peek
+      // on specificity, so giving a peek link a normal state repaints it that colour.
+      drawnPaths.push(appendLinkPath(svg, d, { direction: "both", state: "peek", peek: true }));
+    } else {
+      const spread = (passages.length - 1) / 2;
+      passages.forEach((passage, pi) => {
+        const axes = passageAxes(passage);
+        const offset = multi ? (pi - spread) * MULTI_LINE_GAP : 0;
+        const pd = offset === 0 ? d : bezierPath(p1, c1, p2, c2, offset);
+        drawnPaths.push(appendLinkPath(svg, pd, { ...axes, thin: multi }));
+      });
+    }
 
     // Invisible wide hit-area path — easy right-click target, toggles hover state on the visible path
     const hitPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
@@ -176,11 +294,13 @@ export function renderLinks(app) {
       e.stopPropagation();
       // Peek links don't cycle and don't open the passage editor
       if (isPeek) return;
-      // Shift+click or multi-passage link → open editor; plain click on single-passage → cycle direction
+      // Shift+click or multi-passage link → open editor. On a single-passage link a plain
+      // click cycles direction and Ctrl/Cmd+click cycles state — the two axes are edited
+      // separately, so reaching a given combination never takes more than a few clicks.
       if (e.shiftKey || multi) {
         new LinkEditorApp(i).render(true);
       } else {
-        onCycleLink(app, i);
+        onCycleLink(app, i, (e.ctrlKey || e.metaKey) ? "state" : "direction");
       }
     });
     hitPath.addEventListener("contextmenu", e => {
@@ -188,8 +308,8 @@ export function renderLinks(app) {
       e.stopPropagation();
       onDeleteLink(app, e, hitPath);
     });
-    hitPath.addEventListener("mouseenter", () => path.classList.add("ca-link--hover"));
-    hitPath.addEventListener("mouseleave", () => path.classList.remove("ca-link--hover"));
+    hitPath.addEventListener("mouseenter", () => drawnPaths.forEach(p => p.classList.add("ca-link--hover")));
+    hitPath.addEventListener("mouseleave", () => drawnPaths.forEach(p => p.classList.remove("ca-link--hover")));
     svg.appendChild(hitPath);
 
     // Midpoint indicator
@@ -203,44 +323,25 @@ export function renderLinks(app) {
       indicator.setAttribute("y", mid.y);
       indicator.setAttribute("text-anchor", "middle");
       indicator.setAttribute("dominant-baseline", "central");
-      indicator.dataset.direction = "peek";
+      indicator.dataset.state = "peek";
       indicator.style.pointerEvents = "none";
       indicator.textContent = "👁";
       svg.appendChild(indicator);
     } else if (multi) {
+      // The stacked lines already show every passage's state; the badge only marks the
+      // link as the kind that opens the editor rather than cycling on click.
       const indicator = document.createElementNS("http://www.w3.org/2000/svg", "text");
       indicator.classList.add("ca-link-direction");
       indicator.setAttribute("x", mid.x);
       indicator.setAttribute("y", mid.y);
       indicator.setAttribute("text-anchor", "middle");
       indicator.setAttribute("dominant-baseline", "central");
-      indicator.dataset.direction = "multi";
+      indicator.dataset.state = "multi";
       indicator.style.pointerEvents = "none";
       indicator.textContent = "⊕";
       svg.appendChild(indicator);
-    } else if (direction === "both" || direction === "blocked" || direction === "locked") {
-      const indicator = document.createElementNS("http://www.w3.org/2000/svg", "text");
-      indicator.classList.add("ca-link-direction");
-      indicator.setAttribute("x", mid.x);
-      indicator.setAttribute("y", mid.y);
-      indicator.setAttribute("text-anchor", "middle");
-      indicator.setAttribute("dominant-baseline", "central");
-      indicator.dataset.direction = direction;
-      indicator.style.pointerEvents = "none";
-      indicator.textContent = direction === "both" ? "⟷" : direction === "blocked" ? "✕" : "⊘";
-      svg.appendChild(indicator);
     } else {
-      // Arrowhead aligned with the curve tangent at t=0.5
-      const angle = pathTangentAngle(p1, c1, p2, c2);
-      const arrowAngle = direction === "forward" ? angle : angle + 180;
-      const arrow = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-      arrow.classList.add("ca-link-direction-arrow");
-      arrow.dataset.direction = direction;
-      // Tip at (8,0), base corners at (-6,-5) and (-6,5) — points right by default
-      arrow.setAttribute("points", "8,0 -6,-5 -6,5");
-      arrow.setAttribute("transform", `translate(${mid.x}, ${mid.y}) rotate(${arrowAngle})`);
-      arrow.style.pointerEvents = "none";
-      svg.appendChild(arrow);
+      appendPassageMarker(svg, mid, pathTangentAngle(p1, c1, p2, c2), passageAxes(passages[0]));
     }
   }
 }
@@ -250,13 +351,17 @@ export function renderLinks(app) {
 // ---------------------------------------------------------------------------
 
 /**
- * Cycles a link's direction through: both → forward → backward → blocked → locked → both.
- * Triggered by left-click on a .ca-link-hit element during renderLinks.
+ * Advances one axis of a single-passage link: direction (both → forward → backward) or
+ * state (open → blocked → secret → custom). Triggered by left-click on a .ca-link-hit
+ * element during renderLinks. Whichever axis is cycled, the passage is written back in
+ * the two-field form, so touching a legacy link is also what converts it.
+ *
  * @param {ManagerApp} app
  * @param {number} linkIndex
+ * @param {"direction"|"state"} axis
  * @returns {Promise<void>}
  */
-export async function onCycleLink(app, linkIndex) {
+export async function onCycleLink(app, linkIndex, axis = "direction") {
   const { sceneId, startNodeId, nodes, links } = getGraphData();
   const updatedLinks = links.map((l, i) => {
     if (i !== linkIndex) return l;
@@ -264,12 +369,12 @@ export async function onCycleLink(app, linkIndex) {
     if (l.type === "peek") return l;
     // Multi-passage links are edited via LinkEditorApp — cycling is a no-op here
     if (isMultiPassage(l)) return l;
-    const currentDir = l.passages?.[0]?.direction ?? l.direction ?? "both";
-    const newDir = DIRECTION_CYCLE[currentDir] ?? "both";
-    const updatedPassages = l.passages
-      ? [{ ...l.passages[0], direction: newDir }]
-      : [{ label: "", direction: newDir }];
-    return { ...l, passages: updatedPassages };
+    const passage = getFirstPassage(l);
+    const { direction, state } = passageAxes(passage);
+    const updated = axis === "state"
+      ? { direction, state: cyclePassageState(state) }
+      : { direction: cyclePassageDirection(direction), state };
+    return { ...l, passages: [{ ...passage, ...updated }] };
   });
   await saveGraphData({ sceneId, startNodeId, nodes, links: updatedLinks });
   renderLinks(app);
