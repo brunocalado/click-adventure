@@ -1,14 +1,16 @@
 # 🗺️ Click Adventure
 
-[![Watch the video](https://img.youtube.com/vi/Fbc-q51kSKc/maxresdefault.jpg)](https://youtu.be/Fbc-q51kSKc)
-
-The video is in Brazilian Portuguese, but the interface is visual and easy to follow without the audio.
-
 Moving players between scenes usually means the GM opening the Scenes tab, finding the next map and pulling everyone there by hand. Click Adventure lets the players do the walking.
 
 You connect your scenes as nodes on a map, and players get a floating button that shows arrows to the places they can reach from where they are. They click a direction and arrive at the next scene, with a transition effect. You decide which passages are open, which are blocked or secret, and whether each move needs your approval. It works well for narrative sessions where the journey between places is part of the story.
 
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy_Me_a_Coffee-Donate-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/mestredigital) [![More Modules](https://img.shields.io/badge/Foundry%20VTT-More%20Modules-red?style=for-the-badge&logo=gamepad)](https://mestredigital.online/pages/projetos-en)
+
+## See it in action
+
+[![Watch the video](https://img.youtube.com/vi/Fbc-q51kSKc/maxresdefault.jpg)](https://youtu.be/Fbc-q51kSKc)
+
+The video is in Brazilian Portuguese, but the interface is visual and easy to follow without the audio.
 
 ## What it looks like
 
