@@ -30,6 +30,7 @@
      --ca-orb-size           HUD orb hitbox size
      --ca-radius-{sm,md,lg,xl,pill,window}  Border radii
      --ca-shadow-modal       Window drop shadow
+     --ca-flight-*           Overview-map flight overlay (paper, outlines, dressing)
      --ca-z-*                Stacking contexts
 */
 
@@ -183,6 +184,20 @@
   --ca-orb-border:        rgba(0, 0, 0, 0.3);
   --ca-orb-glow-default:  rgba(212, 160, 23, 0.5);
 
+  /* Flight overlay — the approved mockup's sepia paper look */
+  --ca-flight-paper:          #ddd7c9;
+  --ca-flight-dest-fill:      rgba(127, 176, 168, 0.18);
+  --ca-flight-dest-stroke:    rgba(127, 176, 168, 0.9);
+  --ca-flight-origin-stroke:  rgba(201, 162, 90, 0.5);
+  --ca-flight-fog-a:          rgba(255, 255, 255, 0.35);
+  --ca-flight-fog-b:          rgba(255, 255, 255, 0.28);
+  --ca-flight-fog-c:          rgba(255, 255, 255, 0.3);
+  --ca-flight-vignette:       rgba(0, 0, 0, 0.85);
+  --ca-flight-bar:            #000000;
+  --ca-flight-caption:        #f3ede2;
+  --ca-flight-caption-shadow: #000000;
+  --ca-flight-mask:           #000000;               /* edge mask: only its alpha matters */
+
   /* Z-layers */
   --ca-z-link:            1;
   --ca-z-node:            2;
@@ -191,4 +206,6 @@
   --ca-z-hud:             9999;
   --ca-z-popover:         10000;
   --ca-z-context-menu:    99999;
+  --ca-z-flight:          99990;   /* above the HUD and windows, below Foundry's #notifications
+                                      (99999) so the scene-load toast stays readable */
 }

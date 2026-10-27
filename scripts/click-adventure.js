@@ -19,6 +19,7 @@ import { getGraphData } from "./node-utils.js";
 import { HudStyleApp } from "./hud-style-app.js";
 import { AdventureIOApp } from "./adventure-io-app.js";
 import { lockAllUsers, restoreLockedUsers } from "./autolock-utils.js";
+import { FlightOverlay } from "./flight-overlay.js";
 
 /**
  * O(1) lookup set of sceneIds belonging to graph nodes.
@@ -467,7 +468,21 @@ Hooks.on("init", () => {
     _groups: null,
 
     /** @type {AdventureSocketManager} — socket handler instance */
-    _socket: socketManager
+    _socket: socketManager,
+
+    Flight: {
+      /**
+       * Plays one flight over a map image, locally, for checking how an overview map looks.
+       * @param {{map: {src:string,width:number,height:number}, from: object, to: object, caption?: string}} args
+       */
+      preview: async ({ map, from, to, caption }) => {
+        const overlay = new FlightOverlay(map);
+        await overlay.ready();
+        await overlay.cover(from, to);
+        await overlay.fly();
+        await overlay.land({ caption });
+      }
+    }
   };
 });
 

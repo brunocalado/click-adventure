@@ -1,0 +1,167 @@
+/*!
+ * Click Adventure
+ * 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
+
+/* @section: flight
+   @scope: .click-adventure.ca-flight — the overview-map flight overlay, mounted on <body>
+   @depends: --ca-z-flight, --ca-flight-*
+
+   Everything that moves does so through transform or opacity, so it keeps playing on the
+   compositor while the canvas draws a scene on the main thread. The approved mockup animated the
+   fog with background-position and blurred the map mid-flight; neither is composited, so the fog
+   drifts by translating an oversized layer and the blur is gone.
+
+   @manifest:
+     .ca-flight                  Root: fixed full-screen layer, paper background
+     .ca-flight--on              Set after mount; slides the letterbox bars in
+     .ca-flight-world            The map plus room outlines, moved by the camera transform
+     .ca-flight-room--dest       Destination outline
+     .ca-flight-room--origin     Origin outline, dashed
+     .ca-flight-fog / -grain / -vignette   Cinematic dressing
+     .ca-flight-bar--top/bottom  Letterbox bars
+     .ca-flight-caption--on      Room name shown on landing
+*/
+
+.click-adventure.ca-flight {
+  position: fixed;
+  inset: 0;
+  z-index: var(--ca-z-flight);
+  overflow: hidden;
+  opacity: 0;
+  cursor: pointer;
+  background: var(--ca-flight-paper);
+}
+
+.click-adventure.ca-flight .ca-flight-world {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+.click-adventure.ca-flight .ca-flight-map {
+  display: block;
+  max-width: none;
+  border: none;
+  filter: sepia(0.25) contrast(1.1) brightness(0.92);
+  /* Fade the sheet's edges into the paper so the camera never hits a hard border */
+  -webkit-mask-image:
+    linear-gradient(to right, transparent, var(--ca-flight-mask) 8%, var(--ca-flight-mask) 92%, transparent),
+    linear-gradient(to bottom, transparent, var(--ca-flight-mask) 5%, var(--ca-flight-mask) 95%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent, var(--ca-flight-mask) 8%, var(--ca-flight-mask) 92%, transparent),
+    linear-gradient(to bottom, transparent, var(--ca-flight-mask) 5%, var(--ca-flight-mask) 95%, transparent);
+  mask-composite: intersect;
+}
+
+.click-adventure.ca-flight .ca-flight-world svg {
+  position: absolute;
+  inset: 0;
+}
+
+.click-adventure.ca-flight .ca-flight-room {
+  fill: none;
+  stroke-width: 8;
+}
+
+.click-adventure.ca-flight .ca-flight-room--dest {
+  fill: var(--ca-flight-dest-fill);
+  stroke: var(--ca-flight-dest-stroke);
+}
+
+.click-adventure.ca-flight .ca-flight-room--origin {
+  stroke: var(--ca-flight-origin-stroke);
+  stroke-dasharray: 18 14;
+}
+
+.click-adventure.ca-flight .ca-flight-fog,
+.click-adventure.ca-flight .ca-flight-grain,
+.click-adventure.ca-flight .ca-flight-vignette {
+  position: absolute;
+  pointer-events: none;
+}
+
+.click-adventure.ca-flight .ca-flight-fog {
+  inset: -30%;
+  opacity: 0.55;
+  mix-blend-mode: screen;
+  background:
+    radial-gradient(25% 19% at 30% 55%, var(--ca-flight-fog-a), transparent 70%),
+    radial-gradient(22% 16% at 65% 40%, var(--ca-flight-fog-b), transparent 70%),
+    radial-gradient(31% 19% at 50% 75%, var(--ca-flight-fog-c), transparent 70%);
+  animation: ca-flight-drift 9s ease-in-out infinite alternate;
+}
+
+@keyframes ca-flight-drift {
+  from { transform: translate(0, 0); }
+  to   { transform: translate(-14%, -8%); }
+}
+
+.click-adventure.ca-flight .ca-flight-grain {
+  inset: 0;
+  opacity: 0.16;
+  mix-blend-mode: multiply;
+  animation: ca-flight-grain 0.35s steps(3) infinite;
+}
+
+@keyframes ca-flight-grain {
+  0%  { transform: translate(0, 0); }
+  33% { transform: translate(-3%, 2%); }
+  66% { transform: translate(2%, -3%); }
+}
+
+.click-adventure.ca-flight .ca-flight-vignette {
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 45%, var(--ca-flight-vignette) 100%);
+}
+
+.click-adventure.ca-flight .ca-flight-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 9vh;
+  background: var(--ca-flight-bar);
+  transform: scaleY(0);
+  transition: transform 0.5s ease;
+}
+
+.click-adventure.ca-flight .ca-flight-bar--top {
+  top: 0;
+  transform-origin: top;
+}
+
+.click-adventure.ca-flight .ca-flight-bar--bottom {
+  bottom: 0;
+  transform-origin: bottom;
+}
+
+.click-adventure.ca-flight.ca-flight--on .ca-flight-bar {
+  transform: scaleY(1);
+}
+
+.click-adventure.ca-flight .ca-flight-caption {
+  position: absolute;
+  left: 50%;
+  bottom: 13vh;
+  transform: translateX(-50%);
+  color: var(--ca-flight-caption);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(18px, 3vw, 30px);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-shadow: 0 2px 12px var(--ca-flight-caption-shadow);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.click-adventure.ca-flight .ca-flight-caption--on {
+  opacity: 1;
+}

@@ -1,3 +1,7 @@
+# Unreleased
+
+- [Added] `ClickAdventure.Flight.preview()` plays a camera flight over a map image between two framings, to check how an overview map looks.
+
 # 0.3.1
 
 ## [Changed]

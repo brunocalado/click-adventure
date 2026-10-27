@@ -34,6 +34,9 @@
       "src": "styles/nav-hud.css"
     },
     {
+      "src": "styles/flight.css"
+    },
+    {
       "src": "styles/nav-mode.css"
     },
     {
