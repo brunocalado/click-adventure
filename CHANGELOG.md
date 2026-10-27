@@ -1,5 +1,6 @@
 # Unreleased
 
+- [Added] Overview map for a group: `ClickAdventure.Flight.apply(data)` creates the group's overview scene from a map image and one GM-only Region per room from image-pixel polygons, linking each to the node of the same name; `ClickAdventure.Flight.read()` returns the current setup.
 - [Added] `ClickAdventure.Flight.preview()` plays a camera flight over a map image between two framings, to check how an overview map looks.
 
 # 0.3.1

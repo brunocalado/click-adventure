@@ -20,6 +20,7 @@ import { HudStyleApp } from "./hud-style-app.js";
 import { AdventureIOApp } from "./adventure-io-app.js";
 import { lockAllUsers, restoreLockedUsers } from "./autolock-utils.js";
 import { FlightOverlay } from "./flight-overlay.js";
+import { applyFlightData, readFlightData } from "./flight-data.js";
 
 /**
  * O(1) lookup set of sceneIds belonging to graph nodes.
@@ -481,7 +482,21 @@ Hooks.on("init", () => {
         await overlay.cover(from, to);
         await overlay.fly();
         await overlay.land({ caption });
-      }
+      },
+
+      /**
+       * Creates or updates the active group's overview map from room polygons in image pixels,
+       * and links each room to the node of the same name. GM only. Returns a report.
+       * @param {{map?: string, rooms: {name: string, node?: string, points: number[]|number[][]}[]}} data
+       * @param {{groupId?: string}} [opts]
+       */
+      apply: (data, opts) => applyFlightData(data, opts),
+
+      /**
+       * The active group's overview setup, in the units apply() takes.
+       * @param {{groupId?: string}} [opts]
+       */
+      read: (opts) => readFlightData(opts)
     }
   };
 });

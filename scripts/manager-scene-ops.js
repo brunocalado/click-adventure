@@ -290,6 +290,8 @@ export async function onSyncScenes(app) {
   // Scoping the scan to the group's own folder is what prevents another group's
   // scenes (and their GM customizations) from ever being deleted here.
   const validSceneIds = new Set(nodes.map(n => n.sceneId).filter(Boolean));
+  // The overview map shares the group's folder but belongs to no node; without this, Sync deletes it.
+  if (group.flight?.overviewSceneId) validSceneIds.add(group.flight.overviewSceneId);
   const orphanIds = game.scenes
     .filter(s => s.folder?.id === folder.id && !validSceneIds.has(s.id))
     .map(s => s.id);
@@ -384,7 +386,8 @@ export async function onResetGraph(app) {
     .map(u => ({ _id: u.id, flags: { [MODULE_ID]: { currentNodeId: null } } }));
   if (userUpdates.length) await User.updateDocuments(userUpdates);
 
-  await saveGraphData({ startNodeId: "", nodes: [], links: [] });
+  // The overview scene went with the folder; clearing the pointer keeps it from dangling.
+  await saveGraphData({ startNodeId: "", nodes: [], links: [], flight: null });
 
   // Close HUD if open — the active group no longer has a valid state
   if (globalThis.ClickAdventure._hud?.rendered) {
