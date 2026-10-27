@@ -1,3 +1,8 @@
+# Unreleased
+
+## [Changed]
+- **Installs and updates now come from GitHub releases.** The manifest URL is now `https://github.com/brunocalado/click-adventure/releases/latest/download/module.json`, and each version ships as a `module.zip` attached to its release instead of a zip of the `main` branch. Existing installs pick up the new URL on their next update.
+
 # 0.3.0
 
 ## [Added]

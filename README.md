@@ -139,7 +139,7 @@ Click Adventure requires Foundry VTT v14.
 3. Paste this manifest URL in the **Manifest URL** field at the bottom:
 
 ```
-https://raw.githubusercontent.com/brunocalado/click-adventure/main/module.json
+https://github.com/brunocalado/click-adventure/releases/latest/download/module.json
 ```
 
 4. Click **Install** and wait for it to finish.
