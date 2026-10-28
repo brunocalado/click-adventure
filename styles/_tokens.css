@@ -189,6 +189,10 @@
   --ca-flight-dest-fill:      rgba(127, 176, 168, 0.18);
   --ca-flight-dest-stroke:    rgba(127, 176, 168, 0.9);
   --ca-flight-origin-stroke:  rgba(201, 162, 90, 0.5);
+  --ca-flight-room-fill:      rgba(127, 176, 168, 0.08); /* Preview: every room at rest */
+  --ca-flight-room-stroke:    rgba(127, 176, 168, 0.55);
+  --ca-flight-label:          #2a241b;
+  --ca-flight-label-halo:     rgba(243, 237, 226, 0.85);
   --ca-flight-fog-a:          rgba(255, 255, 255, 0.35);
   --ca-flight-fog-b:          rgba(255, 255, 255, 0.28);
   --ca-flight-fog-c:          rgba(255, 255, 255, 0.3);

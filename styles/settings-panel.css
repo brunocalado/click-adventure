@@ -19,6 +19,8 @@
      .ca-settings-panel-tab    One tab panel
      .ca-setting-card          A single setting
      .ca-setting-card-main     Label and its control on one line
+     .ca-flight-row            Flight over Map: a line of text and buttons
+     .ca-flight-unlinked       Flight over Map: unlinked nodes, one dropdown each
 */
 
 .click-adventure.settings .ca-settings-panel {
@@ -64,5 +66,46 @@
 }
 
 .click-adventure.settings .ca-capture-token-pos {
+  align-self: flex-start;
+}
+
+.click-adventure.settings .ca-flight-row {
+  display: flex;
+  align-items: center;
+  gap: var(--ca-space-2);
+  flex-wrap: wrap;
+}
+
+.click-adventure.settings .ca-flight-text {
+  margin: 0;
+  flex: 1;
+  color: var(--ca-text-muted);
+  font-size: var(--ca-fs-body);
+}
+
+.click-adventure.settings .ca-flight-text strong {
+  color: var(--ca-text-primary);
+}
+
+.click-adventure.settings .ca-flight-unlinked {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ca-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.click-adventure.settings .ca-flight-region-select {
+  width: auto;
+  min-width: 200px;
+}
+
+.click-adventure.settings .ca-flight-warning {
+  margin: 0;
+  color: var(--ca-state-warning);
+}
+
+.click-adventure.settings .ca-flight-choose-map {
   align-self: flex-start;
 }

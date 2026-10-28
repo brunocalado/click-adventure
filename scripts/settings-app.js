@@ -9,6 +9,8 @@
 
 import { onResetGraph } from "./manager-scene-ops.js";
 import { getActiveGroup, saveGraphData } from "./node-utils.js";
+import { getOverviewScene, getOverviewMap, getFlightRooms, createOverviewScene, changeOverviewMap, applyFlightData } from "./flight-data.js";
+import { FlightOverlay } from "./flight-overlay.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -81,6 +83,21 @@ export class SettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
     context.showPlayerWhisper = game.settings.get("click-adventure", "showPlayerWhisper");
     context.playerDestinationPreview = game.settings.get("click-adventure", "playerDestinationPreview");
     context.journalAutoOpen = game.settings.get("click-adventure", "journalAutoOpen");
+
+    // Flight over Map — per group, like loadPlayerTokens.
+    const group = getActiveGroup();
+    const overview = getOverviewScene(group);
+    const rooms = group ? getFlightRooms(group) : { linked: [], unlinked: [], ambiguous: [] };
+    context.flight = {
+      enabled: group?.flight?.enabled === true,
+      overviewName: overview?.name ?? null,
+      linkedCount: rooms.linked.length,
+      nodeCount: group?.nodes?.length ?? 0,
+      unlinked: rooms.unlinked.map(n => ({ id: n.id, label: n.label })),
+      ambiguous: rooms.ambiguous.map(a => ({ label: a.node.label, regions: a.regions.map(r => r.name).join(", ") })),
+      regionOptions: overview ? [...overview.regions].map(r => ({ id: r.id, name: r.name }))
+        .sort((a, b) => a.name.localeCompare(b.name)) : []
+    };
 
     return context;
   }
@@ -171,6 +188,8 @@ export class SettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
         this.setAttribute("aria-checked", String(next));
       });
 
+    this._wireFlightCard();
+
     this.element.querySelector(".ca-capture-token-pos")
       ?.addEventListener("click", async () => {
         const scene = canvas.scene;
@@ -225,5 +244,89 @@ export class SettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const managerApp = globalThis.ClickAdventure?._manager;
         onResetGraph(managerApp ?? { render: () => {} });
       });
+  }
+
+  /**
+   * Opens the image picker for the overview map. Nothing happens when the GM cancels, so turning
+   * the switch on without picking a map leaves flight off.
+   * @param {(path: string) => Promise<unknown>} onPick
+   */
+  _pickMapImage(onPick) {
+    const FilePickerClass = foundry.applications.apps.FilePicker.implementation
+      ?? foundry.applications.apps.FilePicker;
+    new FilePickerClass({
+      type: "image",
+      current: "",
+      callback: async (path) => {
+        try {
+          await onPick(path);
+        } catch (err) {
+          console.error("Click Adventure | Overview map:", err);
+          ui.notifications.error(`Click Adventure: Could not load the map "${path}".`);
+        }
+        this.render();
+      }
+    }).render(true);
+  }
+
+  /**
+   * Wires the Flight over Map card. Everything it changes lives on the active group, so the card
+   * re-renders after each change rather than patching its own DOM.
+   */
+  _wireFlightCard() {
+    const card = this.element.querySelector(".ca-flight-card");
+    const group = getActiveGroup();
+    if (!card || !group) return;
+    const overview = getOverviewScene(group);
+
+    card.querySelector(".ca-flight-enabled")?.addEventListener("click", async () => {
+      const enabled = group.flight?.enabled === true;
+      // The first switch-on asks for the map; creating the overview turns flight on.
+      if (!enabled && !overview) return this._pickMapImage(path => createOverviewScene(group, path));
+      await saveGraphData({ flight: { ...(group.flight ?? {}), enabled: !enabled } });
+      this.render();
+    });
+
+    card.querySelector(".ca-flight-choose-map")?.addEventListener("click", () =>
+      this._pickMapImage(path => createOverviewScene(group, path)));
+
+    card.querySelector(".ca-flight-open")?.addEventListener("click", () => overview?.view());
+
+    card.querySelector(".ca-flight-change-map")?.addEventListener("click", () =>
+      this._pickMapImage(path => changeOverviewMap(group, path)));
+
+    card.querySelectorAll(".ca-flight-region-select").forEach(select => {
+      select.addEventListener("change", async () => {
+        const nodes = (group.nodes ?? []).map(n =>
+          n.id === select.dataset.nodeId ? { ...n, flightRegionId: select.value || null } : n);
+        await saveGraphData({ nodes });
+        this.render();
+      });
+    });
+
+    card.querySelector(".ca-flight-preview")?.addEventListener("click", async () => {
+      if (!overview) return;
+      const overlay = new FlightOverlay(getOverviewMap(overview));
+      await overlay.ready();
+      await overlay.showcase(getFlightRooms(group).linked.map(r => ({ points: r.points, label: r.node.label })));
+    });
+
+    const fileInput = card.querySelector(".ca-flight-file-input");
+    card.querySelector(".ca-flight-import")?.addEventListener("click", () => fileInput?.click());
+    fileInput?.addEventListener("change", async () => {
+      const file = fileInput.files?.[0];
+      fileInput.value = "";
+      if (!file) return;
+      let report;
+      try {
+        report = await applyFlightData(JSON.parse(await file.text()));
+      } catch (err) {
+        console.warn("Click Adventure | Room data import:", err);
+        ui.notifications.error(`Click Adventure: Could not import "${file.name}". ${err.message}`);
+        return;
+      }
+      ui.notifications.info(`Click Adventure: Created ${report.created.length}, updated ${report.updated.length}, linked ${report.linked.length}; ${report.unmatchedRooms.length} unmatched, see console.`);
+      this.render();
+    });
   }
 }

@@ -163,6 +163,25 @@ export async function createOverviewScene(group, mapSrc) {
   return scene;
 }
 
+/**
+ * Swaps the overview's map image and keeps the scene size, which is what the Regions are measured
+ * in. A different aspect ratio would stretch the new image over the old size and misalign every
+ * room, so it warns rather than rescaling anything.
+ * @param {object} group
+ * @param {string} src
+ * @returns {Promise<void>}
+ */
+export async function changeOverviewMap(group, src) {
+  const scene = getOverviewScene(group);
+  if (!scene) return;
+  const { width, height } = await readImageSize(src);
+  const { width: W, height: H } = getOverviewMap(scene);
+  if (Math.abs((width / height) / (W / H) - 1) > 0.01) {
+    ui.notifications.warn(`Click Adventure: The new map is ${width}×${height}, a different shape from the overview's ${W}×${H}. Its rooms may no longer line up.`);
+  }
+  await scene.initialLevel.update({ "background.src": src });
+}
+
 /** `[[x,y],…]` pairs or a flat array → flat array, or null when the shape is not one of those. */
 function flattenPoints(points) {
   if (!Array.isArray(points)) return null;

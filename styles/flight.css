@@ -21,6 +21,8 @@
      .ca-flight-world            The map plus room outlines, moved by the camera transform
      .ca-flight-room--dest       Destination outline
      .ca-flight-room--origin     Origin outline, dashed
+     .ca-flight-room--showcase   Preview: a clickable room
+     .ca-flight-label            Preview: a room's name
      .ca-flight-fog / -grain / -vignette   Cinematic dressing
      .ca-flight-bar--top/bottom  Letterbox bars
      .ca-flight-caption--on      Room name shown on landing
@@ -68,6 +70,24 @@
 .click-adventure.ca-flight .ca-flight-room {
   fill: none;
   stroke-width: 8;
+}
+
+/* Preview: every linked room clickable, with its name */
+.click-adventure.ca-flight .ca-flight-room--showcase {
+  fill: var(--ca-flight-room-fill);
+  stroke: var(--ca-flight-room-stroke);
+  pointer-events: all;
+}
+
+.click-adventure.ca-flight .ca-flight-label {
+  fill: var(--ca-flight-label);
+  stroke: var(--ca-flight-label-halo);
+  stroke-width: 0.25em;
+  paint-order: stroke;
+  font-family: Georgia, "Times New Roman", serif;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  pointer-events: none;
 }
 
 .click-adventure.ca-flight .ca-flight-room--dest {

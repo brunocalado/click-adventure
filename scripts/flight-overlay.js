@@ -170,6 +170,77 @@ export class FlightOverlay {
   }
 
   /**
+   * Shows the whole map with every linked room outlined and labelled. Clicking one room and then
+   * another flies between them; clicking outside any room, or Escape, closes. Resolves on close.
+   * @param {{points: number[], label: string}[]} rooms
+   */
+  async showcase(rooms) {
+    const map = { kind: "map" };
+    mounted?.destroy();
+    mounted = this;
+    this.#from = this.#to = this.#resolve(map);
+    this.#mount(map, map);
+    this.#setCamera(this.#from);
+
+    const svg = this.#world.querySelector("svg");
+    const fontSize = 0.014 * Math.max(this.#map.width, this.#map.height);
+    rooms.forEach((room, i) => {
+      const pg = this.#polygon(room.points, "ca-flight-room--showcase");
+      pg.dataset.index = String(i);
+      svg.append(pg);
+      const c = this.#resolve({ kind: "room", points: room.points });
+      const text = document.createElementNS(SVG_NS, "text");
+      text.setAttribute("x", c.x);
+      text.setAttribute("y", c.y);
+      text.setAttribute("font-size", fontSize);
+      text.setAttribute("class", "ca-flight-label");
+      text.textContent = room.label;
+      svg.append(text);
+    });
+
+    void this.#root.offsetWidth;
+    this.#root.classList.add("ca-flight--on");
+    this.#root.animate([{ opacity: 0 }, { opacity: 1 }], { duration: FADE_MS, easing: "ease", fill: "forwards" });
+
+    // Each room clicked is flown to from wherever the camera is, so picking one room and then
+    // another plays the flight between them; the previous room keeps the dashed origin outline.
+    let current = null;
+    let flying = false;
+    const close = async () => {
+      document.removeEventListener("keydown", onKey);
+      const fade = this.#root.animate([{ opacity: 1 }, { opacity: 0 }], { duration: FADE_MS, easing: "ease", fill: "forwards" });
+      await this.#race(fade.finished);
+      this.destroy();
+    };
+    const onKey = e => { if (e.key === "Escape") { e.stopPropagation(); close(); } };
+    document.addEventListener("keydown", onKey);
+
+    this.#root.addEventListener("click", async e => {
+      if (flying) return;  // the overlay's own listener has already skipped to the end
+      const pg = e.target.closest?.("polygon[data-index]");
+      if (!pg) return close();
+      const room = rooms[Number(pg.dataset.index)];
+      if (room === current) return;
+      svg.querySelector(".ca-flight-room--origin")?.classList.remove("ca-flight-room--origin");
+      svg.querySelector(".ca-flight-room--dest")?.classList.replace("ca-flight-room--dest", "ca-flight-room--origin");
+      pg.classList.add("ca-flight-room--dest");
+      this.#caption.classList.remove("ca-flight-caption--on");
+      flying = true;
+      this.#skipped = false;
+      this.#from = this.#camera;
+      this.#to = this.#resolve({ kind: "room", points: room.points });
+      await this.fly();
+      current = room;
+      flying = false;
+      if (this.#destroyed) return;
+      this.#caption.textContent = room.label;
+      this.#caption.classList.add("ca-flight-caption--on");
+    });
+
+    await this.#aborted;
+  }
+
+  /**
    * Unmount immediately, with no fade, and resolve any pending fly()/land() so a caller awaiting
    * them never hangs (error paths, and a new flight replacing this one).
    */

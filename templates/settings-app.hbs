@@ -20,7 +20,54 @@
           {{/each}}
         </select>
       </div>
-      <p class="ca-hint ca-setting-card-desc">Applied to all scenes on Create / Update Scenes.</p>
+      <p class="ca-hint ca-setting-card-desc">Applied to all scenes on Create / Update Scenes. Hops that fly over an overview map skip it.</p>
+    </div>
+
+    <div class="ca-card ca-setting-card ca-flight-card">
+      <div class="ca-setting-card-main">
+        <label class="ca-label ca-settings-label">Flight over Map</label>
+        <button type="button" role="switch" aria-checked="{{#if flight.enabled}}true{{else}}false{{/if}}"
+                class="ca-switch ca-flight-enabled {{#if flight.enabled}}ca-switch--on{{/if}}">
+          <span class="ca-switch-track"><span class="ca-switch-knob"></span></span>
+        </button>
+      </div>
+      <p class="ca-hint ca-setting-card-desc">This group only. In Guide mode, double-click a room on the
+        overview map to take the party there, and use Map in the HUD to bring them back out.</p>
+      {{#if flight.enabled}}
+        {{#if flight.overviewName}}
+        <div class="ca-flight-row">
+          <span class="ca-flight-text">Overview: <strong>{{flight.overviewName}}</strong></span>
+          <button class="ca-btn ca-btn--quiet ca-flight-open" type="button"><i class="fa-solid fa-eye"></i> Open</button>
+          <button class="ca-btn ca-btn--quiet ca-flight-change-map" type="button"><i class="fa-solid fa-image"></i> Change map…</button>
+        </div>
+        <p class="ca-flight-text ca-flight-status">{{flight.linkedCount}} of {{flight.nodeCount}} nodes linked to a room</p>
+        {{#if flight.unlinked.length}}
+        <ul class="ca-flight-unlinked">
+          {{#each flight.unlinked}}
+          <li class="ca-flight-row">
+            <span class="ca-flight-text">{{label}}</span>
+            <select class="ca-input ca-flight-region-select" data-node-id="{{id}}">
+              <option value="">— none —</option>
+              {{#each ../flight.regionOptions}}
+              <option value="{{id}}">{{name}}</option>
+              {{/each}}
+            </select>
+          </li>
+          {{/each}}
+        </ul>
+        {{/if}}
+        {{#each flight.ambiguous}}
+        <p class="ca-hint ca-flight-warning">{{label}}: several rooms match ({{regions}})</p>
+        {{/each}}
+        <div class="ca-flight-row">
+          <button class="ca-btn ca-btn--quiet ca-flight-preview" type="button"><i class="fa-solid fa-plane"></i> Preview</button>
+          <button class="ca-btn ca-btn--quiet ca-flight-import" type="button"><i class="fa-solid fa-file-import"></i> Import room data…</button>
+          <input type="file" accept=".json" hidden class="ca-flight-file-input">
+        </div>
+        {{else}}
+        <button class="ca-btn ca-btn--blue ca-flight-choose-map" type="button"><i class="fa-solid fa-map"></i> Choose map image…</button>
+        {{/if}}
+      {{/if}}
     </div>
   </div>
 
