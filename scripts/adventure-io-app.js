@@ -19,7 +19,7 @@
  */
 
 import { MODULE_ID } from "./constants.js";
-import { getOrCreateGroupFolder, createSceneForNode } from "./manager-scene-ops.js";
+import { getGroupFolder, getOrCreateGroupFolder, createSceneForNode } from "./manager-scene-ops.js";
 import { getNodeJournal, getNodeMusic } from "./node-media.js";
 import { getOverviewScene, getOverviewMap, regionPoints, resolveNodeRegion, applyFlightData, setFlightEnabled } from "./flight-data.js";
 
@@ -342,66 +342,100 @@ export class AdventureIOApp extends HandlebarsApplicationMixin(ApplicationV2) {
    *   3. Resolves journal and music references (id → name) into the node's staging fields.
    *   4. Creates a Foundry Scene for every node in the graph's own Scene folder, which is
    *      where the staged journal and music land; the staging fields are then cleared.
-   *   5. Appends the graph to the world collection with a fresh ID.
+   *   5. Writes the graph to the world collection: appended with a fresh ID, or with
+   *      `keepIds`, under the file's own ID, replacing a group that already has it.
    *
    * @param {object[]} graphs - graph objects from the import JSON
+   * @param {{keepIds?: boolean}} [options]  keepIds: the group takes the file's own id, and an
+   *   existing group with that id is replaced in place (same position in the list, same folder).
    * @returns {Promise<void>}
    */
-  async _doImport(graphs) {
+  async _doImport(graphs, { keepIds = false } = {}) {
     ui.notifications.info("Click Adventure: Import started — creating scenes…");
 
     const warnings = [];
-
-    const col = game.settings.get(MODULE_ID, "graphs");
-    const raw = typeof col?.toObject === "function" ? col.toObject() : (col ?? {});
-    let { activeGraphId }  = raw;
-    const existingGraphs   = raw.graphs ?? [];
-    const newGraphEntries  = [];
+    const readGraphs = () => {
+      const col = game.settings.get(MODULE_ID, "graphs");
+      return typeof col?.toObject === "function" ? col.toObject() : (col ?? {});
+    };
+    const startGraphs = readGraphs().graphs ?? [];
+    /** @type {{graph: object, entry: object, oldSceneIds: string[]}[]} */
+    const imported = [];
 
     for (const graph of graphs) {
-      const newGraphId    = foundry.utils.randomID();
-      const processedNodes = [];
+      if (keepIds && (typeof graph.id !== "string" || !graph.id)) {
+        warnings.push(`Group "${graph.name}" has no id in the file — skipped.`);
+        continue;
+      }
+      const groupId   = keepIds ? graph.id : foundry.utils.randomID();
+      const replacing = keepIds && startGraphs.some(g => g.id === groupId);
 
+      // Captured before anything is created, so the new scenes are never among them.
+      const oldFolder   = replacing ? getGroupFolder({ id: groupId }) : null;
+      const oldSceneIds = oldFolder ? game.scenes.filter(s => s.folder?.id === oldFolder.id).map(s => s.id) : [];
+
+      const processedNodes = [];
       for (const node of (graph.nodes ?? [])) {
         const processed = await this._processNode(node, warnings);
         processedNodes.push(processed);
       }
 
-      // Each imported graph gets its own Scene folder, keyed by its fresh id.
-      const graphFolder = await getOrCreateGroupFolder({ id: newGraphId, name: graph.name });
+      // Each imported graph gets its own Scene folder, keyed by its id — the same folder on a replace.
+      const graphFolder = await getOrCreateGroupFolder({ id: groupId, name: graph.name });
 
-      // Create Foundry Scenes immediately — no manual "Sync Scenes" step needed.
-      for (let i = 0; i < processedNodes.length; i++) {
-        const sceneId = await createSceneForNode(processedNodes[i], graphFolder.id);
-        processedNodes[i] = {
-          ...processedNodes[i],
-          sceneId,
-          pendingJournal: null,
-          pendingMusic: null
-        };
+      // Create Foundry Scenes immediately — no manual "Sync Scenes" step needed. A failure leaves the
+      // group as it was: the entry is only written once every scene exists.
+      try {
+        for (let i = 0; i < processedNodes.length; i++) {
+          const sceneId = await createSceneForNode(processedNodes[i], graphFolder.id);
+          processedNodes[i] = {
+            ...processedNodes[i],
+            sceneId,
+            pendingJournal: null,
+            pendingMusic: null
+          };
+        }
+      } catch (err) {
+        warnings.push(replacing
+          ? `Group "${graph.name}" was not replaced (${err.message}); it is unchanged. Scenes the import had already created are left in its folder; Sync Scenes removes them.`
+          : `Group "${graph.name}" was not imported (${err.message}). Scenes it had already created are left in the folder "${graphFolder.name}"; delete that folder to remove them.`);
+        continue;
       }
 
-      newGraphEntries.push({
-        id:          newGraphId,
-        name:        graph.name,
-        startNodeId: graph.startNodeId ?? "",
-        nodes:       processedNodes,
-        links:       graph.links ?? []
-      });
+      const folderName = `Click Adventure — ${graph.name}`;
+      if (graphFolder.name !== folderName) await graphFolder.update({ name: folderName });
 
-      // Activate the first imported graph if the world has none yet.
-      if (!activeGraphId) activeGraphId = newGraphId;
+      imported.push({
+        graph,
+        oldSceneIds,
+        entry: {
+          id:          groupId,
+          name:        graph.name,
+          startNodeId: graph.startNodeId ?? "",
+          nodes:       processedNodes,
+          links:       graph.links ?? []
+        }
+      });
     }
 
-    await game.settings.set(MODULE_ID, "graphs", {
-      activeGraphId,
-      graphs: [...existingGraphs, ...newGraphEntries]
-    });
+    // Read again right before writing: scene creation awaits, and anything saved meanwhile — a
+    // Manager drag, a Node Configuration save, an executedOnce mark — must not be overwritten.
+    const raw = readGraphs();
+    const finalGraphs = [...(raw.graphs ?? [])];
+    let { activeGraphId } = raw;
+    for (const { entry } of imported) {
+      const index = finalGraphs.findIndex(g => g.id === entry.id);
+      if (index >= 0) finalGraphs[index] = entry;
+      else finalGraphs.push(entry);
+      // Activate the first imported graph if the world has none yet.
+      if (!activeGraphId) activeGraphId = entry.id;
+    }
+    if (imported.length) await game.settings.set(MODULE_ID, "graphs", { ...raw, activeGraphId, graphs: finalGraphs });
 
     // Overview maps go last: applyFlightData reads and patches the groups written just above.
-    for (const [i, graph] of graphs.entries()) {
+    for (const { graph, entry } of imported) {
       if (!graph.flight) continue;
-      const groupId = newGraphEntries[i].id;
+      const groupId = entry.id;
       try {
         const report = await applyFlightData(
           { map: graph.flight.map, size: graph.flight.size, rooms: graph.flight.rooms ?? [] },
@@ -415,6 +449,26 @@ export class AdventureIOApp extends HandlebarsApplicationMixin(ApplicationV2) {
       }
     }
 
+    // The replaced group's old scenes go only now that the new ones are written. Players keep their
+    // position when the file still has their node; the others are cleared, as a reset does.
+    for (const { entry, oldSceneIds } of imported) {
+      if (!oldSceneIds.length) continue;
+      const stale = oldSceneIds.filter(id => game.scenes.has(id));
+      if (stale.length) await Scene.deleteDocuments(stale);
+    }
+    const replacedIds = new Set(imported.filter(i => i.oldSceneIds.length).map(i => i.entry.id));
+    if (replacedIds.size) {
+      const oldNodeIds = new Set(startGraphs.filter(g => replacedIds.has(g.id)).flatMap(g => (g.nodes ?? []).map(n => n.id)));
+      const newNodeIds = new Set(imported.flatMap(i => i.entry.nodes.map(n => n.id)));
+      const userUpdates = game.users
+        .filter(u => {
+          const nodeId = u.getFlag(MODULE_ID, "currentNodeId");
+          return oldNodeIds.has(nodeId) && !newNodeIds.has(nodeId);
+        })
+        .map(u => ({ _id: u.id, flags: { [MODULE_ID]: { currentNodeId: null } } }));
+      if (userUpdates.length) await User.updateDocuments(userUpdates);
+    }
+
     if (warnings.length > 0) {
       ui.notifications.warn(
         `Click Adventure: Import complete with ${warnings.length} warning(s) — see browser console.`
@@ -422,7 +476,7 @@ export class AdventureIOApp extends HandlebarsApplicationMixin(ApplicationV2) {
       warnings.forEach(w => console.warn(`Click Adventure | Import: ${w}`));
     } else {
       ui.notifications.info(
-        `Click Adventure: Imported ${graphs.length} group(s) successfully.`
+        `Click Adventure: Imported ${imported.length} group(s) successfully.`
       );
     }
 

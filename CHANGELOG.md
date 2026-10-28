@@ -1,5 +1,6 @@
 # Unreleased
 
+- [Fixed] Importing an adventure no longer discards changes saved to the world while its scenes were being created.
 - [Changed] The Instructions window has a Flight tab.
 - [Added] Exported groups include their overview map and rooms, and importing recreates them.
 - [Added] Settings → Scenes has a Flight over Map card for the current group: turn it on, pick the overview map, open it to edit rooms, link unlinked nodes, preview the rooms, and import room data from a JSON file.
