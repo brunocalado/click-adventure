@@ -1,5 +1,6 @@
 # Unreleased
 
+- [Changed] A flight between neighbouring rooms is quicker and one across the map is slower: travel time now follows the distance flown, from about 1.5 to 3 seconds.
 - [Added] A module can ship adventures by listing their export files under `flags.click-adventure.adventures` in its `module.json`. Export / Import lists them with an Import button, and Reimport replaces the group after a confirmation.
 - [Fixed] Flight messages from a player's client are ignored, so only a GM can make the party fly.
 - [Fixed] Importing an adventure no longer discards changes saved to the world while its scenes were being created.

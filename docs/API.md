@@ -129,7 +129,7 @@ await ClickAdventure.Flight.preview({
 - `{ kind: "room", points: [x0, y0, x1, y1, …], label }` for a room, as a **flat** array;
 - `{ kind: "view", x, y, scale }` for a centre and a zoom (start point only).
 
-The flight's timings and look are fixed on purpose. There are no options for them.
+The travel time grows with the distance flown, from about 1.5 s between neighbouring rooms to about 3 s across the map. A flight to or from the whole map counts as a medium distance. The fades and the hold are fixed.
 
 ### What actually flies
 

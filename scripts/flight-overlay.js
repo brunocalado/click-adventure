@@ -25,12 +25,21 @@ import { MODULE_ID } from "./constants.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
-// The approved mockup's timings. Fixed on purpose: there are no knobs.
+// The approved mockup's timings.
 const FADE_MS = 450;
-const FLY_MS = 2200;
 const HOLD_MS = 650;
 const HOLD_SKIPPED_MS = 150;
 const PULL = 0.45;
+
+// Travel time scales with the distance flown as a fraction of the map's diagonal, so a small
+// map and a large one feel the same. Measured on Lockwood, a neighbour hop is ~8% of the
+// diagonal; ~60% is a crossing.
+const TRAVEL_MIN_MS = 1500;
+const TRAVEL_MAX_MS = 3000;
+const NEAR = 0.08;
+const FAR = 0.6;
+// A flight to or from the whole map is mostly zoom, not distance.
+const MAP_DISTANCE = 0.3;
 
 /**
  * Decoded map images by src. The element itself is reused by every flight (only one overlay is
@@ -51,6 +60,13 @@ const easeInOutCubic = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3
 const lerp = (a, b, t) => a + (b - a) * t;
 const wait = ms => new Promise(r => setTimeout(r, ms));
 
+/** ms of travel between two cameras; `kinds` are the framing kinds the flight started from. */
+function travelMs(A, B, kinds, diagonal) {
+  const d = kinds.includes("map") ? MAP_DISTANCE : Math.hypot(B.x - A.x, B.y - A.y) / diagonal;
+  const t = Math.min(1, Math.max(0, (d - NEAR) / (FAR - NEAR)));
+  return lerp(TRAVEL_MIN_MS, TRAVEL_MAX_MS, t);
+}
+
 function cameraTransform(x, y, s) {
   return `translate(${innerWidth / 2 - x * s}px, ${innerHeight / 2 - y * s}px) scale(${s})`;
 }
@@ -62,6 +78,8 @@ export class FlightOverlay {
   #caption = null;
   #from = null;
   #to = null;
+  /** Framing kinds of the current flight's ends; fly() only sees resolved cameras. */
+  #kinds = ["room", "room"];
   #camera = null;
   #animation = null;
   #skipped = false;
@@ -96,6 +114,7 @@ export class FlightOverlay {
     mounted = this;
     this.#from = this.#resolve(from);
     this.#to = this.#resolve(to);
+    this.#kinds = [from.kind, to.kind];
     this.#mount(from, to);
     this.#setCamera(this.#from);
     // Force a style flush so the bars' transition runs from their collapsed state.
@@ -124,7 +143,7 @@ export class FlightOverlay {
       const s = base - (base - sMid) * Math.sin(Math.PI * e);
       return { transform: cameraTransform(lerp(A.x, B.x, e), lerp(A.y, B.y, e), s) };
     });
-    this.#animation = this.#world.animate(frames, { duration: FLY_MS, easing: "linear", fill: "forwards" });
+    this.#animation = this.#world.animate(frames, { duration: travelMs(A, B, this.#kinds, Math.hypot(W, H)), easing: "linear", fill: "forwards" });
     if (this.#skipped) this.#animation.finish();
     await this.#race(this.#animation.finished.catch(() => {}));
     this.#camera = B;
@@ -229,6 +248,8 @@ export class FlightOverlay {
       this.#skipped = false;
       this.#from = this.#camera;
       this.#to = this.#resolve({ kind: "room", points: room.points });
+      // Flown from wherever the camera is, so measured like a room start.
+      this.#kinds = ["view", "room"];
       await this.fly();
       current = room;
       flying = false;
