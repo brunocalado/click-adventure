@@ -55,6 +55,8 @@ const isOutline = p => Array.isArray(p) && p.length >= 6 && p.length % 2 === 0 &
 
 /** A FLIGHT payload arrives from the network, so its shape is checked before anything uses it. */
 // A slow horror manor and a fast heist want different flights, so the pace belongs to the group.
+// Only the group: a world default with a per-group override would need a fourth "use default"
+// state and a precedence rule for little gain, and every client flies at the GM's pace, not its own.
 const PACE = Object.freeze({ slow: 1.4, normal: 1, fast: 0.7 });
 export const paceMultiplier = group => PACE[group?.flight?.pace] ?? 1;
 

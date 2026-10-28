@@ -30,6 +30,8 @@ const FADE_MS = 450;
 const HOLD_MS = 650;
 const HOLD_SKIPPED_MS = 150;
 const PULL = 0.45;
+// How far a room landing pushes in over the hold and the fade.
+const PUSH_SCALE = 1.06;
 
 // Travel time scales with the distance flown as a fraction of the map's diagonal, so a small
 // map and a large one feel the same. Measured on Lockwood, a neighbour hop is ~8% of the
@@ -209,6 +211,17 @@ export class FlightOverlay {
     if (caption) {
       this.#caption.textContent = caption;
       this.#caption.classList.add("ca-flight-caption--on");
+    }
+    // Entering the room rather than the map vanishing: a slow push that starts at rest (the flight's
+    // easing lands at zero speed, so ease-in continues it without a jolt) and runs through the hold
+    // and the fade-out. Map landings are excluded: matchOverviewCamera lines the overlay up with the
+    // real canvas, and moving it would show a jump in the dissolve.
+    if (this.#kinds[1] === "room" && this.#camera) {
+      const { x, y, s } = this.#camera;
+      this.#animation = this.#world.animate([
+        { transform: cameraTransform(x, y, s) },
+        { transform: cameraTransform(x, y, s * PUSH_SCALE) }
+      ], { duration: (this.#skipped ? HOLD_SKIPPED_MS : HOLD_MS) + FADE_MS, easing: "ease-in", fill: "forwards" });
     }
     await this.#race(Promise.all([
       wait(this.#skipped ? HOLD_SKIPPED_MS : HOLD_MS),
