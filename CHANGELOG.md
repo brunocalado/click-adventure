@@ -1,5 +1,6 @@
 # Unreleased
 
+- [Fixed] Flight messages from a player's client are ignored, so only a GM can make the party fly.
 - [Fixed] Importing an adventure no longer discards changes saved to the world while its scenes were being created.
 - [Changed] The Instructions window has a Flight tab.
 - [Added] Exported groups include their overview map and rooms, and importing recreates them.

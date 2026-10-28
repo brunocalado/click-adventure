@@ -40,7 +40,7 @@ export class AdventureSocketManager {
    * All incoming messages are dispatched by type.
    */
   _registerListeners() {
-    game.socket.on(SOCKET_ID, (message) => {
+    game.socket.on(SOCKET_ID, (message, senderId) => {
       const { type, payload } = message ?? {};
       switch (type) {
         case "VIEW_SCENE_FOR_USER":
@@ -83,6 +83,12 @@ export class AdventureSocketManager {
           this._handleActivateGraph(payload);
           break;
         case "FLIGHT":
+          // A flight moves every client's camera and, with a sound, plays audio on it. Only a GM
+          // conducts flights, so a FLIGHT from anyone else is dropped. The server supplies senderId.
+          if (!game.users.get(senderId)?.isGM) {
+            console.warn("Click Adventure | Dropped a FLIGHT message not sent by a GM.");
+            break;
+          }
           runFlight(payload);
           break;
         default:
