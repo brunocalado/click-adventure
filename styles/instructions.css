@@ -16,6 +16,7 @@
    @manifest:
      .ca-instr-wrap     Root: tab bar plus the scrolling panel
      .ca-instr-panel    One help panel; only the active one is shown
+     .ca-instr-panel pre  A JSON sample; scrolls sideways instead of overflowing the panel
 */
 
 .click-adventure.instructions .ca-instr-wrap {
@@ -95,3 +96,15 @@
 .click-adventure.instructions .ca-instr-panel .ca-swatch--secret      { color: var(--ca-state-secret); }
 .click-adventure.instructions .ca-instr-panel .ca-swatch--custom      { color: var(--ca-state-custom); }
 .click-adventure.instructions .ca-instr-panel .ca-swatch--peek        { color: var(--ca-state-peek); }
+
+.click-adventure.instructions .ca-instr-panel pre {
+  margin: 0 0 var(--ca-space-3);
+  padding: var(--ca-space-2) var(--ca-space-3);
+  overflow-x: auto;
+  background: var(--ca-bg-input);
+  border: 1px solid var(--ca-border);
+  border-radius: var(--ca-radius-md);
+  color: var(--ca-text-primary);
+  font-size: var(--ca-fs-micro);
+  line-height: 1.5;
+}

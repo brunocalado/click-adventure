@@ -13,6 +13,13 @@
  * Region tools, an agent writes them through applyFlightData. A node links to a Region by its
  * explicit `flightRegionId`, or else by a tolerant name match.
  *
+ * Polygons stored on the nodes would have been simpler (no overview scene, no coordinate
+ * conversion), but then nobody could fix a shape with real tools; keeping node data as the truth
+ * with an "edit in Regions" round trip would hold two copies that drift. The overview sits in the
+ * group's own scene folder so deleting the group takes it along (Sync Scenes skips it explicitly),
+ * and it is deliberately not a node: as one it would link to every room, a teleport that ignores
+ * passages, Blocked states and keys.
+ *
  * Stored on a group entry: `flight: { enabled, overviewSceneId }`. On a node: `flightRegionId`.
  * Both are optional; absent means "off" and "match by name", so older worlds need no migration.
  */

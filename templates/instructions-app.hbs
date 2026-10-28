@@ -19,6 +19,8 @@
             data-tab="groups" role="tab" aria-selected="{{eq activeTab 'groups'}}">Groups</button>
     <button class="ca-tab ca-instr-tab-btn {{#if (eq activeTab 'io')}}ca-tab--active{{/if}}"
             data-tab="io" role="tab" aria-selected="{{eq activeTab 'io'}}">Export / Import</button>
+    <button class="ca-tab ca-instr-tab-btn {{#if (eq activeTab 'flight')}}ca-tab--active{{/if}}"
+            data-tab="flight" role="tab" aria-selected="{{eq activeTab 'flight'}}">Flight</button>
     </nav>
   </div>
 
@@ -303,6 +305,56 @@
       <li>A journal whose page is missing keeps the entry, and the whole entry opens instead</li>
       <li>A playlist whose track is missing keeps the playlist, and Foundry follows the playlist's own playback mode</li>
       <li>Both of those raise a warning rather than failing; only a missing root document clears the reference entirely</li>
+    </ul>
+  </section>
+
+  {{!-- Tab: Flight --}}
+  <section class="ca-instr-panel {{#if (eq activeTab 'flight')}}ca-instr-panel--active{{/if}}" data-panel="flight" role="tabpanel">
+    <h3>What It Is</h3>
+    <p>The party can rest on an <strong>overview map</strong> of the whole place, for example a drawing of a manor seen from above. Going from the map into a room, back out to the map, or from one room to the next is a camera flight over that map: it frames where you are, glides to the destination while pulling back for longer trips, outlines the room, shows its name and dissolves into the room's scene. Flight runs only in <strong>Guide</strong> mode, and only for a group whose switch is on.</p>
+
+    <h3>Every Room Is a Node With Its Own Illustration</h3>
+    <p>A room on the map is a place the party can go only if it is a node with its own scene. A part of the map without art of its own is not a node, so the party never lands there; it is just scenery the camera flies over.</p>
+
+    <h3>Setting Up by Hand</h3>
+    <ul>
+      <li><em>Settings → Scenes → Flight over Map</em>: turn the switch on and choose the map image. The overview scene is created in the group's scene folder at the map's size</li>
+      <li><strong>Open</strong> shows the overview. Draw one <strong>Region</strong> per room with Foundry's own Region tools and name it like the node, for example <em>Ballroom</em> for the node <em>4. Ballroom</em>; numbers, accents and punctuation are ignored when names are compared. Regions created this way should be visible to the GM only</li>
+      <li>The card counts how many nodes are linked to a room. Each node it could not link gets a dropdown to pick its Region by hand, and two Regions matching the same node are listed as a warning</li>
+      <li><strong>Preview</strong> shows the whole map with every linked room outlined and named. Click a room to fly to it, click another to fly between them; click outside any room or press Escape to close</li>
+      <li><strong>Change map…</strong> swaps the image and keeps the scene's size, so the rooms stay where they are</li>
+    </ul>
+
+    <h3>Setting Up From a File</h3>
+    <p>The rooms can also come from a room-data file, which is what an agent writes after looking at the map. <kbd>map</kbd> is the image path, and each room has a <kbd>name</kbd>, an optional <kbd>node</kbd> (the node's label, when it differs from the room's name) and <kbd>points</kbd>, the outline in pixels of the map image:</p>
+    <pre>{
+  "map": "worlds/my-world/maps/manor.webp",
+  "rooms": [
+    { "name": "4. Ballroom", "points": [[1323,1636],[1602,1549],[1866,1728],[1560,1898]] },
+    { "name": "Kitchen", "node": "5. Kitchen", "points": [791,1912, 835,1790, 1047,1735, 1135,1855] }
+  ]
+}</pre>
+    <ul>
+      <li>Import it with <strong>Import room data…</strong> on the card, or from a script macro with <kbd>ClickAdventure.Flight.apply(data)</kbd>. Either one reports what was created, updated and linked, and lists the rooms it could not match in the console</li>
+      <li>Importing again replaces the outline of every room with the same name, and leaves Regions the file does not name alone</li>
+      <li><kbd>ClickAdventure.Flight.read()</kbd> returns the current setup in the same units, and <kbd>ClickAdventure.Flight.preview({ map, from, to })</kbd> plays a single flight</li>
+    </ul>
+
+    <h3>Playing</h3>
+    <ul>
+      <li>On the overview, <strong>double-click a room</strong> to take everyone there. A double-click does nothing while the Regions layer is active, or on a token</li>
+      <li><strong>Map</strong> in the GM's HUD brings everyone back out to the overview</li>
+      <li>Moving between rooms with the HUD's destinations flies over the map without stopping on it</li>
+      <li>A click anywhere during a flight skips to the landing</li>
+      <li>A move to a node without a Region, a move in Solo mode, and a move a player makes on their own all use the normal scene transition</li>
+    </ul>
+
+    <h3>Housekeeping</h3>
+    <ul>
+      <li><strong>Sync Scenes</strong> keeps the overview, even though it shares the group's folder without belonging to a node</li>
+      <li><strong>Reset Group</strong> and deleting the group remove the overview along with the folder</li>
+      <li>Export carries the map path, its size and every room, and importing recreates the overview, even when the image is missing from the new world (a warning names it)</li>
+      <li>Changing the map to an image of a different shape warns that the rooms may no longer line up</li>
     </ul>
   </section>
 

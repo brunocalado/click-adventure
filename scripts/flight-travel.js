@@ -16,6 +16,16 @@
  * own origin, changes scene underneath the overlay with the core transition suppressed for this
  * call only, and runs its arrival macros and journal after the landing, so nothing opens under
  * the flight.
+ *
+ * Choices made on purpose:
+ * - Room to room flies over the overlay's copy of the map instead of panning the real overview
+ *   scene, which would mean loading the overview mid-hop: two scene loads and two loading toasts.
+ * - The core transition is suppressed per call (view/activate options), never by storing a null
+ *   transition on the scenes, so hops that cannot fly (a node without a Region) keep the world's.
+ * - Only GM-led Guide moves fly. Players navigating alone, Gated approvals, Manager teleports and
+ *   group activation keep their own paths, so the GM conducts and everyone watches the same move.
+ * - Rooms are entered by double-clicking their Region rather than from a list in the HUD, which
+ *   would grow with every room.
  */
 
 import { MODULE_ID } from "./constants.js";
