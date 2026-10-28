@@ -141,13 +141,15 @@ async function readImageSize(src) {
 
 /**
  * Creates the group's overview scene in its folder, sized to the map, and turns flight on.
- * GM only.
- * @param {object} group
+ * GM only. `size` replaces reading the image: an imported overview is rebuilt at the size its
+ * polygons were measured in, even when the map file is missing from this world.
+ * @param {object} group  any group entry, active or not
  * @param {string} mapSrc
+ * @param {{width: number, height: number}} [size]
  * @returns {Promise<Scene>}
  */
-export async function createOverviewScene(group, mapSrc) {
-  const { width, height } = await readImageSize(mapSrc);
+export async function createOverviewScene(group, mapSrc, size) {
+  const { width, height } = size ?? await readImageSize(mapSrc);
   const folder = await getOrCreateGroupFolder(group);
   const data = buildSceneData(`${group.name} – Overview`);
   Object.assign(data, {
@@ -161,6 +163,16 @@ export async function createOverviewScene(group, mapSrc) {
   const scene = await Scene.create(data);
   await patchGroup(group.id, { flight: { ...(group.flight ?? {}), enabled: true, overviewSceneId: scene.id } });
   return scene;
+}
+
+/**
+ * Turns a group's flight switch on or off; the overview scene is kept either way.
+ * @param {string} groupId
+ * @param {boolean} enabled
+ * @returns {Promise<void>}
+ */
+export async function setFlightEnabled(groupId, enabled) {
+  await patchGroup(groupId, { flight: { ...(getGroup(groupId)?.flight ?? {}), enabled } });
 }
 
 /**
@@ -203,7 +215,9 @@ function toScenePoints(scene, points) {
  * name. Regions are matched by exact name, so running it again updates them in place; Regions the
  * data does not name are left alone.
  *
- * @param {{map?: string, rooms: {name: string, node?: string, points: number[]|number[][]}[]}} data
+ * @param {{map?: string, size?: {width: number, height: number},
+ *   rooms: {name: string, node?: string, points: number[]|number[][]}[]}} data
+ *   `size` (map units) is used instead of reading the image when the overview is created
  * @param {{groupId?: string}} [options]  defaults to the active group
  * @returns {Promise<object>} a report of what was created, updated, linked and rejected
  */
@@ -223,7 +237,14 @@ export async function applyFlightData(data, { groupId } = {}) {
     if (typeof data.map !== "string" || !data.map) {
       throw new Error("Click Adventure | The group has no overview yet, so flight data needs a \"map\" path.");
     }
-    scene = await createOverviewScene(group, data.map);
+    const { width, height } = data.size ?? {};
+    const size = Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0
+      ? { width, height } : null;
+    if (size) {
+      try { await readImageSize(data.map); }
+      catch { report.warnings.push(`The map image "${data.map}" could not be loaded; the overview was created at ${width}×${height} without it.`); }
+    }
+    scene = await createOverviewScene(group, data.map, size);
     group = getGroup(group.id);
   } else if (data.map && data.map !== getOverviewMap(scene).src) {
     report.mapIgnored = true;

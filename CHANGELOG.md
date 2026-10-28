@@ -1,5 +1,6 @@
 # Unreleased
 
+- [Added] Exported groups include their overview map and rooms, and importing recreates them.
 - [Added] Settings → Scenes has a Flight over Map card for the current group: turn it on, pick the overview map, open it to edit rooms, link unlinked nodes, preview the rooms, and import room data from a JSON file.
 - [Added] Flight over the overview map in Guide mode: double-click a room on the overview to take the party there, use Map in the HUD to bring them back out, and Guide moves between rooms fly over the map. A hop to a node without a Region uses the normal transition.
 - [Added] Overview map for a group: `ClickAdventure.Flight.apply(data)` creates the group's overview scene from a map image and one GM-only Region per room from image-pixel polygons, linking each to the node of the same name; `ClickAdventure.Flight.read()` returns the current setup.

@@ -21,6 +21,7 @@
 import { MODULE_ID } from "./constants.js";
 import { getOrCreateGroupFolder, createSceneForNode } from "./manager-scene-ops.js";
 import { getNodeJournal, getNodeMusic } from "./node-media.js";
+import { getOverviewScene, getOverviewMap, regionPoints, resolveNodeRegion, applyFlightData, setFlightEnabled } from "./flight-data.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -211,7 +212,34 @@ export class AdventureIOApp extends HandlebarsApplicationMixin(ApplicationV2) {
       name:        graph.name,
       startNodeId: graph.startNodeId ?? "",
       nodes:       (graph.nodes ?? []).map(n => this._serializeNode(n)),
-      links:       (graph.links ?? []).map(l => ({ ...l }))
+      links:       (graph.links ?? []).map(l => ({ ...l })),
+      flight:      this._serializeFlight(graph)
+    };
+  }
+
+  /**
+   * The overview lives on a Scene, which export strips like every node scene, so it is written as
+   * data: the map, its size in map units, and every Region on it in the same shape
+   * Flight.apply() accepts. A room's `node` is the linked node's label, because ids mean nothing in
+   * another world — which is also why a node's `flightRegionId` is not exported.
+   *
+   * @param {object} graph
+   * @returns {object|null}
+   */
+  _serializeFlight(graph) {
+    const overview = getOverviewScene(graph);
+    if (!overview) return null;
+    const map = getOverviewMap(overview);
+    const toPairs = flat => Array.from({ length: flat.length / 2 }, (_, i) => [flat[2 * i], flat[2 * i + 1]]);
+    return {
+      enabled: graph.flight?.enabled === true,
+      map: map.src,
+      size: { width: map.width, height: map.height },
+      rooms: [...overview.regions].map(region => ({
+        name: region.name,
+        node: (graph.nodes ?? []).find(n => resolveNodeRegion(n, overview)?.id === region.id)?.label ?? null,
+        points: toPairs(regionPoints(overview, region))
+      }))
     };
   }
 
@@ -370,6 +398,23 @@ export class AdventureIOApp extends HandlebarsApplicationMixin(ApplicationV2) {
       graphs: [...existingGraphs, ...newGraphEntries]
     });
 
+    // Overview maps go last: applyFlightData reads and patches the groups written just above.
+    for (const [i, graph] of graphs.entries()) {
+      if (!graph.flight) continue;
+      const groupId = newGraphEntries[i].id;
+      try {
+        const report = await applyFlightData(
+          { map: graph.flight.map, size: graph.flight.size, rooms: graph.flight.rooms ?? [] },
+          { groupId }
+        );
+        // apply() turns flight on; honour the exported switch.
+        if (graph.flight.enabled === false) await setFlightEnabled(groupId, false);
+        warnings.push(...this._flightWarnings(graph.name, report));
+      } catch (err) {
+        warnings.push(`Group "${graph.name}" / overview map: ${err.message}`);
+      }
+    }
+
     if (warnings.length > 0) {
       ui.notifications.warn(
         `Click Adventure: Import complete with ${warnings.length} warning(s) — see browser console.`
@@ -383,6 +428,22 @@ export class AdventureIOApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     const manager = foundry.applications.instances.get("manager-app");
     if (manager?.rendered) manager.render({ force: true });
+  }
+
+  /**
+   * Turns an applyFlightData report into import warnings: what the new group's overview could
+   * not carry over.
+   * @param {string} groupName
+   * @param {object} report
+   * @returns {string[]}
+   */
+  _flightWarnings(groupName, report) {
+    const prefix = `Group "${groupName}" / overview map`;
+    return [
+      ...report.warnings.map(w => `${prefix}: ${w}`),
+      ...report.rejected.map(r => `${prefix}: room "${r.room}" skipped (${r.reason})`),
+      ...report.unmatchedRooms.map(r => `${prefix}: room "${r}" is linked to no node`)
+    ];
   }
 
   /**
