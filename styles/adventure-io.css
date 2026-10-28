@@ -15,6 +15,7 @@
      .ca-io-graph-list  Checkbox list of groups
      .ca-io-actions     Trailing action row of a section
      .ca-io-file-label  <label> wrapping a hidden file input, styled as a button
+     .ca-io-module-row  A module-shipped adventure: name, meta, and its Import / Reimport button
 */
 
 .click-adventure.adventure-io .ca-io-wrap {
@@ -117,4 +118,15 @@
 
 .click-adventure.adventure-io .ca-io-empty {
   margin: 0;
+}
+
+/* Rows of the From modules card hold a button instead of a checkbox, so they are not clickable as a whole. */
+.click-adventure.adventure-io .ca-io-module-row {
+  cursor: default;
+}
+
+.click-adventure.adventure-io .ca-io-module-error {
+  flex-shrink: 0;
+  font-size: var(--ca-fs-micro);
+  color: var(--ca-state-warning);
 }

@@ -40,6 +40,45 @@
     {{/if}}
   </div>
 
+  {{!-- ── From modules ────────────────────────────────────────────────────── --}}
+  {{#if moduleAdventures.length}}
+  <div class="ca-card ca-io-section">
+    <div class="ca-label ca-io-section-title">From modules</div>
+    <p class="ca-hint ca-io-hint">Adventures shipped by your active modules. Reimport replaces the group and every change made to it.</p>
+    <ul class="ca-io-graph-list">
+      {{#each moduleAdventures}}
+        <li class="ca-io-graph-item">
+          <div class="ca-io-graph-label ca-io-module-row">
+            <span class="ca-io-graph-name">{{name}}</span>
+            {{#if error}}
+              <span class="ca-io-graph-meta">{{moduleTitle}}</span>
+              <span class="ca-io-module-error">{{error}}</span>
+            {{else}}
+              <span class="ca-io-graph-meta">{{moduleTitle}} · {{nodeCount}} nodes · {{linkCount}} links</span>
+              {{#if imported}}
+                <button type="button" data-action="module-reimport" data-path="{{path}}" data-index="{{index}}" data-module-title="{{moduleTitle}}"
+                        class="ca-btn ca-btn--quiet ca-btn--sm ca-io-small-btn">
+                  <i class="fas fa-rotate"></i> Reimport
+                </button>
+              {{else}}
+                <button type="button" data-action="module-import" data-path="{{path}}" data-index="{{index}}" data-module-title="{{moduleTitle}}"
+                        class="ca-btn ca-btn--accent ca-btn--sm ca-io-small-btn">
+                  <i class="fas fa-upload"></i> Import
+                </button>
+              {{/if}}
+            {{/if}}
+          </div>
+        </li>
+      {{/each}}
+    </ul>
+    <div class="ca-io-actions">
+      <button type="button" data-action="module-refresh" class="ca-btn ca-btn--quiet ca-btn--sm ca-io-small-btn">
+        <i class="fas fa-arrows-rotate"></i> Refresh
+      </button>
+    </div>
+  </div>
+  {{/if}}
+
   <hr class="ca-io-divider">
 
   {{!-- ── Import ──────────────────────────────────────────────────────────── --}}

@@ -161,6 +161,20 @@ A group's `flight` is `{ enabled, overviewSceneId }`, and a node may carry `flig
 
 The older `click-adventure.graph` setting is legacy and unused.
 
+## Shipping an adventure in your module
+
+Declare one or more export files in your `module.json`:
+
+```json
+"flags": {
+  "click-adventure": {
+    "adventures": ["modules/my-module/adventures/my-adventure.json"]
+  }
+}
+```
+
+Paths are full Data paths, like the image paths inside the file. When your module is active, **Export / Import** lists every group in those files with an **Import** button. The group keeps the `id` written in the file, which is how Click Adventure recognises it later: once it is in the world, the button reads **Reimport**, and reimporting replaces the group, its scenes and every change the GM made to it, after a confirmation. Nothing is imported automatically. Keep the group's `id` stable across releases of your module, or a new release shows up as a second adventure. Foundry reads `module.json` only at launch, so restart the server after adding the flag.
+
 ## Export files
 
 **Export / Import** in the module settings writes a JSON file with the selected groups. The import creates new scenes and a new group id, and finds macros, linked scenes, journal pages and playlist tracks in the destination world **by name**. If you generate adventures with a script, give those documents the same names in the target world, and they reconnect on import.

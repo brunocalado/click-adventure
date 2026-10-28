@@ -25,6 +25,20 @@ import { getOverviewScene, getOverviewMap, regionPoints, resolveNodeRegion, appl
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
+/**
+ * Every adventure file declared by an active module under flags["click-adventure"].adventures in
+ * its manifest. A manifest flag needs no code in the content module and no load-order care.
+ * @returns {{module: Module, path: string}[]}
+ */
+function declaredAdventureFiles() {
+  return game.modules.filter(m => m.active).flatMap(m => {
+    const list = m.flags?.[MODULE_ID]?.adventures;
+    return (Array.isArray(list) ? list : [])
+      .filter(p => typeof p === "string" && p)
+      .map(path => ({ module: m, path }));
+  });
+}
+
 export class AdventureIOApp extends HandlebarsApplicationMixin(ApplicationV2) {
   /** @override */
   static DEFAULT_OPTIONS = {
@@ -48,6 +62,11 @@ export class AdventureIOApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this._importData = null;
     /** @type {string} Display name of the loaded file. */
     this._importFileName = "";
+    /**
+     * Adventure files declared by modules, fetched once per window and kept until Refresh.
+     * @type {Map<string, Promise<{graphs?: object[], error?: string}>>}
+     */
+    this._moduleFiles = new Map();
   }
 
   // ---------------------------------------------------------------------------
@@ -84,7 +103,45 @@ export class AdventureIOApp extends HandlebarsApplicationMixin(ApplicationV2) {
       context.importFileName = this._importFileName;
     }
 
+    const existingIds = new Set(context.graphs.map(g => g.id));
+    context.moduleAdventures = [];
+    for (const { module, path } of declaredAdventureFiles()) {
+      const { graphs, error } = await this._loadModuleFile(path);
+      const base = { moduleTitle: module.title, path };
+      if (error) {
+        context.moduleAdventures.push({ ...base, index: -1, name: path, error });
+        continue;
+      }
+      graphs.forEach((g, index) => {
+        const hasId = typeof g?.id === "string" && g.id !== "";
+        context.moduleAdventures.push({
+          ...base, index,
+          name:      g?.name ?? path,
+          nodeCount: (g?.nodes ?? []).length,
+          linkCount: (g?.links ?? []).length,
+          imported:  hasId && existingIds.has(g.id),
+          error:     hasId ? null : "group has no id"
+        });
+      });
+    }
+
     return context;
+  }
+
+  /**
+   * Fetches a module-declared adventure file, once per window instance.
+   * @param {string} path  a Data path, resolved like every image path inside the file
+   * @returns {Promise<{graphs?: object[], error?: string}>}
+   */
+  _loadModuleFile(path) {
+    if (!this._moduleFiles.has(path)) {
+      this._moduleFiles.set(path, foundry.utils.fetchJsonWithTimeout(path, {}, { timeoutMs: 10000 })
+        .then(data => (data?.clickAdventureVersion && Array.isArray(data.graphs))
+          ? { graphs: data.graphs }
+          : { error: "not a Click Adventure file" })
+        .catch(() => ({ error: "could not be loaded" })));
+    }
+    return this._moduleFiles.get(path);
   }
 
   /**
@@ -138,6 +195,25 @@ export class AdventureIOApp extends HandlebarsApplicationMixin(ApplicationV2) {
       }
     });
 
+    // ── From modules ─────────────────────────────────────────────────────────
+    html.querySelector("[data-action='module-refresh']")?.addEventListener("click", () => {
+      this._moduleFiles.clear();
+      this.render({ force: true });
+    });
+
+    html.querySelectorAll("[data-action='module-import'], [data-action='module-reimport']").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const { path, index } = btn.dataset;
+        const { graphs } = await this._loadModuleFile(path);
+        const graph = graphs?.[parseInt(index, 10)];
+        if (!graph) return;
+        if (btn.dataset.action === "module-reimport" && !(await this._confirmReimport(graph, btn.dataset.moduleTitle))) return;
+        btn.disabled = true;
+        await this._doImport([foundry.utils.deepClone(graph)], { keepIds: true });
+        this.render({ force: true });
+      });
+    });
+
     html.querySelector("[data-action='import-cancel']")?.addEventListener("click", () => {
       this._importData     = null;
       this._importFileName = "";
@@ -157,6 +233,33 @@ export class AdventureIOApp extends HandlebarsApplicationMixin(ApplicationV2) {
       this._importFileName = "";
       this.render({ force: true });
     });
+  }
+
+  /**
+   * Asks before a module adventure replaces the group already in the world.
+   * @param {object} graph
+   * @param {string} moduleTitle
+   * @returns {Promise<boolean>}
+   */
+  async _confirmReimport(graph, moduleTitle) {
+    const { escapeHTML } = foundry.utils;
+    const col = game.settings.get(MODULE_ID, "graphs");
+    const raw = typeof col?.toObject === "function" ? col.toObject() : (col ?? {});
+    const isActive = raw.activeGraphId === graph.id;
+    const confirmed = await foundry.applications.api.DialogV2.confirm({
+      window: { title: "Reimport Adventure" },
+      classes: ["click-adventure", "ca-dialog"],
+      content: `<p>Replace <strong>${escapeHTML(graph.name ?? "")}</strong> with the version shipped by
+        <strong>${escapeHTML(moduleTitle ?? "")}</strong>?</p>
+        <p>Every change made to this group in this world is lost: nodes, links, images, macros,
+        positions and overview rooms. Its scenes are deleted and created again.</p>`
+        // A deleted scene leaves whoever was viewing it on an empty canvas; nothing throws.
+        + (isActive ? "<p>This is the active group. Players viewing its scenes will see an empty canvas until you move them again.</p>" : ""),
+      yes: { label: "Reimport", class: "ca-btn ca-btn--danger" },
+      no:  { label: "Cancel", class: "ca-btn ca-btn--quiet" },
+      rejectClose: false
+    });
+    return confirmed === true;
   }
 
   // ---------------------------------------------------------------------------
