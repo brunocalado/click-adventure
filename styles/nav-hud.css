@@ -360,8 +360,9 @@
   background: var(--ca-accent);
 }
 
-/* GM shortcut to open the Scene Graph Manager */
-.click-adventure.nav-hud .ca-hud-manager-btn {
+/* GM shortcuts: open the Scene Graph Manager, fly the party back to the overview map */
+.click-adventure.nav-hud .ca-hud-manager-btn,
+.click-adventure.nav-hud .ca-hud-map-btn {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -380,7 +381,8 @@
   pointer-events: all;
 }
 
-.click-adventure.nav-hud .ca-hud-manager-btn:hover {
+.click-adventure.nav-hud .ca-hud-manager-btn:hover,
+.click-adventure.nav-hud .ca-hud-map-btn:hover {
   background: var(--ca-scrim-hud-hover);
   color: var(--ca-text-primary);
 }

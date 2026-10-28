@@ -16,6 +16,7 @@ import {
 } from "./node-utils.js";
 import { shouldLockOnArrival, isUserLocked } from "./autolock-utils.js";
 import { openNodeJournal } from "./node-media.js";
+import { flightAvailable, flyParty } from "./flight-travel.js";
 
 // ── 3D gradient helpers (private to this module) ─────────────────────────────
 function _hexToRgb(hex) {
@@ -317,6 +318,7 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     context.isGM        = game.user.isGM;
     context.gmNavMode   = game.settings.get("click-adventure", "gmNavigationMode");
     context.isGuideMode = game.settings.get("click-adventure", "gmNavigationMode") === "guide";
+    context.canFlyToMap = flightAvailable() && !!this._currentNode();
 
     // ── GM node switcher — images and linked scenes for the current node ──
     if (game.user.isGM) {
@@ -528,6 +530,11 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     html.querySelector(".ca-hud-manager-btn")?.addEventListener("click", (e) => {
       e.stopPropagation();
       globalThis.ClickAdventure.Manager();
+    });
+
+    html.querySelector(".ca-hud-map-btn")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      flyParty({ kind: "map" });
     });
 
     html.querySelector(".ca-hud-mode-btn")?.addEventListener("click", async (e) => {
@@ -885,6 +892,13 @@ export class NavHudApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this._restorePeekTexture();
     this._peekActiveNodeId = null;
     this._peekPanelOpen    = false;
+
+    // A Guide move in a group with an overview map flies over it. flyParty() declines hops it
+    // cannot fly (no Region or no scene on the target), and those take the normal path below.
+    if (flightAvailable() && await flyParty({ kind: "room", node: targetNode })) {
+      this.render({ force: true });
+      return;
+    }
 
     // ── Capture where we are NOW as the previous location ─────────────
     const currentNode = this._currentNode();

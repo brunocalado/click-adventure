@@ -11,6 +11,7 @@
  * Supported message types:
  *   VIEW_SCENE_FOR_USER — target client calls scene.view() locally.
  *   PLAYER_MOVED — notifies the GM's manager to patch occupant avatars without re-render.
+ *   FLIGHT — every client named in the payload plays a flight over the overview map.
  *
  * Per-client scene viewing:
  *   Players cannot call scene.activate() (GM-only). Instead, a player emits
@@ -25,6 +26,7 @@ import { MODULE_ID } from "./constants.js";
 import { getGraphData, getActiveGroup, saveGraphData, fireActiveItemMacro, fireNodeMacros, setUserCurrentNode } from "./node-utils.js";
 import { lockUser, unlockUser } from "./autolock-utils.js";
 import { openNodeJournal } from "./node-media.js";
+import { runFlight } from "./flight-travel.js";
 
 const SOCKET_ID = "module.click-adventure";
 
@@ -79,6 +81,9 @@ export class AdventureSocketManager {
           break;
         case "ACTIVATE_GRAPH":
           this._handleActivateGraph(payload);
+          break;
+        case "FLIGHT":
+          runFlight(payload);
           break;
         default:
           console.warn(`AdventureSocketManager | Unknown message type: ${type}`);
@@ -184,6 +189,15 @@ export class AdventureSocketManager {
 
     const hud = globalThis.ClickAdventure._hud;
     if (hud?.rendered) hud.render({ force: true });
+  }
+
+  /**
+   * Broadcasts a Guide-mode flight over the overview map. Every client in its `origins` plays
+   * it and changes scene underneath; the GM plays its own copy directly.
+   * @param {object} payload - see flyParty in flight-travel.js
+   */
+  emitFlight(payload) {
+    this._emit("FLIGHT", payload);
   }
 
   /**

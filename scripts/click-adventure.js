@@ -21,6 +21,7 @@ import { AdventureIOApp } from "./adventure-io-app.js";
 import { lockAllUsers, restoreLockedUsers } from "./autolock-utils.js";
 import { FlightOverlay } from "./flight-overlay.js";
 import { applyFlightData, readFlightData } from "./flight-data.js";
+import { onOverviewDoubleClick } from "./flight-travel.js";
 
 /**
  * O(1) lookup set of sceneIds belonging to graph nodes.
@@ -181,6 +182,9 @@ Hooks.on("pauseGame", async (paused) => {
  */
 Hooks.on("ready", async () => {
   _buildSceneIdCache();
+
+  // Double-clicking a room on the overview map sends the party there (Guide mode, flight on).
+  if (game.user.isGM) document.getElementById("board")?.addEventListener("dblclick", onOverviewDoubleClick);
 
   // Clear stale pause snapshot if the world reloaded without a proper unpause.
   // Prevents an old snapshot from being applied when someone unpauses in a new session.

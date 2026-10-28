@@ -82,6 +82,13 @@
       {{/if}}
     </button>
 
+    {{#if canFlyToMap}}
+    <button class="ca-hud-map-btn" data-action="fly-to-map" type="button"
+            title="Fly the party back to the overview map">
+      <i class="fa-solid fa-map"></i> Map
+    </button>
+    {{/if}}
+
     {{/if}}
 
     {{!-- Orb — shape (orb vs square) and content (image vs gradient) are independent --}}

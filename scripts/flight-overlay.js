@@ -62,6 +62,7 @@ export class FlightOverlay {
   #caption = null;
   #from = null;
   #to = null;
+  #camera = null;
   #animation = null;
   #skipped = false;
   #destroyed = false;
@@ -126,6 +127,24 @@ export class FlightOverlay {
     this.#animation = this.#world.animate(frames, { duration: FLY_MS, easing: "linear", fill: "forwards" });
     if (this.#skipped) this.#animation.finish();
     await this.#race(this.#animation.finished.catch(() => {}));
+    this.#camera = B;
+  }
+
+  /**
+   * Glide from where the camera is to `view` with no dip. Used on landing over the overview
+   * scene, so the overlay ends on exactly what the real canvas shows before it dissolves.
+   * @param {ViewFraming} view
+   * @param {number} duration  ms
+   */
+  async settle(view, duration) {
+    if (this.#destroyed || !this.#camera) return;
+    const A = this.#camera, B = this.#resolve(view);
+    this.#animation = this.#world.animate([
+      { transform: cameraTransform(A.x, A.y, A.s) },
+      { transform: cameraTransform(B.x, B.y, B.s) }
+    ], { duration, easing: "ease-out", fill: "forwards" });
+    await this.#race(this.#animation.finished.catch(() => {}));
+    this.#camera = B;
   }
 
   /**
@@ -188,6 +207,7 @@ export class FlightOverlay {
 
   #setCamera({ x, y, s }) {
     this.#world.style.transform = cameraTransform(x, y, s);
+    this.#camera = { x, y, s };
   }
 
   #mount(from, to) {
