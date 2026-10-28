@@ -1,5 +1,6 @@
 # Unreleased
 
+- [Added] Import files can be written by hand: node ids, image ids, link anchors, passages and Manager positions are optional, and links can name nodes by label with `from` and `to`.
 - [Changed] Landing in a room now drifts the camera slightly into it while the map fades away.
 - [Added] A travel sound per group in the Flight card: it plays on every client during a flight, on each player's Interface volume, and is kept in exports.
 - [Added] Flight pace per group (Slow, Normal, Fast) in the Flight card. Everyone flies at the GM's pace, and the pace is kept in exports.

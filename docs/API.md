@@ -179,6 +179,26 @@ Paths are full Data paths, like the image paths inside the file. When your modul
 
 **Export / Import** in the module settings writes a JSON file with the selected groups. The import creates new scenes and a new group id, and finds macros, linked scenes, journal pages and playlist tracks in the destination world **by name**. If you generate adventures with a script, give those documents the same names in the target world, and they reconnect on import.
 
+You can also write an import file by hand, or generate one with a script. Only `clickAdventureVersion`, the group's `name` and each node's `label` are required; this is the smallest file the import accepts:
+
+```json
+{
+  "clickAdventureVersion": "1",
+  "graphs": [{
+    "id": "lockwood-manor",
+    "name": "The Forgetting of Lockwood Manor",
+    "start": "1. Gates",
+    "nodes": [
+      { "label": "1. Gates", "images": ["modules/my-module/scenes/01-gates.jpg"] },
+      { "label": "3a. Entry", "images": ["modules/my-module/scenes/03a-entry.jpg"] }
+    ],
+    "links": [{ "from": "1. Gates", "to": "3a. Entry" }]
+  }]
+}
+```
+
+A node without an `id` gets a new one, and a node without `x`/`y` goes on a grid in the Manager. An image can be just its path; its label defaults to the node's. `start` names the start node by label, and without it the first node starts. A link names its two nodes by exact label with `from` and `to`; a label that matches no node, or several, drops the link with a warning. Anchors are worked out from the nodes' positions. A navigation link without `passages` gets one passage, two-way unless `oneWay: true`, with an optional `label` and a `state` of `open`, `blocked` or `secret`. `type: "peek"` makes a peek link. Anything the export writes is accepted as it is. Give nodes an `id` if your module will be reimported while players are in it; a node without one gets a new id on every import, and players standing on it are moved off.
+
 To ship a finished adventure as its own module, follow [Building a Distributable Adventure Module](https://github.com/brunocalado/click-adventure/wiki/Building-a-Distributable-Adventure-Module-for-Click-Adventure) in the Wiki.
 
 ## Contributing

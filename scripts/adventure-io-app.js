@@ -21,6 +21,7 @@
 import { MODULE_ID } from "./constants.js";
 import { getGroupFolder, getOrCreateGroupFolder, createSceneForNode } from "./manager-scene-ops.js";
 import { getNodeJournal, getNodeMusic } from "./node-media.js";
+import { normalizeImportGraph } from "./import-normalize.js";
 import { getOverviewScene, getOverviewMap, regionPoints, resolveNodeRegion, applyFlightData, setFlightEnabled, setFlightOptions } from "./flight-data.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -442,6 +443,7 @@ export class AdventureIOApp extends HandlebarsApplicationMixin(ApplicationV2) {
   /**
    * Processes and persists selected graphs from the import payload.
    * For each graph:
+   *   0. Fills in what a hand-written file leaves out (normalizeImportGraph).
    *   1. Resolves all macro references (UUID → world ID → name fallback).
    *   2. Resolves linked-scene references by scene name.
    *   3. Resolves journal and music references (id → name) into the node's staging fields.
@@ -467,7 +469,10 @@ export class AdventureIOApp extends HandlebarsApplicationMixin(ApplicationV2) {
     /** @type {{graph: object, entry: object, oldSceneIds: string[]}[]} */
     const imported = [];
 
-    for (const graph of graphs) {
+    for (let graph of graphs) {
+      // A hand-written file may leave out ids, anchors, passages and positions; from here on the
+      // import only sees the export shape.
+      graph = normalizeImportGraph(graph, warnings);
       if (keepIds && (typeof graph.id !== "string" || !graph.id)) {
         warnings.push(`Group "${graph.name}" has no id in the file — skipped.`);
         continue;
