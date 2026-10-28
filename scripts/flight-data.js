@@ -212,7 +212,7 @@ export async function changeOverviewMap(group, src) {
 }
 
 /** `[[x,y],…]` pairs or a flat array → flat array, or null when the shape is not one of those. */
-function flattenPoints(points) {
+export function flattenPoints(points) {
   if (!Array.isArray(points)) return null;
   if (points.every(p => Array.isArray(p))) {
     if (!points.every(p => p.length === 2)) return null;

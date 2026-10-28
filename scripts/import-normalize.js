@@ -18,6 +18,7 @@
  */
 
 import { NODE_W, NODE_H } from "./manager-graph.js";
+import { normalizeRoomName, flattenPoints } from "./flight-data.js";
 
 const NAV_ANCHORS = ["top", "right", "bottom", "left"];
 const PASSAGE_STATES = ["open", "blocked", "secret"];
@@ -35,6 +36,7 @@ export function normalizeImportGraph(graph, warnings) {
   const { start, ...rest } = graph;
   const where = `Group "${graph.name}"`;
   const nodes = (graph.nodes ?? []).map(node => normalizeNode(node, warnings, where));
+  layoutFromRooms(nodes, graph.flight?.rooms);
   placeOnGrid(nodes);
 
   const byLabel = new Map();
@@ -81,6 +83,48 @@ function normalizeNode(node, warnings, where) {
     });
   }
   return out;
+}
+
+/**
+ * Nodes missing x or y take their room's place on the overview map, scaled so the median distance
+ * between neighbouring rooms becomes 180 Manager pixels. One scale from the median reproduces the
+ * density the Lockwood build script reached with two hand-tuned factors, and keeps the map's
+ * proportions. Scaling from the minimum distance avoids every overlap but spreads the nodes over a
+ * mostly empty canvas, so the closest rooms are pushed apart afterwards instead.
+ */
+function layoutFromRooms(nodes, rawRooms) {
+  const rooms = (Array.isArray(rawRooms) ? rawRooms : [])
+    .map(r => ({ r, pts: flattenPoints(r?.points) }))
+    .filter(({ pts }) => pts && pts.length >= 6 && pts.every(Number.isFinite))
+    .map(({ r, pts }) => {
+      let cx = 0, cy = 0;
+      for (let i = 0; i < pts.length; i += 2) { cx += pts[i]; cy += pts[i + 1]; }
+      return { name: r.name, node: r.node, cx: cx / (pts.length / 2), cy: cy / (pts.length / 2) };
+    });
+  if (rooms.length < 2) return;
+  const nearest = rooms.map(a => Math.min(...rooms.filter(b => b !== a).map(b => Math.hypot(a.cx - b.cx, a.cy - b.cy))))
+    .sort((a, b) => a - b);
+  const mid = nearest.length >> 1;
+  const median = nearest.length % 2 ? nearest[mid] : (nearest[mid - 1] + nearest[mid]) / 2;
+  if (!(median > 0)) return;
+  const s = 180 / median;
+
+  // The same two rules applyFlightData links a room to a node by.
+  const roomFor = label => rooms.find(r => r.node === label)
+    ?? rooms.find(r => normalizeRoomName(r.name) === normalizeRoomName(label));
+  const hasPosition = n => Number.isFinite(n.x) && Number.isFinite(n.y);
+  const placed = nodes.filter(hasPosition).map(n => ({ x: n.x, y: n.y }));
+  const overlaps = (x, y) => placed.some(b => Math.abs(x - b.x) < NODE_W + 20 && Math.abs(y - b.y) < NODE_H + 20);
+  for (const n of nodes) {
+    if (hasPosition(n)) continue;
+    const room = roomFor(n.label);
+    if (!room) continue;
+    const x = Math.round(room.cx * s - NODE_W / 2);
+    let y = Math.round(room.cy * s - NODE_H / 2);
+    while (overlaps(x, y)) y += NODE_H + 20;
+    n.x = x; n.y = y;
+    placed.push({ x, y });
+  }
 }
 
 /** Nodes missing x or y go on a grid below the lowest node that has a position, as a folder import lays them out. */
