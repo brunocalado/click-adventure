@@ -129,7 +129,7 @@ await ClickAdventure.Flight.preview({
 - `{ kind: "room", points: [x0, y0, x1, y1, …], label }` for a room, as a **flat** array;
 - `{ kind: "view", x, y, scale }` for a centre and a zoom (start point only).
 
-The travel time grows with the distance flown, from about 1.5 s between neighbouring rooms to about 3 s across the map. A flight to or from the whole map counts as a medium distance. The fades and the hold are fixed.
+The travel time grows with the distance flown, from about 1.5 s between neighbouring rooms to about 3 s across the map. A flight to or from the whole map counts as a medium distance, and the time is multiplied by the group's pace: Slow, Normal or Fast in the Flight card. Every client flies at the GM's pace. `preview()` always flies at Normal. The fades and the hold are fixed.
 
 ### What actually flies
 
@@ -157,7 +157,7 @@ const { activeGraphId, graphs } = game.settings.get("click-adventure", "graphs")
 const node = graphs.find(g => g.id === activeGraphId)?.nodes.find(n => n.id === nodeId);
 ```
 
-A group's `flight` is `{ enabled, overviewSceneId }`, and a node may carry `flightRegionId`. Both are optional: if they're absent, flight is off and the link is resolved by name.
+A group's `flight` is `{ enabled, overviewSceneId, pace? }`, with `pace` one of `"slow"`, `"normal"`, `"fast"` (absent means Normal), and a node may carry `flightRegionId`. Both are optional: if they're absent, flight is off and the link is resolved by name.
 
 The older `click-adventure.graph` setting is legacy and unused.
 

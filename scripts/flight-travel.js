@@ -54,6 +54,10 @@ export function flightAvailable() {
 const isOutline = p => Array.isArray(p) && p.length >= 6 && p.length % 2 === 0 && p.every(Number.isFinite);
 
 /** A FLIGHT payload arrives from the network, so its shape is checked before anything uses it. */
+// A slow horror manor and a fast heist want different flights, so the pace belongs to the group.
+const PACE = Object.freeze({ slow: 1.4, normal: 1, fast: 0.7 });
+export const paceMultiplier = group => PACE[group?.flight?.pace] ?? 1;
+
 function isValidFlightPayload(p) {
   if (!p || typeof p !== "object") return false;
   const { overviewSceneId, map, to, origins, action } = p;
@@ -61,6 +65,7 @@ function isValidFlightPayload(p) {
   if (typeof map?.src !== "string" || !Number.isFinite(map.width) || !Number.isFinite(map.height)) return false;
   if (map.width <= 0 || map.height <= 0) return false;
   if (action !== "view" && action !== "activate") return false;
+  if (!Number.isFinite(p.pace) || p.pace < 0.5 || p.pace > 2) return false;
   if (!origins || typeof origins !== "object") return false;
   if (!Object.values(origins).every(o => o === null || isOutline(o))) return false;
   if (to?.kind === "map") return true;
@@ -107,7 +112,7 @@ export async function flyParty(target) {
     const origins = Object.fromEntries(users.map(u =>
       [u.id, rooms.find(r => r.node.id === originNodes.get(u.id)?.id)?.points ?? null]));
 
-    const payload = { overviewSceneId: overview.id, map: getOverviewMap(overview), to, origins, action };
+    const payload = { overviewSceneId: overview.id, map: getOverviewMap(overview), to, origins, action, pace: paceMultiplier(group) };
     socket.emitFlight(payload);
     const local = runFlight(payload);
 
@@ -213,7 +218,7 @@ export async function runFlight(payload) {
     console.warn("Click Adventure | Dropped a malformed FLIGHT message.", payload);
     return;
   }
-  const { overviewSceneId, map, to, origins, action } = payload;
+  const { overviewSceneId, map, to, origins, action, pace } = payload;
   if (!(game.userId in origins)) return;
   const destSceneId = to.kind === "map" ? overviewSceneId : to.sceneId;
   const destScene = game.scenes.get(destSceneId);
@@ -228,7 +233,7 @@ export async function runFlight(payload) {
     await overlay.cover(from, to.kind === "map" ? { kind: "map" } : { kind: "room", points: to.points, label: to.label });
 
     const arrived = action === "view" ? viewWithRetry(destScene) : waitForCanvasScene(destSceneId);
-    await overlay.fly();
+    await overlay.fly({ pace });
     await overlay.land({
       caption: to.label,
       until: arrived.then(() => to.kind === "map" ? matchOverviewCamera(overlay, map) : null)

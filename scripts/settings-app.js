@@ -9,8 +9,9 @@
 
 import { onResetGraph } from "./manager-scene-ops.js";
 import { getActiveGroup, saveGraphData } from "./node-utils.js";
-import { getOverviewScene, getOverviewMap, getFlightRooms, createOverviewScene, changeOverviewMap, applyFlightData } from "./flight-data.js";
+import { getOverviewScene, getOverviewMap, getFlightRooms, createOverviewScene, changeOverviewMap, applyFlightData, setFlightOptions } from "./flight-data.js";
 import { FlightOverlay } from "./flight-overlay.js";
+import { paceMultiplier } from "./flight-travel.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -88,6 +89,8 @@ export class SettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const group = getActiveGroup();
     const overview = getOverviewScene(group);
     const rooms = group ? getFlightRooms(group) : { linked: [], unlinked: [], ambiguous: [] };
+    // A missing or unknown pace reads as Normal, as it flies.
+    const pace = ["slow", "fast"].includes(group?.flight?.pace) ? group.flight.pace : "normal";
     context.flight = {
       enabled: group?.flight?.enabled === true,
       overviewName: overview?.name ?? null,
@@ -96,7 +99,9 @@ export class SettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
       unlinked: rooms.unlinked.map(n => ({ id: n.id, label: n.label })),
       ambiguous: rooms.ambiguous.map(a => ({ label: a.node.label, regions: a.regions.map(r => r.name).join(", ") })),
       regionOptions: overview ? [...overview.regions].map(r => ({ id: r.id, name: r.name }))
-        .sort((a, b) => a.name.localeCompare(b.name)) : []
+        .sort((a, b) => a.name.localeCompare(b.name)) : [],
+      paces: [["slow", "Slow"], ["normal", "Normal"], ["fast", "Fast"]].map(([value, label]) =>
+        ({ value, label, active: pace === value }))
     };
 
     return context;
@@ -142,8 +147,9 @@ export class SettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
         await game.settings.set("click-adventure", "transitionType", e.target.value);
       });
 
-    // Button groups (HUD Visibility + Guide Mode)
-    this.element.querySelectorAll(".ca-btn-group").forEach(group => {
+    // Button groups bound to a world setting (HUD Visibility + Guide Mode). The Flight card's pace
+    // group has no data-setting: it writes the group, in _wireFlightCard.
+    this.element.querySelectorAll(".ca-btn-group[data-setting]").forEach(group => {
       group.querySelectorAll(".ca-btn-group-btn").forEach(btn => {
         btn.addEventListener("click", async () => {
           const setting = group.dataset.setting;
@@ -308,7 +314,15 @@ export class SettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
       if (!overview) return;
       const overlay = new FlightOverlay(getOverviewMap(overview));
       await overlay.ready();
-      await overlay.showcase(getFlightRooms(group).linked.map(r => ({ points: r.points, label: r.node.label })));
+      await overlay.showcase(getFlightRooms(group).linked.map(r => ({ points: r.points, label: r.node.label })),
+        { pace: paceMultiplier(group) });
+    });
+
+    card.querySelectorAll(".ca-flight-pace .ca-btn-group-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        await setFlightOptions(group.id, { pace: btn.dataset.value });
+        this.render();
+      });
     });
 
     const fileInput = card.querySelector(".ca-flight-file-input");

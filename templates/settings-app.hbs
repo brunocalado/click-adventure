@@ -40,6 +40,14 @@
           <button class="ca-btn ca-btn--quiet ca-flight-open" type="button"><i class="fa-solid fa-eye"></i> Open</button>
           <button class="ca-btn ca-btn--quiet ca-flight-change-map" type="button"><i class="fa-solid fa-image"></i> Change map…</button>
         </div>
+        <div class="ca-flight-row">
+          <span class="ca-flight-text">Pace</span>
+          <div class="ca-btn-group ca-flight-pace">
+            {{#each flight.paces}}
+            <button type="button" class="ca-btn-group-btn {{#if active}}ca-btn-group-btn--active{{/if}}" data-value="{{value}}">{{label}}</button>
+            {{/each}}
+          </div>
+        </div>
         <p class="ca-flight-text ca-flight-status">{{flight.linkedCount}} of {{flight.nodeCount}} nodes linked to a room</p>
         {{#if flight.unlinked.length}}
         <ul class="ca-flight-unlinked">

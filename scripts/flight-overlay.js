@@ -124,8 +124,11 @@ export class FlightOverlay {
     await this.#race(fade.finished);
   }
 
-  /** Fly to `to`; resolves when the camera has landed. A click on the overlay skips to the end. */
-  async fly() {
+  /**
+   * Fly to `to`; resolves when the camera has landed. A click on the overlay skips to the end.
+   * @param {{pace?: number}} [options]  multiplies the travel time; the fades and hold are unchanged
+   */
+  async fly({ pace = 1 } = {}) {
     if (this.#destroyed) return;
     const A = this.#from, B = this.#to;
     const { width: W, height: H } = this.#map;
@@ -143,7 +146,7 @@ export class FlightOverlay {
       const s = base - (base - sMid) * Math.sin(Math.PI * e);
       return { transform: cameraTransform(lerp(A.x, B.x, e), lerp(A.y, B.y, e), s) };
     });
-    this.#animation = this.#world.animate(frames, { duration: travelMs(A, B, this.#kinds, Math.hypot(W, H)), easing: "linear", fill: "forwards" });
+    this.#animation = this.#world.animate(frames, { duration: pace * travelMs(A, B, this.#kinds, Math.hypot(W, H)), easing: "linear", fill: "forwards" });
     if (this.#skipped) this.#animation.finish();
     await this.#race(this.#animation.finished.catch(() => {}));
     this.#camera = B;
@@ -192,8 +195,9 @@ export class FlightOverlay {
    * Shows the whole map with every linked room outlined and labelled. Clicking one room and then
    * another flies between them; clicking outside any room, or Escape, closes. Resolves on close.
    * @param {{points: number[], label: string}[]} rooms
+   * @param {{pace?: number}} [options]  passed to each fly(), so a preview shows the group's pace
    */
-  async showcase(rooms) {
+  async showcase(rooms, { pace = 1 } = {}) {
     const map = { kind: "map" };
     mounted?.destroy();
     mounted = this;
@@ -250,7 +254,7 @@ export class FlightOverlay {
       this.#to = this.#resolve({ kind: "room", points: room.points });
       // Flown from wherever the camera is, so measured like a room start.
       this.#kinds = ["view", "room"];
-      await this.fly();
+      await this.fly({ pace });
       current = room;
       flying = false;
       if (this.#destroyed) return;

@@ -21,7 +21,7 @@
 import { MODULE_ID } from "./constants.js";
 import { getGroupFolder, getOrCreateGroupFolder, createSceneForNode } from "./manager-scene-ops.js";
 import { getNodeJournal, getNodeMusic } from "./node-media.js";
-import { getOverviewScene, getOverviewMap, regionPoints, resolveNodeRegion, applyFlightData, setFlightEnabled } from "./flight-data.js";
+import { getOverviewScene, getOverviewMap, regionPoints, resolveNodeRegion, applyFlightData, setFlightEnabled, setFlightOptions } from "./flight-data.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -336,6 +336,7 @@ export class AdventureIOApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const toPairs = flat => Array.from({ length: flat.length / 2 }, (_, i) => [flat[2 * i], flat[2 * i + 1]]);
     return {
       enabled: graph.flight?.enabled === true,
+      pace: graph.flight?.pace ?? "normal",
       map: map.src,
       size: { width: map.width, height: map.height },
       rooms: [...overview.regions].map(region => ({
@@ -546,6 +547,8 @@ export class AdventureIOApp extends HandlebarsApplicationMixin(ApplicationV2) {
         );
         // apply() turns flight on; honour the exported switch.
         if (graph.flight.enabled === false) await setFlightEnabled(groupId, false);
+        // An older export has no pace, and the group reads as Normal.
+        if (["slow", "normal", "fast"].includes(graph.flight.pace)) await setFlightOptions(groupId, { pace: graph.flight.pace });
         warnings.push(...this._flightWarnings(graph.name, report));
       } catch (err) {
         warnings.push(`Group "${graph.name}" / overview map: ${err.message}`);

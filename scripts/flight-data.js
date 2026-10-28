@@ -183,6 +183,16 @@ export async function setFlightEnabled(groupId, enabled) {
 }
 
 /**
+ * Merges `options` into a group's flight entry (pace, and later sound). GM only.
+ * @param {string} groupId
+ * @param {object} options
+ * @returns {Promise<void>}
+ */
+export async function setFlightOptions(groupId, options) {
+  await patchGroup(groupId, { flight: { ...(getGroup(groupId)?.flight ?? {}), ...options } });
+}
+
+/**
  * Swaps the overview's map image and keeps the scene size, which is what the Regions are measured
  * in. A different aspect ratio would stretch the new image over the old size and misalign every
  * room, so it warns rather than rescaling anything.
