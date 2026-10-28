@@ -126,6 +126,10 @@ To open the navigation HUD:
 ClickAdventure.HUD();
 ```
 
+## For developers
+
+Macro writers and module developers can find the full API, how Click Adventure runs your macros, the overview map's room format and where the module stores its data in [docs/API.md](docs/API.md).
+
 ## Building a distributable adventure module
 
 To package your adventure for other people, follow the guide in the [Wiki](https://github.com/brunocalado/click-adventure/wiki/Building-a-Distributable-Adventure-Module-for-Click-Adventure).
