@@ -100,6 +100,10 @@ export class SettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
       ambiguous: rooms.ambiguous.map(a => ({ label: a.node.label, regions: a.regions.map(r => r.name).join(", ") })),
       regionOptions: overview ? [...overview.regions].map(r => ({ id: r.id, name: r.name }))
         .sort((a, b) => a.name.localeCompare(b.name)) : [],
+      sound: group?.flight?.sound ? {
+        name: decodeURIComponent(group.flight.sound.src.split("/").pop()),
+        volume: group.flight.sound.volume
+      } : null,
       paces: [["slow", "Slow"], ["normal", "Normal"], ["fast", "Fast"]].map(([value, label]) =>
         ({ value, label, active: pace === value }))
     };
@@ -316,6 +320,31 @@ export class SettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
       await overlay.ready();
       await overlay.showcase(getFlightRooms(group).linked.map(r => ({ points: r.points, label: r.node.label })),
         { pace: paceMultiplier(group) });
+    });
+
+    card.querySelector(".ca-flight-sound-choose")?.addEventListener("click", () => {
+      const FilePickerClass = foundry.applications.apps.FilePicker.implementation
+        ?? foundry.applications.apps.FilePicker;
+      new FilePickerClass({
+        type: "audio",
+        current: group.flight?.sound?.src ?? "",
+        callback: async (src) => {
+          await setFlightOptions(group.id, { sound: { src, volume: group.flight?.sound?.volume ?? 0.3 } });
+          this.render();
+        }
+      }).render(true);
+    });
+
+    card.querySelector(".ca-flight-sound-clear")?.addEventListener("click", async () => {
+      await setFlightOptions(group.id, { sound: null });
+      this.render();
+    });
+
+    card.querySelector(".ca-flight-sound-volume")?.addEventListener("change", async (e) => {
+      const sound = group.flight?.sound;
+      if (!sound) return;
+      await setFlightOptions(group.id, { sound: { ...sound, volume: Number(e.target.value) } });
+      this.render();
     });
 
     card.querySelectorAll(".ca-flight-pace .ca-btn-group-btn").forEach(btn => {

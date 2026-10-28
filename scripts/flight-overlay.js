@@ -73,6 +73,10 @@ function cameraTransform(x, y, s) {
 
 export class FlightOverlay {
   #map;
+  /** @type {{src: string, volume: number}|null} */
+  #soundConfig;
+  /** @type {foundry.audio.Sound|null} */
+  #sound = null;
   #root = null;
   #world = null;
   #caption = null;
@@ -87,19 +91,44 @@ export class FlightOverlay {
   #abort;
   #aborted = new Promise(r => { this.#abort = r; });
 
-  /** @param {{src: string, width: number, height: number}} map  width/height in map units */
-  constructor(map) {
+  /**
+   * @param {{src: string, width: number, height: number}} map  width/height in map units
+   * @param {{sound?: {src: string, volume: number}|null}} [options]  a travel sound, played from
+   *   cover() to land()
+   */
+  constructor(map, { sound = null } = {}) {
     this.#map = map;
+    this.#soundConfig = sound;
+  }
+
+  async ready() {
+    // Image decode and sound load run in parallel, so a sound never delays the first frame by more
+    // than the map already does. AudioBufferCache makes every later flight's load immediate.
+    await Promise.all([this.#loadImage(), this.#loadSound()]);
   }
 
   /** Preload and decode the map image once per src. */
-  async ready() {
+  async #loadImage() {
     const { src } = this.#map;
     if (images.has(src)) return;
     const img = new Image();
     img.src = src;
     await img.decode();
     images.set(src, img);
+  }
+
+  async #loadSound() {
+    if (!this.#soundConfig) return;
+    // Sound#load waits for the first user gesture while audio is locked, which would hold the
+    // flight indefinitely on a client nobody has clicked yet. A locked client could not play it.
+    if (game.audio.locked) return;
+    // Interface, not environment: the flight sound is a transition effect, and each player's
+    // Interface slider is what should control it.
+    const sound = new foundry.audio.Sound(this.#soundConfig.src, { context: game.audio.interface });
+    // Sound#load does not throw on a missing file: it logs and marks the sound failed.
+    await sound.load();
+    if (sound.failed) console.warn(`Click Adventure | Travel sound "${this.#soundConfig.src}" could not be loaded.`);
+    else this.#sound = sound;
   }
 
   /**
@@ -120,6 +149,7 @@ export class FlightOverlay {
     // Force a style flush so the bars' transition runs from their collapsed state.
     void this.#root.offsetWidth;
     this.#root.classList.add("ca-flight--on");
+    this.#sound?.play({ loop: true, volume: this.#soundConfig.volume, fade: FADE_MS });
     const fade = this.#root.animate([{ opacity: 0 }, { opacity: 1 }], { duration: FADE_MS, easing: "ease", fill: "forwards" });
     await this.#race(fade.finished);
   }
@@ -186,6 +216,8 @@ export class FlightOverlay {
     ]));
     if (this.#destroyed) return;
     this.#caption.classList.remove("ca-flight-caption--on");
+    // A skipped flight fades its sound quickly, as it shortened the hold.
+    this.#sound?.stop({ fade: this.#skipped ? HOLD_SKIPPED_MS : FADE_MS });
     const fade = this.#root.animate([{ opacity: 1 }, { opacity: 0 }], { duration: FADE_MS, easing: "ease", fill: "forwards" });
     await this.#race(fade.finished);
     this.destroy();
@@ -273,6 +305,8 @@ export class FlightOverlay {
     if (this.#destroyed) return;
     this.#destroyed = true;
     this.#animation?.cancel();
+    // A new flight destroys the one still mounted; stopping here is what keeps sounds from stacking.
+    this.#sound?.stop();
     this.#root?.remove();
     if (mounted === this) mounted = null;
     this.#abort();

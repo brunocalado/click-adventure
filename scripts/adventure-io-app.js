@@ -337,6 +337,7 @@ export class AdventureIOApp extends HandlebarsApplicationMixin(ApplicationV2) {
     return {
       enabled: graph.flight?.enabled === true,
       pace: graph.flight?.pace ?? "normal",
+      sound: graph.flight?.sound ?? null,
       map: map.src,
       size: { width: map.width, height: map.height },
       rooms: [...overview.regions].map(region => ({
@@ -547,8 +548,12 @@ export class AdventureIOApp extends HandlebarsApplicationMixin(ApplicationV2) {
         );
         // apply() turns flight on; honour the exported switch.
         if (graph.flight.enabled === false) await setFlightEnabled(groupId, false);
-        // An older export has no pace, and the group reads as Normal.
-        if (["slow", "normal", "fast"].includes(graph.flight.pace)) await setFlightOptions(groupId, { pace: graph.flight.pace });
+        // An older export has no pace or sound: the group reads as Normal and silent. A sound path is
+        // kept even if the file is missing here; the flight then plays silent with a warning.
+        const options = {};
+        if (["slow", "normal", "fast"].includes(graph.flight.pace)) options.pace = graph.flight.pace;
+        if (typeof graph.flight.sound?.src === "string") options.sound = graph.flight.sound;
+        if (Object.keys(options).length) await setFlightOptions(groupId, options);
         warnings.push(...this._flightWarnings(graph.name, report));
       } catch (err) {
         warnings.push(`Group "${graph.name}" / overview map: ${err.message}`);

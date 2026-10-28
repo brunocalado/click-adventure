@@ -1,5 +1,6 @@
 # Unreleased
 
+- [Added] A travel sound per group in the Flight card: it plays on every client during a flight, on each player's Interface volume, and is kept in exports.
 - [Added] Flight pace per group (Slow, Normal, Fast) in the Flight card. Everyone flies at the GM's pace, and the pace is kept in exports.
 - [Changed] A flight between neighbouring rooms is quicker and one across the map is slower: travel time now follows the distance flown, from about 1.5 to 3 seconds.
 - [Added] A module can ship adventures by listing their export files under `flags.click-adventure.adventures` in its `module.json`. Export / Import lists them with an Import button, and Reimport replaces the group after a confirmation.

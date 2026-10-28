@@ -48,6 +48,14 @@
             {{/each}}
           </div>
         </div>
+        <div class="ca-flight-row">
+          <span class="ca-flight-text">Travel sound: <strong>{{#if flight.sound}}{{flight.sound.name}}{{else}}None{{/if}}</strong></span>
+          <button class="ca-btn ca-btn--quiet ca-flight-sound-choose" type="button"><i class="fa-solid fa-music"></i> Choose…</button>
+          {{#if flight.sound}}
+          <button class="ca-btn ca-btn--quiet ca-flight-sound-clear" type="button"><i class="fa-solid fa-xmark"></i> Clear</button>
+          <input class="ca-flight-sound-volume" type="range" min="0" max="1" step="0.05" value="{{flight.sound.volume}}" aria-label="Travel sound volume">
+          {{/if}}
+        </div>
         <p class="ca-flight-text ca-flight-status">{{flight.linkedCount}} of {{flight.nodeCount}} nodes linked to a room</p>
         {{#if flight.unlinked.length}}
         <ul class="ca-flight-unlinked">

@@ -66,6 +66,8 @@ function isValidFlightPayload(p) {
   if (map.width <= 0 || map.height <= 0) return false;
   if (action !== "view" && action !== "activate") return false;
   if (!Number.isFinite(p.pace) || p.pace < 0.5 || p.pace > 2) return false;
+  if (p.sound !== null && !(typeof p.sound?.src === "string" && p.sound.src
+    && Number.isFinite(p.sound.volume) && p.sound.volume >= 0 && p.sound.volume <= 1)) return false;
   if (!origins || typeof origins !== "object") return false;
   if (!Object.values(origins).every(o => o === null || isOutline(o))) return false;
   if (to?.kind === "map") return true;
@@ -112,7 +114,8 @@ export async function flyParty(target) {
     const origins = Object.fromEntries(users.map(u =>
       [u.id, rooms.find(r => r.node.id === originNodes.get(u.id)?.id)?.points ?? null]));
 
-    const payload = { overviewSceneId: overview.id, map: getOverviewMap(overview), to, origins, action, pace: paceMultiplier(group) };
+    const payload = { overviewSceneId: overview.id, map: getOverviewMap(overview), to, origins, action, pace: paceMultiplier(group),
+      sound: group.flight?.sound ?? null };
     socket.emitFlight(payload);
     const local = runFlight(payload);
 
@@ -218,13 +221,13 @@ export async function runFlight(payload) {
     console.warn("Click Adventure | Dropped a malformed FLIGHT message.", payload);
     return;
   }
-  const { overviewSceneId, map, to, origins, action, pace } = payload;
+  const { overviewSceneId, map, to, origins, action, pace, sound } = payload;
   if (!(game.userId in origins)) return;
   const destSceneId = to.kind === "map" ? overviewSceneId : to.sceneId;
   const destScene = game.scenes.get(destSceneId);
   if (!destScene) return;
 
-  const overlay = new FlightOverlay(map);
+  const overlay = new FlightOverlay(map, { sound });
   try {
     await overlay.ready();
     // A client already on the overview starts from what its own camera shows; else from its room.
