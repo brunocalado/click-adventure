@@ -133,7 +133,7 @@ The travel time grows with the distance flown, from about 1.5 s between neighbou
 
 ### What actually flies
 
-Only moves made by the GM in Guide mode fly, and only in a group whose flight switch is on: a double-click on a room on the overview, the HUD **Map** button, and Guide hops between linked rooms. Players moving on their own, Gated approvals, Manager teleports and group activation use the normal transition. A hop to a node without a Region also uses the normal transition. Player clients never read the overview's Regions. The GM sends them the geometry. If the group has a travel sound, every client that flies plays it on its Interface volume, fading in with the flight and out on landing.
+Only moves made by the GM in Guide mode fly, and only in a group whose flight switch is on: a double-click on a room on the overview, the HUD **Map** button, and Guide hops between linked rooms. Players moving on their own, Gated approvals, Manager teleports and group activation use the normal transition. A hop to a node without a Region also uses the normal transition. Player clients never read the overview's Regions. The GM sends them the geometry, and a flight message sent from a player's client is ignored. If the group has a travel sound, every client that flies plays it on its Interface volume, fading in with the flight and out on landing.
 
 ## Stored data
 

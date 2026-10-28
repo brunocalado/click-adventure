@@ -68,7 +68,16 @@ Each location has one panel for its images, linked scenes, macros, journal page,
 
 - A campaign can be split into named **Groups**, each with its own scene graph. You can switch between them at any time, and activating a group moves all players to that group's starting node.
 - Each group keeps its Foundry scenes in its own folder, so building or updating one adventure never touches another's scenes, along with any tiles, tokens, lighting or edits you made there. Deleting a group removes its folder and scenes, and **Reset Group** only affects the group you are working in.
-- Selected groups can be exported to a JSON file and imported into any world. The import creates the scenes and finds the referenced documents by name: macros, linked scenes, journal pages and playlist tracks reconnect to the matching documents in the destination world. Anything that cannot be found is reported as a warning, and the import still finishes. Use it to share a finished adventure or to back up your work.
+- Selected groups can be exported to a JSON file and imported into any world. The import creates the scenes and finds the referenced documents by name: macros, linked scenes, journal pages and playlist tracks reconnect to the matching documents in the destination world. Anything that cannot be found is reported as a warning, and the import still finishes. Use it to share a finished adventure or to back up your work. An import file can also be written by hand or by a script: only the group's name and each node's label are required, and links can name their nodes by label. The format is in [docs/API.md](docs/API.md#export-files).
+- An adventure module can declare its adventures in its own `module.json`. While that module is active, **Export / Import** lists them with an **Import** button. Once one is in the world, the button reads **Reimport**, which asks for confirmation and then replaces the group, its scenes and every change made to it. Nothing is imported automatically.
+
+### Flight over the map
+
+- A group can have an overview map: one image of the whole place, turned into a scene where each room is a GM-only Region linked to its node.
+- In Guide mode, the GM double-clicks a room on the overview and the party flies over the map to it. **Map** in the HUD brings everyone back out to the overview, and Guide moves between rooms with Regions also fly. Moves without a Region, and moves players make on their own, use the normal transition.
+- The flight takes longer the farther it goes, from about 1.5 seconds between neighbouring rooms to about 3 seconds across the map.
+- The **Flight over Map** card, in the **Scenes** tab of the settings, turns flight on for the current group, picks the overview map, links rooms to nodes, previews them and imports room data from a JSON file. It also sets the group's pace (**Slow**, **Normal** or **Fast**) and an optional travel sound with its volume. The sound plays on each player's Interface volume.
+- The overview map, its rooms, the pace and the sound are kept when the group is exported.
 
 ### GM tools
 
@@ -132,7 +141,7 @@ Macro writers and module developers can find the full API, how Click Adventure r
 
 ## Building a distributable adventure module
 
-To package your adventure for other people, follow the guide in the [Wiki](https://github.com/brunocalado/click-adventure/wiki/Building-a-Distributable-Adventure-Module-for-Click-Adventure).
+To package your adventure for other people, follow the guide in the [Wiki](https://github.com/brunocalado/click-adventure/wiki/Building-a-Distributable-Adventure-Module-for-Click-Adventure). The flag that makes your module's adventures show up in **Export / Import** is described in [docs/API.md](docs/API.md#shipping-an-adventure-in-your-module).
 
 ## Installation
 
