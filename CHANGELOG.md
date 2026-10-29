@@ -1,4 +1,4 @@
-# Unreleased
+# 0.4.0
 
 - [Added] Module adventures already in the world can be updated in place from Export / Import: the module's new content is applied while scenes, positions, opened doors, fired macros and nodes the GM added are kept. Replace still starts over.
 - [Added] Imported nodes without a Manager position are placed where their room is on the overview map.
