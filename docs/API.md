@@ -141,7 +141,7 @@ You can read this data from a macro or another module. Don't write to it: the sh
 
 | Where | Key | Contents |
 |---|---|---|
-| World setting | `click-adventure.graphs` | `{ activeGraphId, graphs: [{ id, name, startNodeId, nodes, links, flight? }] }`. Each entry is a group. |
+| World setting | `click-adventure.graphs` | `{ activeGraphId, graphs: [{ id, name, startNodeId, nodes, links, flight?, source? }] }`. Each entry is a group. |
 | User flag | `currentNodeId` | the node the user stands on |
 | User flag | `previousNodeId` | the node they came from |
 | User flag | `visitedSceneIds` | scenes the user has arrived at (used by Scene keys) |
@@ -159,6 +159,8 @@ const node = graphs.find(g => g.id === activeGraphId)?.nodes.find(n => n.id === 
 
 A group's `flight` is `{ enabled, overviewSceneId, pace?, sound? }`, with `pace` one of `"slow"`, `"normal"`, `"fast"` (absent means Normal) and `sound` as `{ src, volume }` (absent means silence), and a node may carry `flightRegionId`. Both are optional: if they're absent, flight is off and the link is resolved by name.
 
+A group imported or updated from a module carries `source`: `{ module, path, version, nodeIds, linkKeys }`, the module's id, the file's path, the module version applied last, and the node ids and links that version shipped. Update reads it to tell a node the module dropped from one the GM added.
+
 The older `click-adventure.graph` setting is legacy and unused.
 
 ## Shipping an adventure in your module
@@ -173,7 +175,13 @@ Declare one or more export files in your `module.json`:
 }
 ```
 
-Paths are full Data paths, like the image paths inside the file. When your module is active, **Export / Import** lists every group in those files with an **Import** button. The group keeps the `id` written in the file, which is how Click Adventure recognises it later: once it is in the world, its row offers **Update** and **Replace**. Update applies the file's content and keeps the group's scenes and what the GM placed on them, Manager positions, play state (opened doors, fired macros, the image each room shows) and nodes the GM added; it removes the nodes and links your module's previous version had and this one dropped. Replace starts the group over, after a confirmation. Keep node `id`s stable across releases, because a node whose id changes is removed and added again with a new scene. Bump your module's `version` so the GM sees that an update is available. Nothing is imported automatically. Keep the group's `id` stable across releases of your module, or a new release shows up as a second adventure. Foundry reads `module.json` only at launch, so restart the server after adding the flag.
+Paths are full Data paths, like the image paths inside the file. When your module is active, **Export / Import** lists every group in those files with an **Import** button. Nothing is imported automatically. Foundry reads `module.json` only at launch, so restart the server after adding the flag.
+
+The group keeps the `id` written in the file, which is how Click Adventure recognises it later. Once it is in the world, its row shows the version of your module it came from and offers **Update** and **Replace**. The **Update** button is highlighted when your module's `version` is newer, so bump it with each release.
+
+**Update** shows the GM what changes and asks before applying it. The content comes from your file: labels, images, macros, linked scenes, journal pages, music and links. The world keeps the group's scenes and what the GM placed on them, Manager positions, play state (opened doors, fired macros, the image each room shows) and nodes the GM added. Nodes and links that your previous version had and this one dropped are removed, with their scenes. On the overview map, a changed map image is swapped, rooms are added or reshaped by name, rooms your file no longer names are left alone, and the GM's flight switch is kept. **Replace** starts the group over, after a confirmation, and loses every change made to it.
+
+Keep the group's `id` stable across releases, or a new release shows up as a second adventure. Keep node `id`s stable too: a node whose id changes is removed and added again with a new scene.
 
 ## Export files
 
