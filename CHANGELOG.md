@@ -1,12 +1,13 @@
 # Unreleased
 
+- [Added] Module adventures already in the world can be updated in place from Export / Import: the module's new content is applied while scenes, positions, opened doors, fired macros and nodes the GM added are kept. Replace still starts over.
 - [Added] Imported nodes without a Manager position are placed where their room is on the overview map.
 - [Added] Import files can be written by hand: node ids, image ids, link anchors, passages and Manager positions are optional, and links can name nodes by label with `from` and `to`.
 - [Changed] Landing in a room now drifts the camera slightly into it while the map fades away.
 - [Added] A travel sound per group in the Flight card: it plays on every client during a flight, on each player's Interface volume, and is kept in exports.
 - [Added] Flight pace per group (Slow, Normal, Fast) in the Flight card. Everyone flies at the GM's pace, and the pace is kept in exports.
 - [Changed] A flight between neighbouring rooms is quicker and one across the map is slower: travel time now follows the distance flown, from about 1.5 to 3 seconds.
-- [Added] A module can ship adventures by listing their export files under `flags.click-adventure.adventures` in its `module.json`. Export / Import lists them with an Import button, and Reimport replaces the group after a confirmation.
+- [Added] A module can ship adventures by listing their export files under `flags.click-adventure.adventures` in its `module.json`. Export / Import lists them with an Import button, and Replace starts the group over after a confirmation.
 - [Fixed] Flight messages from a player's client are ignored, so only a GM can make the party fly.
 - [Fixed] Importing an adventure no longer discards changes saved to the world while its scenes were being created.
 - [Changed] The Instructions window has a Flight tab.

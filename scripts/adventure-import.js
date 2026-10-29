@@ -31,11 +31,13 @@ import { applyFlightData, setFlightEnabled, setFlightOptions } from "./flight-da
  *      `keepIds`, under the file's own ID, replacing a group that already has it.
  *
  * @param {object[]} graphs - graph objects from the import JSON
- * @param {{keepIds?: boolean}} [options]  keepIds: the group takes the file's own id, and an
- *   existing group with that id is replaced in place (same position in the list, same folder).
+ * @param {{keepIds?: boolean, source?: {module: Module, path: string}}} [options]  keepIds: the
+ *   group takes the file's own id, and an existing group with that id is replaced in place (same
+ *   position in the list, same folder). source: the module file the graphs came from, recorded on
+ *   the group so a later update knows the version and which nodes and links the module shipped.
  * @returns {Promise<void>}
  */
-export async function importGraphs(graphs, { keepIds = false } = {}) {
+export async function importGraphs(graphs, { keepIds = false, source = null } = {}) {
   ui.notifications.info("Click Adventure: Import started — creating scenes…");
 
   const warnings = [];
@@ -101,7 +103,8 @@ export async function importGraphs(graphs, { keepIds = false } = {}) {
         name:        graph.name,
         startNodeId: graph.startNodeId ?? "",
         nodes:       processedNodes,
-        links:       graph.links ?? []
+        links:       graph.links ?? [],
+        ...(source ? { source: adventureSource(source, graph) } : {})
       }
     });
   }
@@ -176,6 +179,35 @@ export async function importGraphs(graphs, { keepIds = false } = {}) {
 
   const manager = foundry.applications.instances.get("manager-app");
   if (manager?.rendered) manager.render({ force: true });
+}
+
+/**
+ * Identity of a link across versions of a module's file. A navigation link is one connection
+ * whichever way it is written, since its direction lives in its passages; a peek is one-sided.
+ * @param {object} link
+ * @returns {string}
+ */
+export function linkKey(link) {
+  if (link.type === "peek") return `peek|${link.sourceId}|${link.targetId}`;
+  const [a, b] = [link.sourceId, link.targetId].sort();
+  return `nav|${a}|${b}`;
+}
+
+/**
+ * What a group records about the module file it was last imported or updated from. The node ids
+ * and link keys are what let an update tell a node the module dropped from one the GM added.
+ * @param {{module: Module, path: string}} origin
+ * @param {object} graph  the normalized graph, so every node has its id
+ * @returns {{module: string, path: string, version: string, nodeIds: string[], linkKeys: string[]}}
+ */
+export function adventureSource({ module, path }, graph) {
+  return {
+    module:   module.id,
+    path,
+    version:  module.version ?? "",
+    nodeIds:  (graph.nodes ?? []).map(n => n.id),
+    linkKeys: (graph.links ?? []).map(linkKey)
+  };
 }
 
 /**

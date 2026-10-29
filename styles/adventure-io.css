@@ -15,7 +15,8 @@
      .ca-io-graph-list  Checkbox list of groups
      .ca-io-actions     Trailing action row of a section
      .ca-io-file-label  <label> wrapping a hidden file input, styled as a button
-     .ca-io-module-row  A module-shipped adventure: name, meta, and its Import / Reimport button
+     .ca-io-module-row  A module-shipped adventure: name, meta, and its Import or Update / Replace buttons
+     .ca-update-dialog  The Update confirmation (a DialogV2, outside the window's scope)
 */
 
 .click-adventure.adventure-io .ca-io-wrap {
@@ -128,5 +129,30 @@
 .click-adventure.adventure-io .ca-io-module-error {
   flex-shrink: 0;
   font-size: var(--ca-fs-micro);
+  color: var(--ca-state-warning);
+}
+
+.click-adventure.adventure-io .ca-io-update-available {
+  color: var(--ca-state-warning);
+}
+
+/* The update preview can list every node of a large adventure; the lists scroll instead of
+   pushing the buttons off screen. */
+.click-adventure.ca-update-dialog .ca-update-list {
+  margin: 0 0 var(--ca-space-3);
+  padding-left: var(--ca-space-6);
+  max-height: 140px;
+  overflow-y: auto;
+}
+
+.click-adventure.ca-update-dialog .dialog-content p {
+  margin: var(--ca-space-2) 0;
+}
+
+.click-adventure.ca-update-dialog .ca-update-fields {
+  color: var(--ca-text-faint);
+}
+
+.click-adventure.ca-update-dialog .ca-update-warning {
   color: var(--ca-state-warning);
 }

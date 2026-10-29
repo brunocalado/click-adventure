@@ -20,6 +20,7 @@
 
 import { MODULE_ID } from "./constants.js";
 import { importGraphs } from "./adventure-import.js";
+import { planUpdate, applyUpdate } from "./adventure-update.js";
 import { getNodeJournal, getNodeMusic } from "./node-media.js";
 import { getOverviewScene, getOverviewMap, regionPoints, resolveNodeRegion } from "./flight-data.js";
 
@@ -103,23 +104,27 @@ export class AdventureIOApp extends HandlebarsApplicationMixin(ApplicationV2) {
       context.importFileName = this._importFileName;
     }
 
-    const existingIds = new Set(context.graphs.map(g => g.id));
+    const existing = new Map((raw.graphs ?? []).map(g => [g.id, g]));
     context.moduleAdventures = [];
     for (const { module, path } of declaredAdventureFiles()) {
       const { graphs, error } = await this._loadModuleFile(path);
-      const base = { moduleTitle: module.title, path };
+      const base = { moduleTitle: module.title, moduleId: module.id, path };
       if (error) {
         context.moduleAdventures.push({ ...base, index: -1, name: path, error });
         continue;
       }
       graphs.forEach((g, index) => {
         const hasId = typeof g?.id === "string" && g.id !== "";
+        const source = hasId ? (existing.get(g.id)?.source ?? null) : null;
         context.moduleAdventures.push({
           ...base, index,
           name:      g?.name ?? path,
           nodeCount: (g?.nodes ?? []).length,
           linkCount: (g?.links ?? []).length,
-          imported:  hasId && existingIds.has(g.id),
+          imported:  hasId && existing.has(g.id),
+          installedVersion: source?.version || null,
+          availableVersion: module.version || null,
+          updateAvailable:  !!source && foundry.utils.isNewerVersion(module.version, source.version),
           error:     hasId ? null : "group has no id"
         });
       });
@@ -201,16 +206,38 @@ export class AdventureIOApp extends HandlebarsApplicationMixin(ApplicationV2) {
       this.render({ force: true });
     });
 
-    html.querySelectorAll("[data-action='module-import'], [data-action='module-reimport']").forEach(btn => {
+    html.querySelectorAll("[data-action='module-import'], [data-action='module-replace']").forEach(btn => {
       btn.addEventListener("click", async () => {
         const { path, index } = btn.dataset;
         const { graphs } = await this._loadModuleFile(path);
         const graph = graphs?.[parseInt(index, 10)];
-        if (!graph) return;
-        if (btn.dataset.action === "module-reimport" && !(await this._confirmReimport(graph, btn.dataset.moduleTitle))) return;
+        const module = game.modules.get(btn.dataset.moduleId);
+        if (!graph || !module) return;
+        if (btn.dataset.action === "module-replace" && !(await this._confirmReplace(graph, module.title))) return;
         btn.disabled = true;
-        await importGraphs([foundry.utils.deepClone(graph)], { keepIds: true });
+        await importGraphs([foundry.utils.deepClone(graph)], { keepIds: true, source: { module, path } });
         this.render({ force: true });
+      });
+    });
+
+    html.querySelectorAll("[data-action='module-update']").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const { path, index } = btn.dataset;
+        const { graphs } = await this._loadModuleFile(path);
+        const graph = graphs?.[parseInt(index, 10)];
+        const module = game.modules.get(btn.dataset.moduleId);
+        if (!graph || !module) return;
+        btn.disabled = true;
+        try {
+          const plan = await planUpdate(graph, { module, path });
+          if (!plan.empty && !(await this._confirmUpdate(plan, module.title))) return;
+          await applyUpdate(plan);
+        } catch (err) {
+          ui.notifications.error(`Click Adventure: Update failed — ${err.message}`);
+          console.error(err);
+        } finally {
+          this.render({ force: true });
+        }
       });
     });
 
@@ -236,18 +263,80 @@ export class AdventureIOApp extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   /**
+   * Shows what an update changes and asks before applying it.
+   * @param {import("./adventure-update.js").UpdatePlan} plan
+   * @param {string} moduleTitle
+   * @returns {Promise<boolean>}
+   */
+  async _confirmUpdate(plan, moduleTitle) {
+    const { escapeHTML } = foundry.utils;
+    const FIELD_NAMES = {
+      label: "name", images: "images", linkedScenes: "linked scenes", nodeMacros: "macros",
+      autolockMode: "autolock", isCameraRoom: "camera room", cameraLabel: "camera label",
+      journalTrigger: "journal trigger", journal: "journal", music: "music"
+    };
+    const list = items => `<ul class="ca-update-list">${items.map(i => `<li>${i}</li>`).join("")}</ul>`;
+    const names = labels => list(labels.map(l => escapeHTML(l)));
+    const { nodes, links, rooms, group, warnings } = plan;
+
+    const parts = [`<p>Update <strong>${escapeHTML(plan.fresh.name ?? "")}</strong> from
+      <strong>${escapeHTML(moduleTitle ?? "")}</strong> ${escapeHTML(plan.source.version ?? "")}?</p>`];
+    if (group.length) parts.push(`<p>Group: ${escapeHTML(group.join(", "))}.</p>`);
+    if (nodes.added.length) parts.push(`<p>${nodes.added.length} node(s) added:</p>${names(nodes.added)}`);
+    if (nodes.changed.length) {
+      parts.push(`<p>${nodes.changed.length} node(s) changed:</p>`
+        + list(nodes.changed.map(c => `${escapeHTML(c.label)} <span class="ca-update-fields">(${escapeHTML(c.fields.map(f => FIELD_NAMES[f] ?? f).join(", "))})</span>`)));
+    }
+    if (nodes.removed.length) parts.push(`<p>${nodes.removed.length} node(s) removed, with their scenes:</p>${names(nodes.removed)}`);
+    if (links.added || links.changed || links.removed) {
+      parts.push(`<p>Links: ${links.added} added, ${links.changed} changed, ${links.removed} removed.</p>`);
+    }
+    if (rooms.created.length || rooms.updated.length || rooms.mapChanged) {
+      const roomParts = [];
+      if (rooms.created.length) roomParts.push(`${rooms.created.length} created`);
+      if (rooms.updated.length) roomParts.push(`${rooms.updated.length} reshaped`);
+      if (rooms.mapChanged) roomParts.push("new map image");
+      parts.push(`<p>Overview: ${roomParts.join(", ")}.</p>`);
+    }
+    parts.push(`<p>Scenes, Manager positions, open doors and fired macros are kept. Nodes you added are kept${
+      nodes.keptByGm.length ? ` (${nodes.keptByGm.length})` : ""}. Changes you made to this module's nodes are replaced by the module's.</p>`);
+
+    // A deleted scene leaves whoever was viewing it on an empty canvas; nothing throws.
+    const removedIds = new Set(plan.removedNodeIds);
+    const stranded = game.users.filter(u => removedIds.has(u.getFlag(MODULE_ID, "currentNodeId"))).length;
+    if (stranded) parts.push(`<p>${stranded} user(s) stand on a removed node. They are moved off it, and anyone viewing its scene sees an empty canvas until you move them again.</p>`);
+
+    if (warnings.length) {
+      const shown = warnings.slice(0, 8).map(w => escapeHTML(w));
+      if (warnings.length > shown.length) shown.push(`…and ${warnings.length - shown.length} more, listed in the browser console after the update.`);
+      parts.push(`<p class="ca-update-warning">${warnings.length} warning(s):</p>${list(shown)}`);
+    }
+
+    const confirmed = await foundry.applications.api.DialogV2.confirm({
+      window: { title: "Update Adventure" },
+      classes: ["click-adventure", "ca-dialog", "ca-update-dialog"],
+      position: { width: 520 },
+      content: parts.join(""),
+      yes: { label: "Update", class: "ca-btn ca-btn--accent" },
+      no:  { label: "Cancel", class: "ca-btn ca-btn--quiet" },
+      rejectClose: false
+    });
+    return confirmed === true;
+  }
+
+  /**
    * Asks before a module adventure replaces the group already in the world.
    * @param {object} graph
    * @param {string} moduleTitle
    * @returns {Promise<boolean>}
    */
-  async _confirmReimport(graph, moduleTitle) {
+  async _confirmReplace(graph, moduleTitle) {
     const { escapeHTML } = foundry.utils;
     const col = game.settings.get(MODULE_ID, "graphs");
     const raw = typeof col?.toObject === "function" ? col.toObject() : (col ?? {});
     const isActive = raw.activeGraphId === graph.id;
     const confirmed = await foundry.applications.api.DialogV2.confirm({
-      window: { title: "Reimport Adventure" },
+      window: { title: "Replace Adventure" },
       classes: ["click-adventure", "ca-dialog"],
       content: `<p>Replace <strong>${escapeHTML(graph.name ?? "")}</strong> with the version shipped by
         <strong>${escapeHTML(moduleTitle ?? "")}</strong>?</p>
@@ -255,7 +344,7 @@ export class AdventureIOApp extends HandlebarsApplicationMixin(ApplicationV2) {
         positions and overview rooms. Its scenes are deleted and created again.</p>`
         // A deleted scene leaves whoever was viewing it on an empty canvas; nothing throws.
         + (isActive ? "<p>This is the active group. Players viewing its scenes will see an empty canvas until you move them again.</p>" : ""),
-      yes: { label: "Reimport", class: "ca-btn ca-btn--danger" },
+      yes: { label: "Replace", class: "ca-btn ca-btn--danger" },
       no:  { label: "Cancel", class: "ca-btn ca-btn--quiet" },
       rejectClose: false
     });
