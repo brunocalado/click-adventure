@@ -100,7 +100,8 @@ export async function flyParty(target) {
     const room = rooms.find(r => r.node.id === node.id);
     sceneId = getNodeActiveSceneId(node);
     if (!room || !sceneId || !game.scenes.get(sceneId)) return false;
-    // A hidden name never leaves the GM's client: the label can be the GM's own naming.
+    // A hidden name never leaves the GM's client: the label can be the GM's own naming. A missing
+    // label already means "no name" to every client, so the switch needs no payload field of its own.
     const label = group.flight?.caption === false ? null : node.label;
     to = { kind: "room", nodeId: node.id, sceneId, label, points: room.points };
   } else {

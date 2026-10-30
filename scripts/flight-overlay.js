@@ -157,6 +157,8 @@ export class FlightOverlay {
     await this.#race(fade.finished);
     // The name gets the whole trip to be read: it turns on as the camera starts moving, after the
     // overlay's fade-in, and its own CSS transition fades it in. land() hides it with the overlay.
+    // A longer landing hold would also give time to read it, but every hop would wait for it. It
+    // is set here and not in fly(), because showcase() calls fly() and manages the caption itself.
     if (!this.#destroyed && this.#caption.textContent) this.#caption.classList.add("ca-flight-caption--on");
   }
 
