@@ -199,7 +199,6 @@
   --ca-flight-vignette:       rgba(0, 0, 0, 0.85);
   --ca-flight-bar:            #000000;
   --ca-flight-caption:        #f3ede2;
-  --ca-flight-caption-shadow: #000000;
   --ca-flight-mask:           #000000;               /* edge mask: only its alpha matters */
 
   /* Z-layers */

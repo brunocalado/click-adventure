@@ -25,7 +25,7 @@
      .ca-flight-label            Preview: a room's name
      .ca-flight-fog / -grain / -vignette   Cinematic dressing
      .ca-flight-bar--top/bottom  Letterbox bars
-     .ca-flight-caption--on      Room name, shown from takeoff to landing
+     .ca-flight-caption--on      Room name in the bottom bar, shown from takeoff to landing
 */
 
 .click-adventure.ca-flight {
@@ -36,6 +36,7 @@
   opacity: 0;
   cursor: pointer;
   background: var(--ca-flight-paper);
+  --ca-flight-bar-height: 9vh;
 }
 
 .click-adventure.ca-flight .ca-flight-world {
@@ -145,7 +146,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  height: 9vh;
+  height: var(--ca-flight-bar-height);
   background: var(--ca-flight-bar);
   transform: scaleY(0);
   transition: transform 0.5s ease;
@@ -165,17 +166,20 @@
   transform: scaleY(1);
 }
 
+/* Centred in the bottom letterbox bar: the one part of the overlay whose colour no map changes,
+   so the name reads the same over light and dark maps. The vh cap keeps it inside the bar on a
+   short window. A font colour, a heavier shadow or a dark plate over the map all fail on some
+   map art; sampling the map under the caption would mean canvas reads of a moving image. */
 .click-adventure.ca-flight .ca-flight-caption {
   position: absolute;
   left: 50%;
-  bottom: 13vh;
-  transform: translateX(-50%);
+  bottom: calc(var(--ca-flight-bar-height) / 2);
+  transform: translate(-50%, 50%);
   color: var(--ca-flight-caption);
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(18px, 3vw, 30px);
+  font-size: clamp(18px, min(3vw, 4.5vh), 30px);
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  text-shadow: 0 2px 12px var(--ca-flight-caption-shadow);
   white-space: nowrap;
   pointer-events: none;
   opacity: 0;

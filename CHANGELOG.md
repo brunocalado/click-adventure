@@ -1,3 +1,7 @@
+# Unreleased
+
+- [Changed] During a flight, the destination's name sits in the black bar at the bottom of the screen, so it reads the same over light and dark maps.
+
 # 0.4.1
 
 - [Changed] Updating a module adventure keeps the GM's flight pace, travel sound and Room name, and applies only the ones the module changed since the version last applied.

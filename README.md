@@ -74,7 +74,7 @@ Each location has one panel for its images, linked scenes, macros, journal page,
 ### Flight over the map
 
 - A group can have an overview map: one image of the whole place, turned into a scene where each room is a GM-only Region linked to its node.
-- In Guide mode, the GM double-clicks a room on the overview and the party flies over the map to it. The destination's name shows at the bottom of the screen for the whole flight. **Map** in the HUD brings everyone back out to the overview, and Guide moves between rooms with Regions also fly. Moves without a Region, and moves players make on their own, use the normal transition.
+- In Guide mode, the GM double-clicks a room on the overview and the party flies over the map to it. The destination's name shows in the black bar at the bottom of the screen for the whole flight. **Map** in the HUD brings everyone back out to the overview, and Guide moves between rooms with Regions also fly. Moves without a Region, and moves players make on their own, use the normal transition.
 - The flight takes longer the farther it goes, from about 1.5 seconds between neighbouring rooms to about 3 seconds across the map.
 - The **Flight over Map** card, in the **Scenes** tab of the settings, turns flight on for the current group, picks the overview map, links rooms to nodes, previews them and imports room data from a JSON file. It also sets the group's pace (**Slow**, **Normal** or **Fast**), the **Room name** switch (**Shown** or **Hidden**) and an optional travel sound with its volume. The sound plays on each player's Interface volume.
 - Hidden keeps the names you gave your rooms, such as "Secret Crypt", off the players' screens: the name is never sent to them.
