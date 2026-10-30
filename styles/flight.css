@@ -25,7 +25,7 @@
      .ca-flight-label            Preview: a room's name
      .ca-flight-fog / -grain / -vignette   Cinematic dressing
      .ca-flight-bar--top/bottom  Letterbox bars
-     .ca-flight-caption--on      Room name shown on landing
+     .ca-flight-caption--on      Room name, shown from takeoff to landing
 */
 
 .click-adventure.ca-flight {

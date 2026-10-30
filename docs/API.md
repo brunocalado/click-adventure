@@ -129,6 +129,8 @@ await ClickAdventure.Flight.preview({
 - `{ kind: "room", points: [x0, y0, x1, y1, …], label }` for a room, as a **flat** array;
 - `{ kind: "view", x, y, scale }` for a centre and a zoom (start point only).
 
+`caption`, or else the `label` of a room framing `to`, is shown from takeoff to landing. A flight to the whole map shows no name.
+
 The travel time grows with the distance flown, from about 1.5 s between neighbouring rooms to about 3 s across the map. A flight to or from the whole map counts as a medium distance, and the time is multiplied by the group's pace: Slow, Normal or Fast in the Flight card. Every client flies at the GM's pace. `preview()` always flies at Normal. The fades and the hold are fixed.
 
 ### What actually flies

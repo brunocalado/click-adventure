@@ -147,6 +147,7 @@ export class FlightOverlay {
     this.#to = this.#resolve(to);
     this.#kinds = [from.kind, to.kind];
     this.#mount(from, to);
+    this.#caption.textContent = to.kind === "room" ? (to.label ?? "") : "";
     this.#setCamera(this.#from);
     // Force a style flush so the bars' transition runs from their collapsed state.
     void this.#root.offsetWidth;
@@ -154,6 +155,9 @@ export class FlightOverlay {
     this.#sound?.play({ loop: true, volume: this.#soundConfig.volume, fade: FADE_MS });
     const fade = this.#root.animate([{ opacity: 0 }, { opacity: 1 }], { duration: FADE_MS, easing: "ease", fill: "forwards" });
     await this.#race(fade.finished);
+    // The name gets the whole trip to be read: it turns on as the camera starts moving, after the
+    // overlay's fade-in, and its own CSS transition fades it in. land() hides it with the overlay.
+    if (!this.#destroyed && this.#caption.textContent) this.#caption.classList.add("ca-flight-caption--on");
   }
 
   /**
@@ -202,16 +206,12 @@ export class FlightOverlay {
   }
 
   /**
-   * Show `caption`, hold at least 650 ms (150 ms after a skip) and until `until` settles, then
-   * fade out and unmount. `until` is how navigation holds on the destination while it loads.
-   * @param {{caption?: string, until?: Promise<unknown>}} [options]
+   * Hold at least 650 ms (150 ms after a skip) and until `until` settles, then hide the name, fade out
+   * and unmount. `until` is how navigation holds on the destination while it loads.
+   * @param {{until?: Promise<unknown>}} [options]
    */
-  async land({ caption, until } = {}) {
+  async land({ until } = {}) {
     if (this.#destroyed) return;
-    if (caption) {
-      this.#caption.textContent = caption;
-      this.#caption.classList.add("ca-flight-caption--on");
-    }
     // Entering the room rather than the map vanishing: a slow push that starts at rest (the flight's
     // easing lands at zero speed, so ease-in continues it without a jolt) and runs through the hold
     // and the fade-out. Map landings are excluded: matchOverviewCamera lines the overlay up with the

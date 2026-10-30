@@ -1,3 +1,7 @@
+# Unreleased
+
+- [Changed] A flight shows the destination's name from takeoff until it lands, instead of only during the short hold on landing.
+
 # 0.4.0
 
 - [Added] Module adventures already in the world can be updated in place from Export / Import: the module's new content is applied while scenes, positions, opened doors, fired macros and nodes the GM added are kept. Replace still starts over.

@@ -240,7 +240,6 @@ export async function runFlight(payload) {
     const arrived = action === "view" ? viewWithRetry(destScene) : waitForCanvasScene(destSceneId);
     await overlay.fly({ pace });
     await overlay.land({
-      caption: to.label,
       until: arrived.then(() => to.kind === "map" ? matchOverviewCamera(overlay, map) : null)
     });
   } catch (err) {

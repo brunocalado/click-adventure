@@ -483,9 +483,9 @@ Hooks.on("init", () => {
       preview: async ({ map, from, to, caption }) => {
         const overlay = new FlightOverlay(map);
         await overlay.ready();
-        await overlay.cover(from, to);
+        await overlay.cover(from, caption ? { ...to, label: caption } : to);
         await overlay.fly();
-        await overlay.land({ caption });
+        await overlay.land();
       },
 
       /**
