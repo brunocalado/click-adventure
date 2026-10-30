@@ -23,10 +23,16 @@
  *
  * Nodes and links leave only when the module's previous file had them (`group.source`), so
  * nodes the GM added survive. A group with no `source` removes nothing.
+ *
+ * The flight's pace, sound and room-name switch are the exception to "the file wins": they are
+ * table choices, like the flight switch, and an export writes them whether or not the author ever
+ * touched them. They are few enough to keep a copy of, so `source.flight` holds what the file last
+ * shipped, and an update applies only the options the module changed since then. Never applying
+ * them would leave a renamed sound file silent.
  */
 
 import { MODULE_ID } from "./constants.js";
-import { processNode, flightWarnings, linkKey, adventureSource } from "./adventure-import.js";
+import { processNode, flightWarnings, linkKey, adventureSource, fileFlightOptions } from "./adventure-import.js";
 import { normalizeImportGraph } from "./import-normalize.js";
 import { getOrCreateGroupFolder, createSceneForNode } from "./manager-scene-ops.js";
 import { syncNodeTile } from "./node-utils.js";
@@ -61,6 +67,7 @@ function readGroup(groupId) {
  * @property {{added: number, changed: number, removed: number}} links
  * @property {{created: string[], updated: string[], mapChanged: boolean}} rooms
  * @property {string[]} group        group-level settings that change: name, start node, flight pace, flight sound, flight room name
+ * @property {object} flightOptions  the flight options the update writes (see shippedFlightChanges)
  * @property {string[]} warnings     unresolved macros/journals/tracks, plus "no source: nothing removed"
  * @property {boolean} empty         true when nothing would change
  */
@@ -120,15 +127,9 @@ export async function planUpdate(fileGraph, origin) {
   const group = [];
   if (fresh.name !== world.name) group.push("name");
   if ((fresh.startNodeId ?? "") !== (world.startNodeId ?? "")) group.push("start node");
-  if (fresh.flight) {
-    const pace = ["slow", "normal", "fast"].includes(fresh.flight.pace) ? fresh.flight.pace : null;
-    if (pace && pace !== (world.flight?.pace ?? "normal")) group.push("flight pace");
-    const sound = typeof fresh.flight.sound?.src === "string" ? fresh.flight.sound : null;
-    if (sound && !foundry.utils.equals(sound, world.flight?.sound ?? null)) group.push("flight sound");
-    if (typeof fresh.flight.caption === "boolean" && fresh.flight.caption !== (world.flight?.caption !== false)) {
-      group.push("flight room name");
-    }
-  }
+  const flightOptions = fresh.flight ? shippedFlightChanges(world, fresh) : {};
+  const flightLabels = { pace: "flight pace", sound: "flight sound", caption: "flight room name" };
+  for (const key of Object.keys(flightOptions)) group.push(flightLabels[key]);
 
   const rooms = planRooms(world, fresh.flight);
 
@@ -150,12 +151,33 @@ export async function planUpdate(fileGraph, origin) {
     links: merged.links,
     rooms,
     group,
+    flightOptions,
     warnings
   };
   plan.empty = !plan.nodes.added.length && !changed.length && !plan.nodes.removed.length
     && !plan.links.added && !plan.links.changed && !plan.links.removed
     && !rooms.created.length && !rooms.updated.length && !rooms.mapChanged && !group.length;
   return plan;
+}
+
+/**
+ * The flight options the file changed since the version last applied, keeping only those that
+ * differ from the group's current value. A group whose `source` has no `flight` (imported before
+ * it was recorded) takes every option the file sets, as an import does, once.
+ * @param {object} world
+ * @param {object} fresh  the normalized file graph
+ * @returns {{pace?: string, sound?: {src: string, volume: number}, caption?: boolean}}
+ */
+function shippedFlightChanges(world, fresh) {
+  const shipped = world.source?.flight;
+  const current = {
+    pace: world.flight?.pace ?? "normal",
+    sound: world.flight?.sound ?? null,
+    caption: world.flight?.caption !== false
+  };
+  return Object.fromEntries(Object.entries(fileFlightOptions(fresh.flight)).filter(([key, value]) =>
+    (!shipped || !foundry.utils.equals(value, shipped[key] ?? null))
+    && !foundry.utils.equals(value, current[key])));
 }
 
 /**
@@ -390,11 +412,7 @@ export async function applyUpdate(plan) {
       );
       if (overview) await setFlightEnabled(groupId, world.flight?.enabled === true);
       else if (flight.enabled === false) await setFlightEnabled(groupId, false);
-      const options = {};
-      if (["slow", "normal", "fast"].includes(flight.pace)) options.pace = flight.pace;
-      if (typeof flight.sound?.src === "string") options.sound = flight.sound;
-      if (typeof flight.caption === "boolean") options.caption = flight.caption;
-      if (Object.keys(options).length) await setFlightOptions(groupId, options);
+      if (Object.keys(plan.flightOptions).length) await setFlightOptions(groupId, plan.flightOptions);
       warnings.push(...flightWarnings(fresh.name, report));
     } catch (err) {
       warnings.push(`Group "${fresh.name}" / overview map: ${err.message}`);

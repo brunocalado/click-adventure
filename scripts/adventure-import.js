@@ -135,12 +135,9 @@ export async function importGraphs(graphs, { keepIds = false, source = null } = 
       // apply() turns flight on; honour the exported switch.
       if (graph.flight.enabled === false) await setFlightEnabled(groupId, false);
       // An older export has no pace, sound or caption: the group reads as Normal, silent and showing
-      // room names. A sound path is
-      // kept even if the file is missing here; the flight then plays silent with a warning.
-      const options = {};
-      if (["slow", "normal", "fast"].includes(graph.flight.pace)) options.pace = graph.flight.pace;
-      if (typeof graph.flight.sound?.src === "string") options.sound = graph.flight.sound;
-      if (typeof graph.flight.caption === "boolean") options.caption = graph.flight.caption;
+      // room names. A sound path is kept even if the file is missing here; the flight then plays
+      // silent with a warning.
+      const options = fileFlightOptions(graph.flight);
       if (Object.keys(options).length) await setFlightOptions(groupId, options);
       warnings.push(...flightWarnings(graph.name, report));
     } catch (err) {
@@ -197,10 +194,11 @@ export function linkKey(link) {
 
 /**
  * What a group records about the module file it was last imported or updated from. The node ids
- * and link keys are what let an update tell a node the module dropped from one the GM added.
+ * and link keys are what let an update tell a node the module dropped from one the GM added; the
+ * flight options, one the module changed from one the GM chose.
  * @param {{module: Module, path: string}} origin
  * @param {object} graph  the normalized graph, so every node has its id
- * @returns {{module: string, path: string, version: string, nodeIds: string[], linkKeys: string[]}}
+ * @returns {{module: string, path: string, version: string, nodeIds: string[], linkKeys: string[], flight: object}}
  */
 export function adventureSource({ module, path }, graph) {
   return {
@@ -208,8 +206,23 @@ export function adventureSource({ module, path }, graph) {
     path,
     version:  module.version ?? "",
     nodeIds:  (graph.nodes ?? []).map(n => n.id),
-    linkKeys: (graph.links ?? []).map(linkKey)
+    linkKeys: (graph.links ?? []).map(linkKey),
+    flight:   fileFlightOptions(graph.flight)
   };
+}
+
+/**
+ * The flight options a file sets. An option the file leaves out, or writes in a shape this version
+ * doesn't know, is absent, so it never overwrites the group's own value.
+ * @param {object} [flight]  a file graph's `flight`
+ * @returns {{pace?: string, sound?: {src: string, volume: number}, caption?: boolean}}
+ */
+export function fileFlightOptions(flight) {
+  const options = {};
+  if (["slow", "normal", "fast"].includes(flight?.pace)) options.pace = flight.pace;
+  if (typeof flight?.sound?.src === "string") options.sound = flight.sound;
+  if (typeof flight?.caption === "boolean") options.caption = flight.caption;
+  return options;
 }
 
 /**

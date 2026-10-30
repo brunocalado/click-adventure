@@ -129,13 +129,13 @@ await ClickAdventure.Flight.preview({
 - `{ kind: "room", points: [x0, y0, x1, y1, …], label }` for a room, as a **flat** array;
 - `{ kind: "view", x, y, scale }` for a centre and a zoom (start point only).
 
-`caption`, or else the `label` of a room framing `to`, is shown from takeoff to landing. A flight to the whole map shows no name.
+`caption`, or else the `label` of a room framing `to`, is shown from takeoff to landing. A flight to the whole map shows no name. `preview()` shows a name whenever one is given, whatever the group's Room name switch says.
 
 The travel time grows with the distance flown, from about 1.5 s between neighbouring rooms to about 3 s across the map. A flight to or from the whole map counts as a medium distance, and the time is multiplied by the group's pace: Slow, Normal or Fast in the Flight card. Every client flies at the GM's pace. `preview()` always flies at Normal. The fades and the hold are fixed.
 
 ### What actually flies
 
-Only moves made by the GM in Guide mode fly, and only in a group whose flight switch is on: a double-click on a room on the overview, the HUD **Map** button, and Guide hops between linked rooms. Players moving on their own, Gated approvals, Manager teleports and group activation use the normal transition. A hop to a node without a Region also uses the normal transition. Player clients never read the overview's Regions. The GM sends them the geometry, and a flight message sent from a player's client is ignored. If the group has a travel sound, every client that flies plays it on its Interface volume, fading in with the flight and out on landing.
+Only moves made by the GM in Guide mode fly, and only in a group whose flight switch is on: a double-click on a room on the overview, the HUD **Map** button, and Guide hops between linked rooms. Players moving on their own, Gated approvals, Manager teleports and group activation use the normal transition. A hop to a node without a Region also uses the normal transition. Player clients never read the overview's Regions. The GM sends them the geometry, and a flight message sent from a player's client is ignored. If the group has a travel sound, every client that flies plays it on its Interface volume, fading in with the flight and out on landing. Every client that flies shows the destination's name from takeoff to landing, unless the group's Room name is Hidden. The GM then leaves the name out of the flight message, so it never reaches a player's client.
 
 ## Stored data
 
@@ -159,9 +159,9 @@ const { activeGraphId, graphs } = game.settings.get("click-adventure", "graphs")
 const node = graphs.find(g => g.id === activeGraphId)?.nodes.find(n => n.id === nodeId);
 ```
 
-A group's `flight` is `{ enabled, overviewSceneId, pace?, sound?, caption? }`, with `pace` one of `"slow"`, `"normal"`, `"fast"` (absent means Normal) and `sound` as `{ src, volume }` (absent means silence). `caption: false` hides the destination's name during flights (absent means shown); the name is then not sent to players. A node may carry `flightRegionId`. Both are optional: if they're absent, flight is off and the link is resolved by name.
+A group's `flight` is `{ enabled, overviewSceneId, pace?, sound?, caption? }`, with `pace` one of `"slow"`, `"normal"`, `"fast"` (absent means Normal) and `sound` as `{ src, volume }` (absent means silence). `caption: false` hides the destination's name during flights (absent means shown); the name is then not sent to players. A node may carry `flightRegionId`. `flight` and `flightRegionId` are both optional: if they're absent, flight is off and the link is resolved by name.
 
-A group imported or updated from a module carries `source`: `{ module, path, version, nodeIds, linkKeys }`, the module's id, the file's path, the module version applied last, and the node ids and links that version shipped. Update reads it to tell a node the module dropped from one the GM added.
+A group imported or updated from a module carries `source`: `{ module, path, version, nodeIds, linkKeys, flight }`, the module's id, the file's path, the module version applied last, and the node ids, links and flight options (`pace`, `sound`, `caption`) that version shipped. Update reads it to tell a node the module dropped from one the GM added, and a flight option the module changed from one the GM chose.
 
 The older `click-adventure.graph` setting is legacy and unused.
 
@@ -181,7 +181,7 @@ Paths are full Data paths, like the image paths inside the file. When your modul
 
 The group keeps the `id` written in the file, which is how Click Adventure recognises it later. Once it is in the world, its row shows the version of your module it came from and offers **Update** and **Replace**. The **Update** button is highlighted when your module's `version` is newer, so bump it with each release.
 
-**Update** shows the GM what changes and asks before applying it. The content comes from your file: labels, images, macros, linked scenes, journal pages, music and links. The world keeps the group's scenes and what the GM placed on them, Manager positions, play state (opened doors, fired macros, the image each room shows) and nodes the GM added. Nodes and links that your previous version had and this one dropped are removed, with their scenes. On the overview map, a changed map image is swapped, rooms are added or reshaped by name, rooms your file no longer names are left alone, and the GM's flight switch is kept. **Replace** starts the group over, after a confirmation, and loses every change made to it.
+**Update** shows the GM what changes and asks before applying it. The content comes from your file: labels, images, macros, linked scenes, journal pages, music and links. The world keeps the group's scenes and what the GM placed on them, Manager positions, play state (opened doors, fired macros, the image each room shows) and nodes the GM added. Nodes and links that your previous version had and this one dropped are removed, with their scenes. On the overview map, a changed map image is swapped, rooms are added or reshaped by name, rooms your file no longer names are left alone, and the GM's flight switch is kept. The flight's pace, travel sound and Room name are the GM's too: an update applies one only when your file changed it since the version last applied, and lists it in what changes. A group imported before Click Adventure recorded these takes your file's values on its first update. **Replace** starts the group over, after a confirmation, and loses every change made to it.
 
 Keep the group's `id` stable across releases, or a new release shows up as a second adventure. Keep node `id`s stable too: a node whose id changes is removed and added again with a new scene.
 
