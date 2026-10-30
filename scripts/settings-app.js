@@ -105,7 +105,8 @@ export class SettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
         volume: group.flight.sound.volume
       } : null,
       paces: [["slow", "Slow"], ["normal", "Normal"], ["fast", "Fast"]].map(([value, label]) =>
-        ({ value, label, active: pace === value }))
+        ({ value, label, active: pace === value })),
+      caption: group?.flight?.caption !== false
     };
 
     return context;
@@ -350,6 +351,13 @@ export class SettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
     card.querySelectorAll(".ca-flight-pace .ca-btn-group-btn").forEach(btn => {
       btn.addEventListener("click", async () => {
         await setFlightOptions(group.id, { pace: btn.dataset.value });
+        this.render();
+      });
+    });
+
+    card.querySelectorAll(".ca-flight-name .ca-btn-group-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        await setFlightOptions(group.id, { caption: btn.dataset.value === "on" });
         this.render();
       });
     });

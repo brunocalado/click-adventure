@@ -49,6 +49,13 @@
           </div>
         </div>
         <div class="ca-flight-row">
+          <span class="ca-flight-text">Room name</span>
+          <div class="ca-btn-group ca-flight-name">
+            <button type="button" class="ca-btn-group-btn {{#if flight.caption}}ca-btn-group-btn--active{{/if}}" data-value="on">Shown</button>
+            <button type="button" class="ca-btn-group-btn {{#unless flight.caption}}ca-btn-group-btn--active{{/unless}}" data-value="off">Hidden</button>
+          </div>
+        </div>
+        <div class="ca-flight-row">
           <span class="ca-flight-text">Travel sound: <strong>{{#if flight.sound}}{{flight.sound.name}}{{else}}None{{/if}}</strong></span>
           <button class="ca-btn ca-btn--quiet ca-flight-sound-choose" type="button"><i class="fa-solid fa-music"></i> Choose…</button>
           {{#if flight.sound}}

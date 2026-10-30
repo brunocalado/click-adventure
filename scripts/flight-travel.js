@@ -100,7 +100,9 @@ export async function flyParty(target) {
     const room = rooms.find(r => r.node.id === node.id);
     sceneId = getNodeActiveSceneId(node);
     if (!room || !sceneId || !game.scenes.get(sceneId)) return false;
-    to = { kind: "room", nodeId: node.id, sceneId, label: node.label, points: room.points };
+    // A hidden name never leaves the GM's client: the label can be the GM's own naming.
+    const label = group.flight?.caption === false ? null : node.label;
+    to = { kind: "room", nodeId: node.id, sceneId, label, points: room.points };
   } else {
     sceneId = overview.id;
     to = { kind: "map" };

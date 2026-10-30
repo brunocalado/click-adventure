@@ -60,7 +60,7 @@ function readGroup(groupId) {
  * @property {string[]} removedNodeIds
  * @property {{added: number, changed: number, removed: number}} links
  * @property {{created: string[], updated: string[], mapChanged: boolean}} rooms
- * @property {string[]} group        group-level settings that change: name, start node, flight pace, flight sound
+ * @property {string[]} group        group-level settings that change: name, start node, flight pace, flight sound, flight room name
  * @property {string[]} warnings     unresolved macros/journals/tracks, plus "no source: nothing removed"
  * @property {boolean} empty         true when nothing would change
  */
@@ -125,6 +125,9 @@ export async function planUpdate(fileGraph, origin) {
     if (pace && pace !== (world.flight?.pace ?? "normal")) group.push("flight pace");
     const sound = typeof fresh.flight.sound?.src === "string" ? fresh.flight.sound : null;
     if (sound && !foundry.utils.equals(sound, world.flight?.sound ?? null)) group.push("flight sound");
+    if (typeof fresh.flight.caption === "boolean" && fresh.flight.caption !== (world.flight?.caption !== false)) {
+      group.push("flight room name");
+    }
   }
 
   const rooms = planRooms(world, fresh.flight);
@@ -390,6 +393,7 @@ export async function applyUpdate(plan) {
       const options = {};
       if (["slow", "normal", "fast"].includes(flight.pace)) options.pace = flight.pace;
       if (typeof flight.sound?.src === "string") options.sound = flight.sound;
+      if (typeof flight.caption === "boolean") options.caption = flight.caption;
       if (Object.keys(options).length) await setFlightOptions(groupId, options);
       warnings.push(...flightWarnings(fresh.name, report));
     } catch (err) {

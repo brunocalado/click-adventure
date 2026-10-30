@@ -159,7 +159,7 @@ const { activeGraphId, graphs } = game.settings.get("click-adventure", "graphs")
 const node = graphs.find(g => g.id === activeGraphId)?.nodes.find(n => n.id === nodeId);
 ```
 
-A group's `flight` is `{ enabled, overviewSceneId, pace?, sound? }`, with `pace` one of `"slow"`, `"normal"`, `"fast"` (absent means Normal) and `sound` as `{ src, volume }` (absent means silence), and a node may carry `flightRegionId`. Both are optional: if they're absent, flight is off and the link is resolved by name.
+A group's `flight` is `{ enabled, overviewSceneId, pace?, sound?, caption? }`, with `pace` one of `"slow"`, `"normal"`, `"fast"` (absent means Normal) and `sound` as `{ src, volume }` (absent means silence). `caption: false` hides the destination's name during flights (absent means shown); the name is then not sent to players. A node may carry `flightRegionId`. Both are optional: if they're absent, flight is off and the link is resolved by name.
 
 A group imported or updated from a module carries `source`: `{ module, path, version, nodeIds, linkKeys }`, the module's id, the file's path, the module version applied last, and the node ids and links that version shipped. Update reads it to tell a node the module dropped from one the GM added.
 

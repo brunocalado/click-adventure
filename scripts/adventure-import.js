@@ -134,11 +134,13 @@ export async function importGraphs(graphs, { keepIds = false, source = null } = 
       );
       // apply() turns flight on; honour the exported switch.
       if (graph.flight.enabled === false) await setFlightEnabled(groupId, false);
-      // An older export has no pace or sound: the group reads as Normal and silent. A sound path is
+      // An older export has no pace, sound or caption: the group reads as Normal, silent and showing
+      // room names. A sound path is
       // kept even if the file is missing here; the flight then plays silent with a warning.
       const options = {};
       if (["slow", "normal", "fast"].includes(graph.flight.pace)) options.pace = graph.flight.pace;
       if (typeof graph.flight.sound?.src === "string") options.sound = graph.flight.sound;
+      if (typeof graph.flight.caption === "boolean") options.caption = graph.flight.caption;
       if (Object.keys(options).length) await setFlightOptions(groupId, options);
       warnings.push(...flightWarnings(graph.name, report));
     } catch (err) {

@@ -1,5 +1,6 @@
 # Unreleased
 
+- [Added] A Room name switch in the Flight card hides the destination's name during flights for that group. When hidden, the name is not sent to players, and the switch is kept in exports.
 - [Changed] A flight shows the destination's name from takeoff until it lands, instead of only during the short hold on landing.
 
 # 0.4.0

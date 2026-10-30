@@ -427,6 +427,7 @@ export class AdventureIOApp extends HandlebarsApplicationMixin(ApplicationV2) {
       enabled: graph.flight?.enabled === true,
       pace: graph.flight?.pace ?? "normal",
       sound: graph.flight?.sound ?? null,
+      caption: graph.flight?.caption !== false,
       map: map.src,
       size: { width: map.width, height: map.height },
       rooms: [...overview.regions].map(region => ({
