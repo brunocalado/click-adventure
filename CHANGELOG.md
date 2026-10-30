@@ -1,4 +1,4 @@
-# Unreleased
+# 0.4.1
 
 - [Changed] Updating a module adventure keeps the GM's flight pace, travel sound and Room name, and applies only the ones the module changed since the version last applied.
 - [Added] A Room name switch in the Flight card hides the destination's name during flights for that group. When hidden, the name is not sent to players, and the switch is kept in exports.
