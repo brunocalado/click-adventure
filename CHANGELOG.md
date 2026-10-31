@@ -1,4 +1,4 @@
-# Unreleased
+# 0.4.2
 
 - [Changed] During a flight, the destination's name sits in the black bar at the bottom of the screen, so it reads the same over light and dark maps.
 
